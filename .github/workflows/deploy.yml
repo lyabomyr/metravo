@@ -6,7 +6,7 @@ name: deploy
 #
 # GitHub Secrets are the only place settings are kept — this workflow hands
 # them to Render and finds both public URLs by itself. Every step is skipped
-# until its secret exists. See docs/SETUP.uk.md.
+# until its secret exists. See README.md, section 4.
 on:
   workflow_run:
     workflows: [ci]

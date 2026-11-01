@@ -6,7 +6,7 @@ Cloudflare: `.github/workflows/deploy.yml` copies the secrets to Render and
 discovers both public URLs on every deploy. Every deploy step is skipped until
 its secret exists, so the repo stays green during setup.
 
-A Ukrainian walkthrough with the current state is in [SETUP.uk.md](SETUP.uk.md).
+A detailed step-by-step walkthrough (in Ukrainian) is in the [README](../README.md).
 
 ## 1. Accounts and the secrets they give
 
