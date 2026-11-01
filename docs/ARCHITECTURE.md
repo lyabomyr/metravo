@@ -45,6 +45,11 @@ data.
   `.github/scripts/deploy.py` copies them to Render and reads back both public
   URLs (Render service, Cloudflare Pages project) for the build and the
   Telegram webhook. `render.yaml` holds only fixed, non-secret settings.
+- **Infrastructure as code.** `infra/terraform` (OpenTofu) declares what the
+  free tiers let us manage as code — the Cloudflare Pages project — with its
+  state encrypted on the `infra-state` branch. Render's free service is
+  described by `render.yaml` instead, because Render's API cannot create or
+  update free services.
 - **Two kinds of database.** The control database is ours — it decides who
   exists, what they pay and where their data lives. Each user's database
   holds only their searches and listings; we can hand out credentials to it

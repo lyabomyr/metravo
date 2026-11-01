@@ -16,3 +16,9 @@ frontend/.angular/
 *.local
 
 .DS_Store
+
+# OpenTofu
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan

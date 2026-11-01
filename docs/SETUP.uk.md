@@ -51,6 +51,19 @@
 cd /Users/lubomirkacko/metravo && git push -u origin main
 ```
 
+## Крок 1½. Ключ для стану інфраструктури (1 хв)
+
+Інфраструктура описана кодом у `infra/terraform` (OpenTofu). Свій стан OpenTofu
+шифрує і зберігає в гілці `infra-state` цього ж репозиторію. Ключ шифрування лежить лише в GitHub.
+
+```bash
+openssl rand -hex 32
+```
+
+| Секрет | Куди | Для чого |
+|---|---|---|
+| `TF_STATE_PASSPHRASE` | GitHub **Secret** | шифрує файл стану інфраструктури; без нього крок «Infrastructure» пропускається |
+
 ## Крок 2. Render — один раз (3 хв)
 
 1. https://render.com → **Sign in with GitHub**.
@@ -73,12 +86,15 @@ GitHub → **Variables** → `ADMIN_EMAILS` = твій імейл. Тоді то
 GitHub → **Actions → deploy → Run workflow**. Далі він запускатиметься сам після кожного зеленого CI на `main`.
 
 Що він робить:
-1. Знаходить або створює проєкт `metravo` у Cloudflare Pages і бере його адресу (`https://metravo….pages.dev`).
+1. Застосовує `infra/terraform`: проєкт `metravo` у Cloudflare Pages, звідки бере адресу сайту (`https://metravo.pages.dev`).
 2. Передає секрети на Render, разом з адресою сайту, і запускає деплой API. Звідти ж бере адресу API.
 3. Збирає сайт з адресою API і викладає його.
 4. Вказує Telegram-боту адресу вебхука.
 
-Обидві адреси видно в лозі кроків «Cloudflare Pages project» і «API on Render».
+Обидві адреси видно в лозі кроків «Infrastructure (OpenTofu)» і «API on Render».
+
+Render лишається в `render.yaml`, а не в Terraform: API Render не дозволяє створювати
+безкоштовні сервіси, а Terraform-провайдер не вміє їх оновлювати. Що і де описано, дивись у `infra/terraform/README.md`.
 
 ## Крок 5. Firebase — дозволити домен сайту (1 хв)
 

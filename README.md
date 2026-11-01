@@ -47,7 +47,8 @@ docs/
   DEPLOYMENT.md       one-time setup of every free account, step by step
   SETUP.uk.md         the same, in Ukrainian: which secret, where it comes from, where it goes
 .github/workflows/    ci · deploy
-.github/scripts/      deploy.py — copies GitHub Secrets to Render, finds the public URLs
+infra/terraform/      OpenTofu — the infrastructure that can be code (state encrypted on branch infra-state)
+.github/scripts/      deploy.py — copies GitHub Secrets to Render · tfstate.sh — saves the encrypted state
 render.yaml           the API on Render (fixed, non-secret settings only)
 ```
 

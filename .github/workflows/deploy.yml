@@ -1,7 +1,8 @@
 name: deploy
 
-# After CI passes on main: push settings to the API on Render and deploy it,
-# publish the site to Cloudflare Pages, point the Telegram bot at the API.
+# After CI passes on main: apply the infrastructure (infra/terraform), push
+# settings to the API on Render and deploy it, publish the site to Cloudflare
+# Pages, point the Telegram bot at the API.
 #
 # GitHub Secrets are the only place settings are kept — this workflow hands
 # them to Render and finds both public URLs by itself. Every step is skipped
@@ -17,6 +18,9 @@ concurrency:
   group: deploy
   cancel-in-progress: false
 
+permissions:
+  contents: write   # tfstate.sh saves the encrypted state to the infra-state branch
+
 jobs:
   deploy:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
@@ -27,13 +31,26 @@ jobs:
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+      TF_VAR_state_passphrase: ${{ secrets.TF_STATE_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cloudflare Pages project
+      - uses: opentofu/setup-opentofu@v1
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.TF_VAR_state_passphrase != ''
+        with: { tofu_version: 1.13.1, tofu_wrapper: false }
+
+      - name: Infrastructure (OpenTofu)
         id: pages
-        if: env.CLOUDFLARE_API_TOKEN != ''
-        run: python3 .github/scripts/deploy.py pages
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.TF_VAR_state_passphrase != ''
+        working-directory: infra/terraform
+        env:
+          TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ../../.github/scripts/tfstate.sh pull
+          tofu init -input=false
+          tofu apply -input=false -auto-approve || { ../../.github/scripts/tfstate.sh push; exit 1; }
+          ../../.github/scripts/tfstate.sh push
+          echo "url=$(tofu output -raw site_url)" >> "$GITHUB_OUTPUT"
 
       - name: API on Render — settings and deploy
         id: api

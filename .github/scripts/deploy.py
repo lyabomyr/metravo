@@ -4,10 +4,10 @@ GitHub Secrets are the one place settings live. This script copies them to
 the hosts at deploy time and finds out the hosts' public addresses, so nobody
 types a URL or a secret into Render or Cloudflare by hand.
 
-    python3 .github/scripts/deploy.py pages    # make sure the Pages project exists → its URL
     python3 .github/scripts/deploy.py render   # push settings to Render, deploy → the API URL
 
-Each command prints the URL and writes ``url=<…>`` to $GITHUB_OUTPUT.
+It prints the URL and writes ``url=<…>`` to $GITHUB_OUTPUT. The website's
+Cloudflare Pages project is declared in infra/terraform.
 """
 
 from __future__ import annotations
@@ -15,10 +15,8 @@ from __future__ import annotations
 import json
 import os
 import sys
-import urllib.error
 import urllib.request
 
-PAGES_PROJECT = "metravo"
 RENDER_SERVICE = "metravo-api"
 
 # Copied from the workflow's environment to the API on Render. Fixed settings
@@ -44,19 +42,6 @@ def call(method: str, url: str, token: str, body: dict | None = None) -> dict | 
         return json.loads(response.read() or b"{}")
 
 
-def pages() -> str:
-    token, account = os.environ["CLOUDFLARE_API_TOKEN"], os.environ["CLOUDFLARE_ACCOUNT_ID"]
-    base = f"https://api.cloudflare.com/client/v4/accounts/{account}/pages/projects"
-    try:
-        project = call("GET", f"{base}/{PAGES_PROJECT}", token)["result"]
-    except urllib.error.HTTPError as error:
-        if error.code != 404:
-            raise
-        project = call("POST", base, token, {"name": PAGES_PROJECT, "production_branch": "main"})["result"]
-        print(f"created Cloudflare Pages project {PAGES_PROJECT}", file=sys.stderr)
-    return f"https://{project['subdomain']}"
-
-
 def render() -> str:
     token = os.environ["RENDER_API_KEY"]
     api = "https://api.render.com/v1"
@@ -74,7 +59,7 @@ def render() -> str:
     return service["serviceDetails"]["url"]
 
 
-COMMANDS = {"pages": pages, "render": render}
+COMMANDS = {"render": render}
 
 
 def main() -> None:
