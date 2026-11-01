@@ -60,8 +60,9 @@ jobs:
           working-directory: e2e
           start: >-
             bash -c "cd ../backend && uvicorn app.main:create_app --factory --port 8000",
-            bash -c "cd ../frontend && npx ng serve --port 4200"
-          wait-on: "http://localhost:8000/api/health, http://localhost:4200"
+            bash -c "cd ../frontend && npx ng serve --host 127.0.0.1 --port 4200"
+          # 127.0.0.1, not localhost: Node 24 tries IPv6 first and the servers listen on IPv4.
+          wait-on: "http://127.0.0.1:8000/api/health, http://127.0.0.1:4200"
           wait-on-timeout: 180
       - uses: actions/upload-artifact@v4
         if: failure()
