@@ -1,6 +1,6 @@
 """Command-line entry points for jobs that run outside a web request.
 
-    python -m app.cli scan           # one scan run (GitHub Actions calls this)
+    python -m app.cli scan           # one scan run by hand (the API schedules its own)
     python -m app.cli set-webhook    # point the Telegram bot at this API
 """
 

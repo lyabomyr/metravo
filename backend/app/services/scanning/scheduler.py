@@ -1,0 +1,75 @@
+"""Scans on a timer, inside the API process — no external cron needed."""
+
+from __future__ import annotations
+
+import logging
+import threading
+import time
+
+import requests
+
+from .service import ScanService
+
+log = logging.getLogger(__name__)
+
+
+class KeepAlive:
+    """Calls our own health check now and then, so a free host never idles us to sleep."""
+
+    def __init__(self, url: str, every_seconds: int):
+        self.url = url
+        self.every_seconds = every_seconds
+        self._last = 0.0
+
+    def ping_if_due(self, now: float) -> None:
+        if now - self._last < self.every_seconds:
+            return
+        self._last = now
+        try:
+            requests.get(self.url, timeout=10)
+        except requests.RequestException as error:
+            log.warning("keep-alive ping failed: %s", error)
+
+
+class ScanScheduler:
+    """Every tick, scan whatever is due. Each search decides how often it is due.
+
+    Runs in one background thread. A tick never overlaps the previous one, and
+    an error in one tick is logged and does not stop the next.
+    """
+
+    def __init__(self, scanner: ScanService, tick_seconds: int, keep_alive: KeepAlive | None = None):
+        self._scanner = scanner
+        self._tick_seconds = tick_seconds
+        self._keep_alive = keep_alive
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    def tick(self) -> None:
+        if self._keep_alive:
+            self._keep_alive.ping_if_due(time.monotonic())
+        try:
+            report = self._scanner.run()
+        except Exception:  # noqa: BLE001 — the loop must survive anything one run throws
+            log.exception("scheduled scan failed")
+            return
+        if report.searches_scanned:
+            log.info("scheduled scan: %s", report)
+
+    def start(self) -> None:
+        if self._thread and self._thread.is_alive():
+            return
+        self._stop.clear()
+        self._thread = threading.Thread(target=self._loop, name="scan-scheduler", daemon=True)
+        self._thread.start()
+        log.info("scan scheduler started, tick every %ss", self._tick_seconds)
+
+    def stop(self) -> None:
+        self._stop.set()
+        if self._thread:
+            self._thread.join(timeout=5)
+
+    def _loop(self) -> None:
+        while not self._stop.is_set():
+            self.tick()
+            self._stop.wait(self._tick_seconds)

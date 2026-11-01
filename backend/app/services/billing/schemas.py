@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import date
 
 from pydantic import BaseModel
 
@@ -13,14 +14,16 @@ class PlanOut(BaseModel):
     name: str
     price_pln: int
     max_searches: int
-    scan_interval_minutes: int
+    min_interval_minutes: int
     sources: list[str]
     price_alerts: bool
     database_credentials: bool
+    available_from: date | None
+    on_sale: bool
 
     @classmethod
-    def of(cls, plan: Plan) -> PlanOut:
-        return cls(**{**asdict(plan), "sources": list(plan.sources)})
+    def of(cls, plan: Plan, today: date) -> PlanOut:
+        return cls(**{**asdict(plan), "sources": list(plan.sources), "on_sale": plan.is_on_sale(today)})
 
 
 class SubscriptionOut(BaseModel):

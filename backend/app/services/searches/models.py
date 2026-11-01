@@ -6,6 +6,20 @@ from datetime import datetime, timedelta
 from ...core.clock import parse_iso
 from ..connectors.models import DealType, PropertyType, SearchQuery
 
+#: How often a search may be scanned, in minutes. The plan sets the floor.
+SCAN_INTERVALS: tuple[int, ...] = (15, 30, 60, 180, 360, 720, 1440)
+DEFAULT_SCAN_INTERVAL = 1440  # once a day
+
+
+def describe_interval(minutes: int) -> str:
+    """15 → "every 15 min", 180 → "every 3 h", 1440 → "daily"."""
+    if minutes >= 1440:
+        return "daily" if minutes == 1440 else f"every {minutes // 1440} days"
+    if minutes >= 60:
+        return "hourly" if minutes == 60 else f"every {minutes // 60} h"
+    return f"every {minutes} min"
+
+
 # Listings that are not a whole, normal flat. Prefix-matched, so "udział"
 # also catches "udziału".
 DEFAULT_REJECT_KEYWORDS: tuple[str, ...] = (
@@ -33,6 +47,7 @@ class Search:
     #: Every one of these must appear (e.g. "balkon"). Empty = no requirement.
     required_keywords: list[str] = field(default_factory=list)
     reject_keywords: list[str] = field(default_factory=lambda: list(DEFAULT_REJECT_KEYWORDS))
+    interval_minutes: int = DEFAULT_SCAN_INTERVAL
     enabled: bool = True
     last_scanned_at: str | None = None
     created_at: str = ""

@@ -16,6 +16,7 @@ export interface SearchDraft {
   min_build_year: number | null;
   sources: string[];
   required_keywords: string[];
+  interval_minutes: number;
   enabled: boolean;
 }
 
@@ -44,5 +45,13 @@ export const DEFAULT_SEARCH: SearchDraft = {
   min_build_year: null,
   sources: ['otodom', 'olx', 'morizon'],
   required_keywords: [],
+  interval_minutes: 1440,
   enabled: true,
 };
+
+/** 15 → "Every 15 min", 180 → "Every 3 h", 1440 → "Daily". */
+export function describeInterval(minutes: number): string {
+  if (minutes >= 1440) return minutes === 1440 ? 'Daily' : `Every ${minutes / 1440} days`;
+  if (minutes >= 60) return minutes === 60 ? 'Hourly' : `Every ${minutes / 60} h`;
+  return `Every ${minutes} min`;
+}

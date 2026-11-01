@@ -21,6 +21,10 @@ export interface PublicConfig {
   billing_provider: string;
   sources: string[];
   source_capabilities: Record<string, SourceCapability[]>;
+  /** How often a search may be scanned, in minutes. */
+  scan_intervals: number[];
+  /** The most often each plan allows, in minutes. */
+  plan_min_intervals: Record<string, number>;
   cities: City[];
 }
 

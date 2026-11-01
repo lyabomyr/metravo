@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
@@ -30,8 +32,17 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     settings = settings or (container.settings if container else Settings.from_env())
     settings.validate()
-    app = FastAPI(title="Metravo API", version="1.0.0")
-    app.state.container = container or Container(settings)
+    container = container or Container(settings)
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        if settings.scheduler_enabled:
+            container.scheduler.start()
+        yield
+        container.scheduler.stop()
+
+    app = FastAPI(title="Metravo API", version="1.0.0", lifespan=lifespan)
+    app.state.container = container
     install_cors(app, settings)
     install_error_handlers(app)
     for router in ROUTERS:

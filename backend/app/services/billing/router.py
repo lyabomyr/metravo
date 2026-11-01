@@ -12,7 +12,8 @@ router = APIRouter(prefix="/api/billing", tags=["billing"])
 
 @router.get("/plans", response_model=list[PlanOut])
 def plans(container: Container = Depends(get_container)):
-    return [PlanOut.of(plan) for plan in container.billing.plans()]
+    today = container.clock.now().date()
+    return [PlanOut.of(plan, today) for plan in container.billing.plans()]
 
 
 @router.get("/subscription", response_model=SubscriptionOut | None)

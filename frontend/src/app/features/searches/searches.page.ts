@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
-import { Search } from './search.model';
+import { Search, describeInterval } from './search.model';
 import { SearchesApiService } from './searches-api.service';
 
 @Component({
@@ -14,6 +14,7 @@ import { SearchesApiService } from './searches-api.service';
   templateUrl: './searches.page.html',
 })
 export class SearchesPage extends BasePage implements OnInit {
+  protected readonly describe = describeInterval;
   private readonly api = inject(SearchesApiService);
   protected readonly searches = signal<Search[]>([]);
 

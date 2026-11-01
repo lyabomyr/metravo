@@ -1,6 +1,8 @@
 # Render Blueprint — the API on Render's free web service.
-# Render → New → Blueprint → pick this repo. Values marked sync:false are
-# asked for once in the Render dashboard; see docs/DEPLOYMENT.md.
+# Render → New → Blueprint → pick this repo, once. That is all you do on Render:
+# secrets stay in GitHub and .github/workflows/deploy.yml copies them here on
+# every deploy (it also triggers the deploy, so autoDeploy is off — nothing
+# ships before CI is green).
 services:
   - type: web
     name: metravo-api
@@ -10,28 +12,13 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
-    autoDeploy: true
+    autoDeploy: false
     envVars:
       - { key: PYTHON_VERSION, value: "3.12.7" }
       - { key: APP_ENV, value: prod }
       - { key: TENANT_PROVISIONER, value: turso }
       - { key: AUTH_PROVIDERS, value: firebase }
-      - { key: BILLING_PROVIDER, value: stripe }
-      - { key: JWT_SECRET, generateValue: true }
-      - { key: CONTROL_DB_URL, sync: false }
-      - { key: CONTROL_DB_TOKEN, sync: false }
-      - { key: TURSO_API_TOKEN, sync: false }
-      - { key: TURSO_ORG, sync: false }
-      - { key: FIREBASE_PROJECT_ID, sync: false }
-      - { key: FIREBASE_WEB_CONFIG, sync: false }
-      - { key: ADMIN_EMAILS, sync: false }
-      - { key: FRONTEND_URL, sync: false }
-      - { key: PUBLIC_API_URL, sync: false }
-      - { key: CORS_ORIGINS, sync: false }
-      - { key: TELEGRAM_BOT_TOKEN, sync: false }
-      - { key: TELEGRAM_BOT_USERNAME, sync: false }
-      - { key: TELEGRAM_WEBHOOK_SECRET, sync: false }
-      - { key: STRIPE_SECRET_KEY, sync: false }
-      - { key: STRIPE_WEBHOOK_SECRET, sync: false }
-      - { key: STRIPE_PRICE_PRO, sync: false }
-      - { key: CRON_SECRET, sync: false }
+      - { key: BILLING_PROVIDER, value: none }   # stripe, when Pro goes on sale
+      - { key: PRO_AVAILABLE_FROM, value: "2026-11-15" } # Pro shows as "coming soon" until then
+      - { key: SCHEDULER_ENABLED, value: "true" } # the API scans on its own, no cron
+      - { key: JWT_SECRET, generateValue: true }  # made by Render once, never leaves it

@@ -10,80 +10,113 @@
     </div>
   </div>
 
-  <div class="form-grid">
-    <label>
-      Name
-      <input formControlName="name" data-cy="search-name" />
-    </label>
-    <label>
-      City
-      <select formControlName="city" data-cy="search-city">
-        @for (city of config.cities; track city.key) {
-          <option [value]="city.key">{{ city.label }}</option>
-        }
-      </select>
-    </label>
-    <label>
-      {{ form.controls.deal_type.value === 'rent' ? 'Max rent, zł / month' : 'Budget, zł' }}
-      <input type="number" formControlName="max_price" data-cy="search-max-price" />
-    </label>
-    <label>
-      Min price, zł <span class="muted">(optional)</span>
-      <input type="number" formControlName="min_price" />
-    </label>
-    <label>
-      Min area, m²
-      <input type="number" formControlName="min_area" data-cy="search-min-area" />
-    </label>
-    <label>
-      Max area, m² <span class="muted">(optional)</span>
-      <input type="number" formControlName="max_area" />
-    </label>
-    <label>
-      Rooms from <span class="muted">(optional)</span>
-      <input type="number" formControlName="min_rooms" data-cy="search-min-rooms" />
-    </label>
-    <label>
-      Rooms up to <span class="muted">(optional)</span>
-      <input type="number" formControlName="max_rooms" />
-    </label>
-    <label>
-      Max zł per m² <span class="muted">(optional)</span>
-      <input type="number" formControlName="max_price_per_m2" data-cy="search-max-per-m2" />
-    </label>
-    <label>
-      Built after <span class="muted">(optional)</span>
-      <input type="number" formControlName="min_build_year" />
-    </label>
-  </div>
-
-  <label>
-    Must mention <span class="muted">(comma-separated, e.g. balkon, winda — optional)</span>
-    <input formControlName="required_keywords" data-cy="search-required" />
-  </label>
-
-  <fieldset class="checks" style="border: 0; padding: 0">
-    <legend class="muted">Portals</legend>
-    @for (source of config.sources; track source) {
-      <label [class.muted]="!supports(source)">
-        <input
-          type="checkbox"
-          [checked]="selectedSources().has(source) && supports(source)"
-          [disabled]="!supports(source)"
-          (change)="toggleSource(source, $any($event.target).checked)"
-          [attr.data-cy]="'source-' + source"
-        />
-        {{ source }}
-        @if (!supports(source)) {
-          <span>(not available for this search)</span>
-        }
+  <section>
+    <h3 class="section-title">Search</h3>
+    <div class="list">
+      <label class="list__row">
+        <span>Name</span>
+        <input formControlName="name" data-cy="search-name" />
       </label>
-    }
-  </fieldset>
+      <label class="list__row">
+        <span>City</span>
+        <select formControlName="city" data-cy="search-city">
+          @for (city of config.cities; track city.key) {
+            <option [value]="city.key">{{ city.label }}</option>
+          }
+        </select>
+      </label>
+      <label class="list__row">
+        <span>Check for new</span>
+        <select formControlName="interval_minutes" data-cy="search-interval">
+          @for (minutes of config.scan_intervals; track minutes) {
+            <option [ngValue]="minutes" [disabled]="minutes < planFloor()">
+              {{ describe(minutes) }}{{ minutes < planFloor() ? ' · Pro' : '' }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+  </section>
 
-  <div class="row">
-    <button class="button button--primary" type="submit" [disabled]="busy() || form.invalid" data-cy="search-save">
-      {{ submitLabel() }}
-    </button>
-  </div>
+  <section>
+    <h3 class="section-title">Price</h3>
+    <div class="list">
+      <label class="list__row">
+        <span>{{ form.controls.deal_type.value === 'rent' ? 'Max rent, zł / month' : 'Budget, zł' }}</span>
+        <input type="number" inputmode="numeric" formControlName="max_price" data-cy="search-max-price" />
+      </label>
+      <label class="list__row">
+        <span>Min price, zł</span>
+        <input type="number" inputmode="numeric" formControlName="min_price" placeholder="Any" />
+      </label>
+      <label class="list__row">
+        <span>Max zł per m²</span>
+        <input type="number" inputmode="numeric" formControlName="max_price_per_m2" placeholder="Any" data-cy="search-max-per-m2" />
+      </label>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section-title">Size</h3>
+    <div class="list">
+      <label class="list__row">
+        <span>Min area, m²</span>
+        <input type="number" inputmode="decimal" formControlName="min_area" data-cy="search-min-area" />
+      </label>
+      <label class="list__row">
+        <span>Max area, m²</span>
+        <input type="number" inputmode="decimal" formControlName="max_area" placeholder="Any" />
+      </label>
+      <label class="list__row">
+        <span>Rooms from</span>
+        <input type="number" inputmode="numeric" formControlName="min_rooms" placeholder="Any" data-cy="search-min-rooms" />
+      </label>
+      <label class="list__row">
+        <span>Rooms up to</span>
+        <input type="number" inputmode="numeric" formControlName="max_rooms" placeholder="Any" />
+      </label>
+      <label class="list__row">
+        <span>Built after</span>
+        <input type="number" inputmode="numeric" formControlName="min_build_year" placeholder="Any" />
+      </label>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section-title">Must mention</h3>
+    <div class="list">
+      <label class="list__row list__row--stacked">
+        <input formControlName="required_keywords" placeholder="balkon, winda" data-cy="search-required" />
+      </label>
+    </div>
+    <p class="section-note">Comma-separated. Leave empty to accept any listing.</p>
+  </section>
+
+  <section>
+    <h3 class="section-title">Portals</h3>
+    <div class="list">
+      @for (source of config.sources; track source) {
+        <label class="list__row" [class.list__row--disabled]="!supports(source)">
+          <span>
+            {{ source }}
+            @if (!supports(source)) {
+              <span class="list__hint"> · not available for this search</span>
+            }
+          </span>
+          <input
+            class="switch"
+            type="checkbox"
+            [checked]="selectedSources().has(source) && supports(source)"
+            [disabled]="!supports(source)"
+            (change)="toggleSource(source, $any($event.target).checked)"
+            [attr.data-cy]="'source-' + source"
+          />
+        </label>
+      }
+    </div>
+  </section>
+
+  <button class="button button--primary button--block" type="submit" [disabled]="busy() || form.invalid" data-cy="search-save">
+    {{ submitLabel() }}
+  </button>
 </form>

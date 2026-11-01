@@ -34,13 +34,35 @@ def test_each_page_is_fetched_once_for_all_users(container, sign_in):
     assert report.fetches == 3  # otodom, olx, morizon — not 9
 
 
-def test_search_is_not_rescanned_before_its_plan_interval(container, sign_in, clock):
+def test_search_is_scanned_once_a_day_by_default(container, sign_in, clock):
     user = sign_in()
     container.searches.create(user, make_search())
     assert container.scanner.run().searches_scanned == 1
-    clock.advance(minutes=30)
-    assert container.scanner.run().searches_scanned == 0  # free plan: every 120 min
-    clock.advance(minutes=91)
+    clock.advance(hours=23)
+    assert container.scanner.run().searches_scanned == 0
+    clock.advance(hours=1)
+    assert container.scanner.run().searches_scanned == 1
+
+
+def test_search_follows_its_own_interval(container, sign_in, clock):
+    user = sign_in()
+    container.searches.create(user, make_search(interval_minutes=360))
+    container.scanner.run()
+    clock.advance(minutes=359)
+    assert container.scanner.run().searches_scanned == 0
+    clock.advance(minutes=1)
+    assert container.scanner.run().searches_scanned == 1
+
+
+def test_plan_floor_applies_after_a_downgrade(container, sign_in, clock):
+    user = sign_in()
+    container.users.set_plan(user.id, PRO)
+    container.searches.create(container.users.get(user.id), make_search(interval_minutes=15))
+    container.scanner.run()
+    container.users.set_plan(user.id, "free")
+    clock.advance(minutes=15)
+    assert container.scanner.run().searches_scanned == 0  # Free scans at most every 6 h
+    clock.advance(hours=6)
     assert container.scanner.run().searches_scanned == 1
 
 
@@ -48,7 +70,7 @@ def test_price_change_is_reported_to_pro_users(container, sign_in, telegram, clo
     user = sign_in()
     container.users.set_plan(user.id, PRO)
     link_telegram(container, user)
-    search = container.searches.create(user, make_search(sources=["otodom"]))
+    search = container.searches.create(container.users.get(user.id), make_search(sources=["otodom"], interval_minutes=15))
     container.scanner.run()
 
     class CheaperOtodom(PageFetcher):

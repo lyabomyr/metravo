@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from html import escape
 
+from ...searches.models import describe_interval
 from ...searches.service import SearchService
 from ...users.service import UserService
 from ..link_service import TelegramLinkService
@@ -23,12 +24,12 @@ class StatusCommand(BaseCommand):
         searches = self._searches.list(context.user)
         lines = [
             f"Account: <b>{escape(context.user.email)}</b> · plan <b>{plan.name}</b>",
-            f"Scans every {plan.scan_interval_minutes} min · this chat is {'⏸ paused' if chat.paused else '▶️ active'}",
+            f"This chat is {'⏸ paused' if chat.paused else '▶️ active'}",
             "",
         ]
         lines += [
             f"{'🟢' if s.enabled else '⚪️'} {escape(s.name)} — {s.deal_type.value} {s.property_type.value}, "
-            f"{s.city}, ≤ {s.max_price:,} zł, ≥ {s.min_area:g} m²".replace(",", " ")
+            f"{s.city}, ≤ {s.max_price:,} zł, ≥ {s.min_area:g} m², {describe_interval(s.interval_minutes)}".replace(",", " ")
             for s in searches
         ] or ["No searches yet — add one on the website."]
         return "\n".join(lines)

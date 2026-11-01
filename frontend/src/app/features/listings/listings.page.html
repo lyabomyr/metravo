@@ -1,6 +1,10 @@
-<app-page-header title="Listings" subtitle="Every flat your searches have matched, newest first.">
+<app-page-header title="Listings" subtitle="Everything your searches matched, newest first.">
   <button class="button button--primary" type="button" (click)="scanNow()" [disabled]="loading()" data-cy="scan-now">
-    {{ loading() ? 'Scanning…' : 'Scan now' }}
+    @if (loading()) {
+      <span class="spinner"></span> Checking…
+    } @else {
+      Check now
+    }
   </button>
 </app-page-header>
 
@@ -9,36 +13,37 @@
 @if (lastScan(); as report) {
   <div class="banner banner--success" data-cy="scan-report">
     @if (report.searches_scanned) {
-      Scanned {{ report.searches_scanned }} search(es): {{ report.new_listings }} new, {{ report.price_changes }} price change(s).
+      Checked {{ report.searches_scanned }} search(es): {{ report.new_listings }} new, {{ report.price_changes }} price change(s).
     } @else {
-      Nothing to scan yet — your searches were scanned recently and will run again on your plan's schedule.
+      Nothing to check yet — your searches ran recently and will run again on their schedule.
     }
   </div>
 }
 
 @if (priceChanges().length) {
-  <section class="card stack" style="margin-bottom: 16px">
-    <h2>Recent price changes</h2>
-    <table>
+  <section class="stack" style="margin-bottom: 20px">
+    <h3 class="section-title">Price changes</h3>
+    <div class="list">
       @for (change of priceChanges(); track change.key + change.changed_at) {
-        <tr>
-          <td><a [href]="change.url" target="_blank" rel="noopener">{{ change.title }}</a></td>
-          <td>{{ change.old_price | number: '1.0-0' }} → <b>{{ change.new_price | number: '1.0-0' }}</b> zł</td>
-          <td class="muted">{{ change.changed_at | date: 'short' }}</td>
-        </tr>
+        <a class="list__row price-change" [href]="change.url" target="_blank" rel="noopener">
+          <span>{{ change.title }}</span>
+          <span class="muted small"><s>{{ change.old_price | number: '1.0-0' }}</s></span>
+          <span class="price-change__drop">{{ change.new_price | number: '1.0-0' }} zł</span>
+        </a>
       }
-    </table>
+    </div>
   </section>
 }
 
-<div class="stack">
+<div class="grid">
   @for (listing of listings(); track listing.search_id + listing.key) {
     <app-listing-card [listing]="listing" />
   } @empty {
     @if (!loading()) {
-      <p class="muted" data-cy="no-listings">
-        Nothing yet. Make sure you have a <a routerLink="/searches">search</a>, then press “Scan now”.
-      </p>
+      <div class="empty" data-cy="no-listings">
+        <div class="empty__icon">🏡</div>
+        <p>Nothing yet. Make sure you have a <a routerLink="/searches">search</a>, then press “Check now”.</p>
+      </div>
     }
   }
 </div>

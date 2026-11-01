@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -13,7 +13,7 @@ import { ScanApiService } from './scan-api.service';
 
 @Component({
   selector: 'app-listings-page',
-  imports: [RouterLink, DatePipe, DecimalPipe, ErrorBannerComponent, PageHeaderComponent, ListingCardComponent],
+  imports: [RouterLink, DecimalPipe, ErrorBannerComponent, PageHeaderComponent, ListingCardComponent],
   templateUrl: './listings.page.html',
 })
 export class ListingsPage extends BasePage implements OnInit {

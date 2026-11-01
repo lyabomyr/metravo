@@ -1,9 +1,10 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { SessionStore } from '../../core/auth/session.store';
 import { PublicConfigService } from '../../core/config/public-config.service';
-import { DEFAULT_BUDGET, DEFAULT_SEARCH, DealType, PropertyType, SearchDraft } from './search.model';
+import { DEFAULT_BUDGET, DEFAULT_SEARCH, DealType, PropertyType, SearchDraft, describeInterval } from './search.model';
 
 /** The one search form, used by the editor and the onboarding wizard alike. */
 @Component({
@@ -32,9 +33,14 @@ export class SearchFormComponent {
     max_price_per_m2: [null as number | null],
     min_build_year: [null as number | null],
     required_keywords: [''],
+    interval_minutes: [DEFAULT_SEARCH.interval_minutes],
     enabled: [true],
   });
   protected readonly selectedSources = signal(new Set<string>());
+  protected readonly describe = describeInterval;
+  private readonly session = inject(SessionStore);
+  /** The most often the user's plan may scan; faster options are shown but locked. */
+  protected readonly planFloor = computed(() => this.config.plan_min_intervals[this.session.user()?.plan ?? 'free'] ?? 0);
   private readonly dealType = toSignal(this.form.controls.deal_type.valueChanges, { initialValue: 'sale' as DealType });
   private readonly propertyType = toSignal(this.form.controls.property_type.valueChanges, { initialValue: 'flat' as PropertyType });
 

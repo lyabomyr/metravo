@@ -5,7 +5,7 @@ from dataclasses import asdict
 from pydantic import BaseModel, Field
 
 from ..connectors.models import DealType, PropertyType
-from .models import DEFAULT_REJECT_KEYWORDS, Search
+from .models import DEFAULT_REJECT_KEYWORDS, DEFAULT_SCAN_INTERVAL, Search
 
 
 class SearchIn(BaseModel):
@@ -24,6 +24,7 @@ class SearchIn(BaseModel):
     sources: list[str]
     required_keywords: list[str] = Field(default_factory=list)
     reject_keywords: list[str] = Field(default_factory=lambda: list(DEFAULT_REJECT_KEYWORDS))
+    interval_minutes: int = DEFAULT_SCAN_INTERVAL
     enabled: bool = True
 
     def to_search(self) -> Search:

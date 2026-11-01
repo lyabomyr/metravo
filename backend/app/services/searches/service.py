@@ -10,7 +10,7 @@ from ..connectors.registry import ConnectorRegistry
 from ..tenants.service import TenantService
 from ..users.models import User
 from ..users.service import UserService
-from .models import Search
+from .models import SCAN_INTERVALS, Search
 from .repository import SearchRepository
 
 
@@ -54,10 +54,17 @@ class SearchService(BaseService):
         self._repo(user.id).set_enabled_all(enabled)
 
     def due(self, user: User) -> list[Search]:
-        """Searches whose plan interval has elapsed since their last scan."""
-        interval = self._users.plan_of(user).scan_interval_minutes
+        """Searches whose own interval has elapsed since their last scan.
+
+        The plan's floor still applies, so a search saved on Pro every 15 minutes
+        drops back to the Free pace if the subscription ends.
+        """
+        floor = self._users.plan_of(user).min_interval_minutes
         now = self._clock.now()
-        return [search for search in self._repo(user.id).all() if search.is_due(now, interval)]
+        return [
+            search for search in self._repo(user.id).all()
+            if search.is_due(now, max(search.interval_minutes, floor))
+        ]
 
     def mark_scanned(self, user: User, search_id: str) -> None:
         self._repo(user.id).mark_scanned(search_id, self._clock.iso())
@@ -81,7 +88,11 @@ class SearchService(BaseService):
         ]
         if unsupported:
             raise Invalid(f"{', '.join(unsupported)} cannot search {search.property_type.value}s for {search.deal_type.value}")
+        if search.interval_minutes not in SCAN_INTERVALS:
+            raise Invalid(f"Scan interval must be one of {', '.join(map(str, SCAN_INTERVALS))} minutes")
         plan = self._users.plan_of(user)
+        if not plan.allows_interval(search.interval_minutes):
+            raise LimitReached(f"The {plan.name} plan scans at most every {plan.min_interval_minutes} minutes")
         locked = [source for source in search.sources if not plan.allows_source(source)]
         if locked:
             raise LimitReached(f"{', '.join(locked)} is not included in the {plan.name} plan")

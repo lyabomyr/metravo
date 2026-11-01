@@ -42,6 +42,8 @@ class BillingService(BaseService):
             raise Invalid("The free plan needs no checkout")
         if user.plan == plan.code:
             raise Invalid(f"You are already on {plan.name}")
+        if not plan.is_on_sale(self._clock.now().date()):
+            raise Invalid(f"{plan.name} opens on {plan.available_from:%d %B %Y}")
         existing = self._repo.by_user(user.id)
         return self._provider.create_checkout(user, plan, existing.customer_id if existing else None)
 

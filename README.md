@@ -4,8 +4,9 @@ Flats and houses to buy or rent from Otodom, OLX, Morizon and bailiff
 auctions — matched to your search and sent to your Telegram. Every user gets their own database, can
 download it at any time, and on Pro can connect to it directly.
 
-Runs entirely on free tiers: Angular on Cloudflare Pages, FastAPI on Render,
-Turso databases, Firebase sign-in, Stripe payments, scans on GitHub Actions.
+Runs entirely on free tiers: Angular on Cloudflare Pages, FastAPI on Render
+(which also runs the scan schedule), Turso databases, Firebase sign-in.
+Every secret lives in GitHub only; the deploy workflow hands them to the hosts.
 
 ## Run it locally — no accounts needed
 
@@ -45,8 +46,9 @@ docs/
   CODING_STANDARD.md  the one standard for all code here — read before contributing
   DEPLOYMENT.md       one-time setup of every free account, step by step
   SETUP.uk.md         the same, in Ukrainian: which secret, where it comes from, where it goes
-.github/workflows/    ci · deploy · scan
-render.yaml           the API on Render
+.github/workflows/    ci · deploy
+.github/scripts/      deploy.py — copies GitHub Secrets to Render, finds the public URLs
+render.yaml           the API on Render (fixed, non-secret settings only)
 ```
 
 ## Adding a portal

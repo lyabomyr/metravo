@@ -40,7 +40,7 @@ class Container:
 
         self.settings = settings
         self.clock = clock or Clock()
-        self.plans = PlanCatalog.default()
+        self.plans = PlanCatalog.default(pro_available_from=settings.pro_available_from)
 
         # Service-management (control) database — separate from every user's own database.
         self.control_db = open_database(settings.control_db_url, settings.control_db_token)
@@ -93,6 +93,7 @@ class Container:
             TelegramNotifier(self.telegram_client, self.telegram_links, ListingMessageFormatter(settings.frontend_url)),
         )
         self.admin = AdminService(self.users, self.tenants, self.telegram_links)
+        self.scheduler = self._scheduler()
 
     # --- strategy selection ---------------------------------------------
 
@@ -112,9 +113,20 @@ class Container:
             from ..services.billing.providers.stripe_provider import StripePaymentProvider
 
             return StripePaymentProvider(s.stripe_secret_key, s.stripe_webhook_secret, {"pro": s.stripe_price_pro}, s.frontend_url)
+        if s.billing_provider == "none":
+            from ..services.billing.providers.no_payments_provider import NoPaymentsProvider
+
+            return NoPaymentsProvider()
         from ..services.billing.providers.fake_provider import FakePaymentProvider
 
         return FakePaymentProvider(s.frontend_url)
+
+    def _scheduler(self):
+        from ..services.scanning.scheduler import KeepAlive, ScanScheduler
+
+        s = self.settings
+        keep_alive = KeepAlive(f"{s.public_api_url}/api/health", s.keep_alive_minutes * 60) if s.is_production else None
+        return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive)
 
     def _telegram_client(self):
         from ..services.telegram.client import HttpTelegramClient, RecordingTelegramClient

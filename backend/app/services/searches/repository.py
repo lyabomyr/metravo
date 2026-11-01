@@ -29,6 +29,7 @@ class SearchRepository(BaseRepository):
             sources         TEXT NOT NULL,   -- JSON array
             required_keywords TEXT NOT NULL DEFAULT '[]',   -- JSON array
             reject_keywords TEXT NOT NULL,   -- JSON array
+            interval_minutes INTEGER NOT NULL DEFAULT 1440,
             enabled         INTEGER NOT NULL DEFAULT 1,
             last_scanned_at TEXT,
             created_at      TEXT NOT NULL
@@ -38,7 +39,7 @@ class SearchRepository(BaseRepository):
     _COLUMNS = (
         "id", "name", "city", "deal_type", "property_type", "min_price", "max_price", "min_area", "max_area",
         "min_rooms", "max_rooms", "max_price_per_m2", "min_build_year", "sources", "required_keywords",
-        "reject_keywords", "enabled", "last_scanned_at", "created_at",
+        "reject_keywords", "interval_minutes", "enabled", "last_scanned_at", "created_at",
     )
 
     def all(self) -> list[Search]:
@@ -74,7 +75,7 @@ class SearchRepository(BaseRepository):
             search.min_price, search.max_price, search.min_area, search.max_area, search.min_rooms, search.max_rooms,
             search.max_price_per_m2, search.min_build_year, json.dumps(search.sources),
             json.dumps(search.required_keywords, ensure_ascii=False), json.dumps(search.reject_keywords, ensure_ascii=False),
-            int(search.enabled), search.last_scanned_at, search.created_at,
+            search.interval_minutes, int(search.enabled), search.last_scanned_at, search.created_at,
         )
 
     @staticmethod

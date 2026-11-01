@@ -8,10 +8,13 @@ export interface Plan {
   name: string;
   price_pln: number;
   max_searches: number;
-  scan_interval_minutes: number;
+  min_interval_minutes: number;
   sources: string[];
   price_alerts: boolean;
   database_credentials: boolean;
+  /** ISO date; before it the plan is shown as "coming soon". */
+  available_from: string | null;
+  on_sale: boolean;
 }
 
 export interface Subscription {

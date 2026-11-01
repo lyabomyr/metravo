@@ -65,3 +65,16 @@ def test_new_fields_round_trip(container, sign_in):
     stored = container.searches.get(user, created.id)
     assert (stored.deal_type, stored.property_type, stored.min_rooms, stored.required_keywords) == (
         DealType.RENT, PropertyType.HOUSE, 2, ["ogród"])
+
+
+def test_scan_interval_must_be_offered_and_allowed_by_the_plan(container, sign_in):
+    user = sign_in()
+    with pytest.raises(Invalid):
+        container.searches.create(user, make_search(interval_minutes=7))
+    with pytest.raises(LimitReached, match="every 360 minutes"):
+        container.searches.create(user, make_search(interval_minutes=15))
+    assert container.searches.create(user, make_search(interval_minutes=360)).interval_minutes == 360
+
+
+def test_new_search_is_scanned_daily_by_default(container, sign_in):
+    assert container.searches.create(sign_in(), make_search()).interval_minutes == 1440

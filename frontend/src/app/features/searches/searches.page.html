@@ -1,4 +1,4 @@
-<app-page-header title="Searches" subtitle="What to look for. Each search is scanned on your plan's schedule.">
+<app-page-header title="Searches" subtitle="What to look for, and how often to check.">
   <a class="button button--primary" routerLink="/searches/new" data-cy="new-search">+ New search</a>
 </app-page-header>
 
@@ -6,27 +6,38 @@
 
 <div class="grid">
   @for (search of searches(); track search.id) {
-    <article class="card stack" data-cy="search-card">
-      <div class="row" style="justify-content: space-between">
+    <article class="card card--interactive stack" data-cy="search-card">
+      <div class="row row--between">
         <h2>{{ search.name }}</h2>
-        <span class="badge">{{ search.enabled ? 'active' : 'off' }}</span>
+        <span class="badge" [class.badge--success]="search.enabled">{{ search.enabled ? 'active' : 'off' }}</span>
       </div>
-      <div class="muted">
-        {{ search.deal_type === 'rent' ? 'Rent' : 'Buy' }} {{ search.property_type }} · {{ search.city }} · up to
-        {{ search.max_price | number: '1.0-0' }} zł{{ search.deal_type === 'rent' ? ' / month' : '' }} · from {{ search.min_area }} m²
-        <br />
-        {{ search.sources.join(', ') }}
-        <br />
-        Last scan: {{ search.last_scanned_at ? (search.last_scanned_at | date: 'short') : 'not yet' }}
+      <div class="stack stack--tight">
+        <div class="listing__meta">
+          <span class="chip">{{ search.deal_type === 'rent' ? 'Rent' : 'Buy' }}</span>
+          <span class="chip">{{ search.property_type }}</span>
+          <span class="chip">{{ search.city }}</span>
+          <span class="chip">⏱ {{ describe(search.interval_minutes) }}</span>
+        </div>
+        <div class="muted small">
+          up to {{ search.max_price | number: '1.0-0' }} zł{{ search.deal_type === 'rent' ? ' / month' : '' }} · from
+          {{ search.min_area }} m² · {{ search.sources.join(', ') }}
+        </div>
+        <div class="muted small">
+          Last checked: {{ search.last_scanned_at ? (search.last_scanned_at | date: 'short') : 'not yet' }}
+        </div>
       </div>
       <div class="row">
-        <a class="button" [routerLink]="['/searches', search.id]">Edit</a>
-        <button class="button button--danger" type="button" (click)="remove(search)">Delete</button>
+        <a class="button button--small" [routerLink]="['/searches', search.id]">Edit</a>
+        <button class="button button--small button--danger" type="button" (click)="remove(search)">Delete</button>
       </div>
     </article>
   } @empty {
     @if (!loading()) {
-      <p class="muted">No searches yet. <a routerLink="/searches/new">Create your first one.</a></p>
+      <div class="empty">
+        <div class="empty__icon">🔍</div>
+        <p>No searches yet.</p>
+        <a class="button button--primary" routerLink="/searches/new">Create your first one</a>
+      </div>
     }
   }
 </div>

@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from datetime import date
 
 DEV_JWT_SECRET = "dev-only-secret-change-me"
 
@@ -52,7 +53,8 @@ class Settings:
     telegram_webhook_secret: str = "dev-webhook-secret"
 
     # Billing
-    billing_provider: str = "fake"  # fake | stripe
+    billing_provider: str = "fake"  # none | fake | stripe
+    pro_available_from: date | None = None  # Pro is shown as "coming soon" until this day
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_price_pro: str = ""
@@ -63,6 +65,12 @@ class Settings:
     scan_pages: int = 1
     scan_delay_seconds: float = 2.0
     cron_secret: str = ""
+    # The API scans by itself: every tick it runs the searches that are due.
+    scheduler_enabled: bool = False
+    scheduler_tick_seconds: int = 60
+    # Free hosts sleep when idle; a scheduler that sleeps never fires. Pinging
+    # our own public URL counts as traffic and keeps the process awake.
+    keep_alive_minutes: int = 10
 
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> Settings:
@@ -71,6 +79,11 @@ class Settings:
 
         def get(name: str, default: str) -> str:
             return env.get(name, default)
+
+        # Render tells every service its own public address.
+        own_url = get("PUBLIC_API_URL", "") or get("RENDER_EXTERNAL_URL", "") or defaults.public_api_url
+        frontend_url = get("FRONTEND_URL", defaults.frontend_url).rstrip("/")
+        pro_from = get("PRO_AVAILABLE_FROM", "")
 
         return cls(
             env=get("APP_ENV", defaults.env),
@@ -87,13 +100,14 @@ class Settings:
             firebase_project_id=get("FIREBASE_PROJECT_ID", ""),
             firebase_web_config=get("FIREBASE_WEB_CONFIG", ""),
             admin_emails=frozenset(e.lower() for e in _csv(get("ADMIN_EMAILS", ""))),
-            frontend_url=get("FRONTEND_URL", defaults.frontend_url).rstrip("/"),
-            public_api_url=get("PUBLIC_API_URL", defaults.public_api_url).rstrip("/"),
-            cors_origins=_csv(get("CORS_ORIGINS", ",".join(defaults.cors_origins))),
+            frontend_url=frontend_url,
+            public_api_url=own_url.rstrip("/"),
+            cors_origins=_csv(get("CORS_ORIGINS", frontend_url)),
             telegram_bot_token=get("TELEGRAM_BOT_TOKEN", ""),
             telegram_bot_username=get("TELEGRAM_BOT_USERNAME", defaults.telegram_bot_username),
             telegram_webhook_secret=get("TELEGRAM_WEBHOOK_SECRET", defaults.telegram_webhook_secret),
             billing_provider=get("BILLING_PROVIDER", defaults.billing_provider),
+            pro_available_from=date.fromisoformat(pro_from) if pro_from else None,
             stripe_secret_key=get("STRIPE_SECRET_KEY", ""),
             stripe_webhook_secret=get("STRIPE_WEBHOOK_SECRET", ""),
             stripe_price_pro=get("STRIPE_PRICE_PRO", ""),
@@ -102,6 +116,9 @@ class Settings:
             scan_pages=int(get("SCAN_PAGES", str(defaults.scan_pages))),
             scan_delay_seconds=float(get("SCAN_DELAY_SECONDS", str(defaults.scan_delay_seconds))),
             cron_secret=get("CRON_SECRET", ""),
+            scheduler_enabled=get("SCHEDULER_ENABLED", "false").lower() in ("1", "true", "yes", "on"),
+            scheduler_tick_seconds=int(get("SCHEDULER_TICK_SECONDS", str(defaults.scheduler_tick_seconds))),
+            keep_alive_minutes=int(get("KEEP_ALIVE_MINUTES", str(defaults.keep_alive_minutes))),
         )
 
     @property

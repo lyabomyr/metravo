@@ -1,11 +1,11 @@
 name: deploy
 
-# After CI passes on main: publish the frontend to Cloudflare Pages and
-# point the Telegram bot at the API. The backend itself is deployed by
-# Render straight from GitHub (render.yaml), so there is nothing to push.
+# After CI passes on main: push settings to the API on Render and deploy it,
+# publish the site to Cloudflare Pages, point the Telegram bot at the API.
 #
-# Every step is skipped until its secret exists, so the repo works before
-# any account is set up. See docs/DEPLOYMENT.md.
+# GitHub Secrets are the only place settings are kept — this workflow hands
+# them to Render and finds both public URLs by itself. Every step is skipped
+# until its secret exists. See docs/SETUP.uk.md.
 on:
   workflow_run:
     workflows: [ci]
@@ -13,42 +13,67 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
-  frontend:
+  deploy:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-    defaults: { run: { working-directory: frontend } }
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cloudflare Pages project
+        id: pages
         if: env.CLOUDFLARE_API_TOKEN != ''
+        run: python3 .github/scripts/deploy.py pages
+
+      - name: API on Render — settings and deploy
+        id: api
+        if: env.RENDER_API_KEY != ''
+        env:
+          CONTROL_DB_URL: ${{ secrets.CONTROL_DB_URL }}
+          CONTROL_DB_TOKEN: ${{ secrets.CONTROL_DB_TOKEN }}
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+          TURSO_ORG: ${{ secrets.TURSO_ORG }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_WEB_CONFIG: ${{ secrets.FIREBASE_WEB_CONFIG || vars.FIREBASE_WEB_CONFIG }}
+          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME || vars.TELEGRAM_BOT_USERNAME }}
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS || vars.ADMIN_EMAILS }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          STRIPE_PRICE_PRO: ${{ secrets.STRIPE_PRICE_PRO }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL || steps.pages.outputs.url }}
+        run: python3 .github/scripts/deploy.py render
+
       - uses: actions/setup-node@v4
         if: env.CLOUDFLARE_API_TOKEN != ''
         with: { node-version: 24, cache: npm, cache-dependency-path: frontend/package-lock.json }
-      - name: Build
+
+      - name: Build and publish the site
         if: env.CLOUDFLARE_API_TOKEN != ''
+        working-directory: frontend
+        env:
+          API_URL: ${{ vars.API_URL || steps.api.outputs.url }}
         run: |
           npm ci
           npx ng build
-          echo '{ "apiUrl": "${{ vars.API_URL }}" }' > dist/metravo-web/browser/runtime-config.json
-      - name: Publish to Cloudflare Pages
-        if: env.CLOUDFLARE_API_TOKEN != ''
-        run: npx --yes wrangler@4 pages deploy dist/metravo-web/browser --project-name=metravo --branch=main
+          echo "{ \"apiUrl\": \"${API_URL}\" }" > dist/metravo-web/browser/runtime-config.json
+          npx --yes wrangler@4 pages deploy dist/metravo-web/browser --project-name=metravo --branch=main
 
-  telegram-webhook:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
-    env:
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
-      PUBLIC_API_URL: ${{ vars.API_URL }}
-    steps:
-      - name: Register webhook
-        if: env.TELEGRAM_BOT_TOKEN != ''
+      - name: Point the Telegram bot at the API
+        if: env.TELEGRAM_BOT_TOKEN != '' && (vars.API_URL != '' || steps.api.outputs.url != '')
+        env:
+          API_URL: ${{ vars.API_URL || steps.api.outputs.url }}
         run: |
           curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-            -d "url=${PUBLIC_API_URL}/api/telegram/webhook" \
+            -d "url=${API_URL}/api/telegram/webhook" \
             -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
             -d 'allowed_updates=["message","my_chat_member"]'

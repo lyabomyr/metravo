@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 
 from ...core.errors import NotFound
 
@@ -16,13 +17,22 @@ class Plan:
     name: str
     price_pln: int
     max_searches: int
-    scan_interval_minutes: int
+    #: The most often a search on this plan may be scanned.
+    min_interval_minutes: int
     sources: tuple[str, ...]
     price_alerts: bool
     database_credentials: bool
+    #: Before this day the plan is shown but cannot be bought. ``None`` = on sale.
+    available_from: date | None = None
 
     def allows_source(self, source: str) -> bool:
         return source in self.sources
+
+    def allows_interval(self, minutes: int) -> bool:
+        return minutes >= self.min_interval_minutes
+
+    def is_on_sale(self, today: date) -> bool:
+        return self.available_from is None or today >= self.available_from
 
 
 class PlanCatalog:
@@ -32,14 +42,14 @@ class PlanCatalog:
         self._plans = {plan.code: plan for plan in plans}
 
     @classmethod
-    def default(cls) -> PlanCatalog:
+    def default(cls, pro_available_from: date | None = None) -> PlanCatalog:
         return cls((
             Plan(
                 code=FREE,
                 name="Free",
                 price_pln=0,
                 max_searches=1,
-                scan_interval_minutes=120,
+                min_interval_minutes=360,
                 sources=("otodom", "olx", "morizon"),
                 price_alerts=False,
                 database_credentials=False,
@@ -49,10 +59,11 @@ class PlanCatalog:
                 name="Pro",
                 price_pln=19,
                 max_searches=5,
-                scan_interval_minutes=15,
+                min_interval_minutes=15,
                 sources=("otodom", "olx", "morizon", "komornik"),
                 price_alerts=True,
                 database_credentials=True,
+                available_from=pro_available_from,
             ),
         ))
 
