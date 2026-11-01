@@ -67,7 +67,8 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
           STRIPE_PRICE_PRO: ${{ secrets.STRIPE_PRICE_PRO }}
-          FRONTEND_URL: ${{ vars.FRONTEND_URL || steps.pages.outputs.url }}
+          # The Pages URL from OpenTofu; the project's default address if that step was skipped.
+          FRONTEND_URL: ${{ vars.FRONTEND_URL || steps.pages.outputs.url || 'https://metravo.pages.dev' }}
         run: python3 .github/scripts/deploy.py render
 
       - uses: actions/setup-node@v4
