@@ -1,0 +1,18 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+backend/data/
+
+# Node / Angular
+node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Secrets
+.env
+*.local
+
+.DS_Store

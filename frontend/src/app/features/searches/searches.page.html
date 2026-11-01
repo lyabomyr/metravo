@@ -1,0 +1,31 @@
+<app-page-header title="Searches" subtitle="What to look for. Each search is scanned on your plan's schedule.">
+  <a class="button button--primary" routerLink="/searches/new" data-cy="new-search">+ New search</a>
+</app-page-header>
+
+<app-error-banner [error]="error()" />
+
+<div class="grid">
+  @for (search of searches(); track search.id) {
+    <article class="card stack" data-cy="search-card">
+      <div class="row" style="justify-content: space-between">
+        <h2>{{ search.name }}</h2>
+        <span class="badge">{{ search.enabled ? 'active' : 'off' }}</span>
+      </div>
+      <div class="muted">
+        {{ search.city }} · up to {{ search.max_price | number: '1.0-0' }} zł · from {{ search.min_area }} m²
+        <br />
+        {{ search.sources.join(', ') }}
+        <br />
+        Last scan: {{ search.last_scanned_at ? (search.last_scanned_at | date: 'short') : 'not yet' }}
+      </div>
+      <div class="row">
+        <a class="button" [routerLink]="['/searches', search.id]">Edit</a>
+        <button class="button button--danger" type="button" (click)="remove(search)">Delete</button>
+      </div>
+    </article>
+  } @empty {
+    @if (!loading()) {
+      <p class="muted">No searches yet. <a routerLink="/searches/new">Create your first one.</a></p>
+    }
+  }
+</div>

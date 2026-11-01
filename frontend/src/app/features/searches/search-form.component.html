@@ -1,0 +1,53 @@
+<form class="stack" [formGroup]="form" (ngSubmit)="submit()">
+  <div class="form-grid">
+    <label>
+      Name
+      <input formControlName="name" data-cy="search-name" />
+    </label>
+    <label>
+      City
+      <select formControlName="city" data-cy="search-city">
+        @for (city of config.cities; track city.key) {
+          <option [value]="city.key">{{ city.label }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Budget, zł
+      <input type="number" formControlName="max_price" data-cy="search-max-price" />
+    </label>
+    <label>
+      Min area, m²
+      <input type="number" formControlName="min_area" data-cy="search-min-area" />
+    </label>
+    <label>
+      Max area, m² <span class="muted">(optional)</span>
+      <input type="number" formControlName="max_area" />
+    </label>
+    <label>
+      Built after <span class="muted">(optional)</span>
+      <input type="number" formControlName="min_build_year" />
+    </label>
+  </div>
+
+  <fieldset class="checks" style="border: 0; padding: 0">
+    <legend class="muted">Portals</legend>
+    @for (source of config.sources; track source) {
+      <label>
+        <input
+          type="checkbox"
+          [checked]="selectedSources.has(source)"
+          (change)="toggleSource(source, $any($event.target).checked)"
+          [attr.data-cy]="'source-' + source"
+        />
+        {{ source }}
+      </label>
+    }
+  </fieldset>
+
+  <div class="row">
+    <button class="button button--primary" type="submit" [disabled]="busy() || form.invalid" data-cy="search-save">
+      {{ submitLabel() }}
+    </button>
+  </div>
+</form>

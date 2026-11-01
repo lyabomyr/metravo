@@ -1,0 +1,54 @@
+name: deploy
+
+# After CI passes on main: publish the frontend to Cloudflare Pages and
+# point the Telegram bot at the API. The backend itself is deployed by
+# Render straight from GitHub (render.yaml), so there is nothing to push.
+#
+# Every step is skipped until its secret exists, so the repo works before
+# any account is set up. See docs/DEPLOYMENT.md.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    defaults: { run: { working-directory: frontend } }
+    steps:
+      - uses: actions/checkout@v4
+        if: env.CLOUDFLARE_API_TOKEN != ''
+      - uses: actions/setup-node@v4
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        with: { node-version: 24, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - name: Build
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: |
+          npm ci
+          npx ng build
+          echo '{ "apiUrl": "${{ vars.API_URL }}" }' > dist/metravo-web/browser/runtime-config.json
+      - name: Publish to Cloudflare Pages
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx --yes wrangler@4 pages deploy dist/metravo-web/browser --project-name=metravo --branch=main
+
+  telegram-webhook:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+      PUBLIC_API_URL: ${{ vars.API_URL }}
+    steps:
+      - name: Register webhook
+        if: env.TELEGRAM_BOT_TOKEN != ''
+        run: |
+          curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            -d "url=${PUBLIC_API_URL}/api/telegram/webhook" \
+            -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
+            -d 'allowed_updates=["message","my_chat_member"]'

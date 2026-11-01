@@ -1,0 +1,51 @@
+<app-page-header title="Service management" subtitle="Accounts, plans and databases across Metravo.">
+  <button class="button" type="button" (click)="scanAll()" [disabled]="loading()" data-cy="scan-all">Run scan for everyone</button>
+</app-page-header>
+
+<app-error-banner [error]="error()" />
+
+@if (scanReport(); as report) {
+  <div class="banner banner--success">
+    {{ report.searches_scanned }} searches · {{ report.fetches }} page fetches · {{ report.new_listings }} new ·
+    {{ report.messages_sent }} messages
+    @if (report.errors.length) {
+      <br />Errors: {{ report.errors.join('; ') }}
+    }
+  </div>
+}
+
+@if (overview(); as overview) {
+  <div class="grid" style="margin-bottom: 16px">
+    <div class="card"><div class="muted">Accounts</div><h1 data-cy="admin-users">{{ overview.users }}</h1></div>
+    <div class="card"><div class="muted">User databases</div><h1>{{ overview.tenant_databases }}</h1></div>
+    <div class="card"><div class="muted">Telegram chats</div><h1>{{ overview.telegram_chats }}</h1></div>
+    <div class="card">
+      <div class="muted">By plan</div>
+      @for (entry of overview.users_by_plan | keyvalue; track entry.key) {
+        <div>{{ entry.key }}: <b>{{ entry.value }}</b></div>
+      }
+    </div>
+  </div>
+}
+
+<section class="card">
+  <table>
+    <thead>
+      <tr><th>Email</th><th>Plan</th><th>Since</th><th></th></tr>
+    </thead>
+    <tbody>
+      @for (user of users(); track user.id) {
+        <tr data-cy="admin-user-row">
+          <td>{{ user.email }} @if (user.is_admin) {<span class="badge">admin</span>}</td>
+          <td>{{ user.plan }}</td>
+          <td class="muted">{{ user.created_at | date: 'mediumDate' }}</td>
+          <td>
+            <button class="link" type="button" (click)="setPlan(user, user.plan === 'pro' ? 'free' : 'pro')">
+              Make {{ user.plan === 'pro' ? 'free' : 'pro' }}
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>

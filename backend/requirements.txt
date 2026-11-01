@@ -1,0 +1,7 @@
+# Runtime — every package here is pure Python or ships wheels for all
+# platforms, so the backend installs on any free host without a compiler.
+fastapi==0.115.12
+uvicorn==0.34.2
+requests==2.32.3
+beautifulsoup4==4.13.4
+PyJWT[crypto]==2.10.1

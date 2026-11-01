@@ -1,0 +1,12 @@
+{
+  "name": "metravo-e2e",
+  "private": true,
+  "scripts": {
+    "test": "cypress run",
+    "open": "cypress open"
+  },
+  "devDependencies": {
+    "cypress": "^15.0.0",
+    "typescript": "^5.9.0"
+  }
+}

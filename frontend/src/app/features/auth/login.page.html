@@ -1,0 +1,28 @@
+<section class="card stack" style="max-width: 420px; margin: 48px auto">
+  <div>
+    <h1>Metravo</h1>
+    <p class="muted">New flats from Otodom, OLX, Morizon and bailiff auctions — straight to your Telegram.</p>
+  </div>
+
+  <app-error-banner [error]="error()" />
+
+  @if (linkSent()) {
+    <div class="banner banner--success" data-cy="link-sent">Check your inbox — we sent a sign-in link to {{ email() }}.</div>
+  } @else {
+    <form class="stack" (ngSubmit)="usesFirebase() ? sendEmailLink() : signInDev()">
+      <label>
+        Email
+        <input type="email" name="email" required autocomplete="email" [ngModel]="email()" (ngModelChange)="email.set($event)" data-cy="email" />
+      </label>
+      <button class="button button--primary" type="submit" [disabled]="loading() || !email()" data-cy="sign-in">
+        {{ usesFirebase() ? 'Email me a sign-in link' : 'Sign in' }}
+      </button>
+    </form>
+    @if (usesFirebase()) {
+      <button class="button" type="button" (click)="signInWithGoogle()" [disabled]="loading()">Continue with Google</button>
+    }
+    @if (usesDevLogin() && !usesFirebase()) {
+      <p class="muted">Development sign-in: any email works, no password.</p>
+    }
+  }
+</section>

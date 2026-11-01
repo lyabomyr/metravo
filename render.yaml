@@ -1,0 +1,37 @@
+# Render Blueprint — the API on Render's free web service.
+# Render → New → Blueprint → pick this repo. Values marked sync:false are
+# asked for once in the Render dashboard; see docs/DEPLOYMENT.md.
+services:
+  - type: web
+    name: metravo-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - { key: PYTHON_VERSION, value: "3.12.7" }
+      - { key: APP_ENV, value: prod }
+      - { key: TENANT_PROVISIONER, value: turso }
+      - { key: AUTH_PROVIDERS, value: firebase }
+      - { key: BILLING_PROVIDER, value: stripe }
+      - { key: JWT_SECRET, generateValue: true }
+      - { key: CONTROL_DB_URL, sync: false }
+      - { key: CONTROL_DB_TOKEN, sync: false }
+      - { key: TURSO_API_TOKEN, sync: false }
+      - { key: TURSO_ORG, sync: false }
+      - { key: FIREBASE_PROJECT_ID, sync: false }
+      - { key: FIREBASE_WEB_CONFIG, sync: false }
+      - { key: ADMIN_EMAILS, sync: false }
+      - { key: FRONTEND_URL, sync: false }
+      - { key: PUBLIC_API_URL, sync: false }
+      - { key: CORS_ORIGINS, sync: false }
+      - { key: TELEGRAM_BOT_TOKEN, sync: false }
+      - { key: TELEGRAM_BOT_USERNAME, sync: false }
+      - { key: TELEGRAM_WEBHOOK_SECRET, sync: false }
+      - { key: STRIPE_SECRET_KEY, sync: false }
+      - { key: STRIPE_WEBHOOK_SECRET, sync: false }
+      - { key: STRIPE_PRICE_PRO, sync: false }
+      - { key: CRON_SECRET, sync: false }

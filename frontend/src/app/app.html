@@ -1,0 +1,23 @@
+@if (session.user(); as user) {
+  <nav class="topbar">
+    <a class="brand" routerLink="/listings">Metravo</a>
+    <div class="topbar__links">
+      <a routerLink="/listings" routerLinkActive="active" data-cy="nav-listings">Listings</a>
+      <a routerLink="/searches" routerLinkActive="active" data-cy="nav-searches">Searches</a>
+      <a routerLink="/telegram" routerLinkActive="active" data-cy="nav-telegram">Telegram</a>
+      <a routerLink="/database" routerLinkActive="active" data-cy="nav-database">My data</a>
+      <a routerLink="/billing" routerLinkActive="active" data-cy="nav-billing">Plan</a>
+      @if (user.is_admin) {
+        <a routerLink="/admin" routerLinkActive="active" data-cy="nav-admin">Admin</a>
+      }
+    </div>
+    <div class="topbar__user">
+      <span class="badge" [class.badge--pro]="user.plan === 'pro'" data-cy="plan-badge">{{ user.plan }}</span>
+      <span class="muted" data-cy="user-email">{{ user.email }}</span>
+      <button class="link" type="button" (click)="signOut()" data-cy="sign-out">Sign out</button>
+    </div>
+  </nav>
+}
+<main class="container">
+  <router-outlet />
+</main>

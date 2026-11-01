@@ -1,0 +1,44 @@
+<app-page-header title="Listings" subtitle="Every flat your searches have matched, newest first.">
+  <button class="button button--primary" type="button" (click)="scanNow()" [disabled]="loading()" data-cy="scan-now">
+    {{ loading() ? 'Scanning…' : 'Scan now' }}
+  </button>
+</app-page-header>
+
+<app-error-banner [error]="error()" />
+
+@if (lastScan(); as report) {
+  <div class="banner banner--success" data-cy="scan-report">
+    @if (report.searches_scanned) {
+      Scanned {{ report.searches_scanned }} search(es): {{ report.new_listings }} new, {{ report.price_changes }} price change(s).
+    } @else {
+      Nothing to scan yet — your searches were scanned recently and will run again on your plan's schedule.
+    }
+  </div>
+}
+
+@if (priceChanges().length) {
+  <section class="card stack" style="margin-bottom: 16px">
+    <h2>Recent price changes</h2>
+    <table>
+      @for (change of priceChanges(); track change.key + change.changed_at) {
+        <tr>
+          <td><a [href]="change.url" target="_blank" rel="noopener">{{ change.title }}</a></td>
+          <td>{{ change.old_price | number: '1.0-0' }} → <b>{{ change.new_price | number: '1.0-0' }}</b> zł</td>
+          <td class="muted">{{ change.changed_at | date: 'short' }}</td>
+        </tr>
+      }
+    </table>
+  </section>
+}
+
+<div class="stack">
+  @for (listing of listings(); track listing.search_id + listing.key) {
+    <app-listing-card [listing]="listing" />
+  } @empty {
+    @if (!loading()) {
+      <p class="muted" data-cy="no-listings">
+        Nothing yet. Make sure you have a <a routerLink="/searches">search</a>, then press “Scan now”.
+      </p>
+    }
+  }
+</div>

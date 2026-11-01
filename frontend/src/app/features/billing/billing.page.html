@@ -1,0 +1,38 @@
+<app-page-header title="Plan" subtitle="Start free. Upgrade when you want faster alerts and more searches." />
+
+@if (status() === 'success') {
+  <div class="banner banner--success" data-cy="billing-success">Payment received — welcome to Pro!</div>
+}
+<app-error-banner [error]="error()" />
+
+<div class="grid">
+  @for (plan of plans(); track plan.code) {
+    <article class="card stack" [attr.data-cy]="'plan-' + plan.code">
+      <div class="row" style="justify-content: space-between">
+        <h2>{{ plan.name }}</h2>
+        <b>{{ plan.price_pln ? plan.price_pln + ' zł / month' : 'Free' }}</b>
+      </div>
+      <ul class="muted" style="margin: 0; padding-left: 18px">
+        <li>{{ plan.max_searches }} search{{ plan.max_searches > 1 ? 'es' : '' }}</li>
+        <li>Scans every {{ plan.scan_interval_minutes }} min</li>
+        <li>{{ plan.sources.join(', ') }}</li>
+        <li>{{ plan.price_alerts ? 'Price-drop alerts' : 'No price-drop alerts' }}</li>
+        <li>{{ plan.database_credentials ? 'Direct access to your database' : 'Data export only' }}</li>
+      </ul>
+      @if (session.user()?.plan === plan.code) {
+        <span class="badge" data-cy="current-plan">current plan</span>
+      } @else if (plan.price_pln) {
+        <button class="button button--primary" type="button" (click)="upgrade(plan)" [disabled]="loading()" data-cy="upgrade">
+          Upgrade to {{ plan.name }}
+        </button>
+      }
+    </article>
+  }
+</div>
+
+@if (subscription(); as subscription) {
+  <section class="card row" style="margin-top: 16px; justify-content: space-between">
+    <span data-cy="subscription-status">Subscription: {{ subscription.plan }} · {{ subscription.status }}</span>
+    <button class="button" type="button" (click)="manage()" data-cy="manage-subscription">Manage or cancel</button>
+  </section>
+}

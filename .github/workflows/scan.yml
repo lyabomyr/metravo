@@ -1,0 +1,49 @@
+name: scan
+
+# The scanner. Runs on GitHub's free runners so the free web host only
+# answers requests and never does heavy work.
+#
+# GitHub delays and drops scheduled runs on free runners (expect ~1–2 h
+# between them). For the 15-minute Pro schedule, let cron-job.org call
+# "workflow_dispatch" every 15 minutes — manual dispatches are not throttled.
+# Each run only scans searches whose plan interval has elapsed, so extra
+# triggers cost nothing. See docs/DEPLOYMENT.md.
+on:
+  schedule:
+    - cron: "7,37 * * * *"   # off the top of the hour, GitHub's busiest minute
+  workflow_dispatch:
+
+concurrency:
+  group: scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CONTROL_DB_URL: ${{ secrets.CONTROL_DB_URL }}
+    defaults: { run: { working-directory: backend } }
+    steps:
+      - uses: actions/checkout@v4
+        if: env.CONTROL_DB_URL != ''
+      - uses: actions/setup-python@v5
+        if: env.CONTROL_DB_URL != ''
+        with: { python-version: "3.12", cache: pip, cache-dependency-path: backend/requirements.txt }
+      - if: env.CONTROL_DB_URL != ''
+        run: pip install -r requirements.txt
+      - name: Scan every due search
+        if: env.CONTROL_DB_URL != ''
+        env:
+          # A scan never signs anyone in or takes payments, so it needs no
+          # auth or billing settings — only the databases and the bot.
+          APP_ENV: worker
+          AUTH_PROVIDERS: ""
+          CONTROL_DB_TOKEN: ${{ secrets.CONTROL_DB_TOKEN }}
+          TENANT_PROVISIONER: turso
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+          TURSO_ORG: ${{ secrets.TURSO_ORG }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_USERNAME: ${{ vars.TELEGRAM_BOT_USERNAME }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+        run: python -m app.cli scan
