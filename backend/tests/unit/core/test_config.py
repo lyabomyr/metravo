@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.config import Settings
+from app.core.config import Settings, parse_web_config
 
 
 def test_defaults_are_valid_for_development():
@@ -38,3 +38,19 @@ def test_reads_pro_launch_day_and_scheduler_switch():
 def test_production_may_run_without_payments():
     settings = Settings(env="prod", jwt_secret="x" * 32, auth_providers=("firebase",), firebase_project_id="p", billing_provider="none")
     settings.validate()
+
+
+def test_firebase_config_may_be_pasted_from_the_console():
+    pasted = """const firebaseConfig = {
+      apiKey: "AIza-x",
+      authDomain: 'metravo.firebaseapp.com', // comment
+      projectId: "metravo",
+    };"""
+    assert parse_web_config(pasted) == {"apiKey": "AIza-x", "authDomain": "metravo.firebaseapp.com", "projectId": "metravo"}
+    assert parse_web_config('{"apiKey": "k"}') == {"apiKey": "k"}
+    assert parse_web_config("") is None
+
+
+def test_unreadable_firebase_config_stops_the_start():
+    with pytest.raises(RuntimeError, match="FIREBASE_WEB_CONFIG"):
+        Settings(firebase_web_config="apiKey = nope").validate()

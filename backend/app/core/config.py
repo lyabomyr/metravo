@@ -7,7 +7,9 @@ instead of on the first request that needs the missing value.
 
 from __future__ import annotations
 
+import json
 import os
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
@@ -17,6 +19,30 @@ DEV_JWT_SECRET = "dev-only-secret-change-me"
 
 def _csv(value: str) -> tuple[str, ...]:
     return tuple(part.strip() for part in value.split(",") if part.strip())
+
+
+def parse_web_config(text: str) -> dict[str, str] | None:
+    """Firebase's web config, as JSON or pasted straight from the console.
+
+    The console shows JavaScript — ``const firebaseConfig = { apiKey: "…", };``
+    — so accept that too: drop the assignment, quote the keys, drop trailing
+    commas. Raises ``ValueError`` if it still is not an object.
+    """
+    text = text.strip()
+    if not text:
+        return None
+    text = text[text.index("{"): text.rindex("}") + 1] if "{" in text and "}" in text else text
+    text = re.sub(r"//[^\n]*", "", text)                                   # comments
+    text = re.sub(r"([{,]\s*)([A-Za-z_]\w*)\s*:", r'\1"\2":', text)     # bare keys
+    text = re.sub(r",\s*}", "}", text)                                      # trailing comma
+    text = re.sub(r"'([^']*)'", r'"\1"', text)                              # single quotes
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"FIREBASE_WEB_CONFIG is not a JSON object: {error}") from None
+    if not isinstance(value, dict):
+        raise ValueError("FIREBASE_WEB_CONFIG is not a JSON object")
+    return value
 
 
 @dataclass(frozen=True)
@@ -135,6 +161,10 @@ class Settings:
                 problems.append("the 'dev' auth provider must not be enabled in production")
             if self.billing_provider == "fake":
                 problems.append("BILLING_PROVIDER=fake is not allowed in production")
+        try:
+            parse_web_config(self.firebase_web_config)
+        except ValueError as error:
+            problems.append(str(error))
         if "firebase" in self.auth_providers and not self.firebase_project_id:
             problems.append("FIREBASE_PROJECT_ID is required for the firebase auth provider")
         if self.tenant_provisioner == "turso" and not (self.turso_api_token and self.turso_org):

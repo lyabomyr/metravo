@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import json
-
 from fastapi import APIRouter, Depends
 
+from ...core.config import parse_web_config
 from ...core.container import Container
 from ..auth.dependencies import get_container
 from ..connectors.cities import CITIES
@@ -26,7 +25,7 @@ def public_config(container: Container = Depends(get_container)) -> dict:
     return {
         "env": settings.env,
         "auth_providers": container.auth.provider_names,
-        "firebase": json.loads(settings.firebase_web_config) if settings.firebase_web_config else None,
+        "firebase": parse_web_config(settings.firebase_web_config),
         "telegram_bot": settings.telegram_bot_username,
         "billing_provider": settings.billing_provider,
         "sources": container.connectors.names,
