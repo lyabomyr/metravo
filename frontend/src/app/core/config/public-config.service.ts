@@ -8,6 +8,11 @@ export interface City {
   label: string;
 }
 
+export interface SourceCapability {
+  deal_type: 'sale' | 'rent';
+  property_type: 'flat' | 'house';
+}
+
 export interface PublicConfig {
   env: string;
   auth_providers: string[];
@@ -15,6 +20,7 @@ export interface PublicConfig {
   telegram_bot: string;
   billing_provider: string;
   sources: string[];
+  source_capabilities: Record<string, SourceCapability[]>;
   cities: City[];
 }
 

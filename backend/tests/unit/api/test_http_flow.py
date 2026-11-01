@@ -18,6 +18,8 @@ def test_public_endpoints(client):
     config = client.get("/api/config").json()
     assert config["auth_providers"] == ["dev"]
     assert "krakow" in [city["key"] for city in config["cities"]]
+    assert {"deal_type": "rent", "property_type": "flat"} in config["source_capabilities"]["otodom"]
+    assert {"deal_type": "rent", "property_type": "flat"} not in config["source_capabilities"]["komornik"]
     assert [plan["code"] for plan in client.get("/api/billing/plans").json()] == ["free", "pro"]
 
 
@@ -40,6 +42,16 @@ def test_search_scan_listings_export(client):
     assert export.status_code == 200
     assert export.content.startswith(b"SQLite format 3")
     assert "attachment" in export.headers["content-disposition"]
+
+
+def test_rental_search_over_http(client):
+    headers = auth(client)
+    body = {**SEARCH, "deal_type": "rent", "max_price": 4000, "min_area": 25}
+    created = client.post("/api/searches", json=body, headers=headers).json()
+    assert created["deal_type"] == "rent" and created["property_type"] == "flat"
+    client.post("/api/scan/mine", headers=headers)
+    listings = client.get("/api/listings", headers=headers).json()
+    assert listings and {item["deal_type"] for item in listings} == {"rent"}
 
 
 def test_database_credentials_unlock_after_upgrade(client):

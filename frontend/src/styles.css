@@ -69,6 +69,7 @@ input, select {
   font: inherit; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--surface); color: var(--text); width: 100%;
 }
+.form-grid label { align-content: end; } /* inputs line up even when a label wraps */
 .form-grid { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 .checks { display: flex; gap: 16px; flex-wrap: wrap; }
 .checks label { display: flex; gap: 6px; align-items: center; color: var(--text); }
@@ -99,3 +100,8 @@ code, .secret { font-family: ui-monospace, monospace; font-size: 0.85rem; word-b
   background: var(--primary); color: var(--primary-text); margin-right: 8px; font-weight: 700;
 }
 .step--done .step__number { background: var(--success); }
+
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.segmented label { display: flex; align-items: center; gap: 6px; padding: 8px 14px; color: var(--text); cursor: pointer; }
+.segmented label:has(input:checked) { background: var(--primary); color: var(--primary-text); }
+.segmented input { width: auto; margin: 0; }

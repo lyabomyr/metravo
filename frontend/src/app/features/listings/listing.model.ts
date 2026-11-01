@@ -2,6 +2,7 @@ export interface Listing {
   search_id: string;
   key: string;
   source: string;
+  deal_type: 'sale' | 'rent';
   url: string;
   title: string;
   price: number | null;

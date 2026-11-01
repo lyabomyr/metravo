@@ -72,5 +72,27 @@ def test_record_returns_no_event_for_an_unchanged_listing(container, sign_in):
     from app.services.connectors.models import Listing
 
     flat = Listing(source="otodom", external_id="1", url="u", title="t", price=1, area=40.0)
-    assert container.listings.record(user.id, search.id, flat).kind is EventKind.NEW
-    assert container.listings.record(user.id, search.id, flat) is None
+    assert container.listings.record(user.id, search, flat).kind is EventKind.NEW
+    assert container.listings.record(user.id, search, flat) is None
+
+
+def test_rental_search_reads_rental_pages_and_skips_auctions(container, sign_in, telegram):
+    from app.services.billing.plans import PRO
+    from app.services.connectors.models import DealType
+
+    user = sign_in()
+    container.users.set_plan(user.id, PRO)
+    user = container.users.get(user.id)
+    link_telegram(container, user)
+    container.searches.create(user, make_search(
+        name="Wynajem", deal_type=DealType.RENT, max_price=4000, min_area=25, required_keywords=["balkon"],
+        sources=["otodom", "morizon"],
+    ))
+
+    report = container.scanner.run()
+
+    # otodom: 501 ✓, 502 ✓, 503 over budget · morizon: 900 ✓
+    assert {item.key for item in container.listings.latest(user)} == {"otodom:501", "otodom:502", "morizon:mzn900"}
+    assert report.fetches == 2
+    assert all(item.deal_type == "rent" for item in container.listings.latest(user))
+    assert "2 400 zł/mies." in telegram.outbox[-1].text

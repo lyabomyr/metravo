@@ -41,3 +41,7 @@ class ConnectorRegistry:
     @property
     def names(self) -> list[str]:
         return list(self._connectors)
+
+    def capabilities(self) -> dict[str, list[dict[str, str]]]:
+        """Which deal/property combinations each portal can search."""
+        return {name: connector.capabilities for name, connector in self._connectors.items()}

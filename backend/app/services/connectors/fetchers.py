@@ -109,11 +109,15 @@ class FallbackPageFetcher(PageFetcher):
 
 
 class FixturePageFetcher(PageFetcher):
-    """Serves saved pages from disk: ``<dir>/<portal-host>.html``.
+    """Serves saved pages from disk: ``<dir>/<portal-host>[.rent].html``.
 
-    Used by unit and e2e tests so scans are deterministic and offline. Any
-    page after the first is reported as missing, which ends the walk.
+    Used by unit and e2e tests so scans are deterministic and offline. Rental
+    searches get the ``.rent`` page. Any page after the first is reported as
+    missing, which ends the walk.
     """
+
+    #: URL fragments the portals use for rentals.
+    RENT_MARKERS = ("wynajem", "do-wynajecia")
 
     def __init__(self, directory: str):
         self._directory = Path(directory)
@@ -121,8 +125,9 @@ class FixturePageFetcher(PageFetcher):
     def fetch(self, url: str) -> str:
         if "page=" in url:
             raise FetchError(url, 404)
-        host = urlparse(url).hostname or ""
-        path = self._directory / f"{host.removeprefix('www.')}.html"
+        host = (urlparse(url).hostname or "").removeprefix("www.")
+        variant = ".rent" if any(marker in url for marker in self.RENT_MARKERS) else ""
+        path = self._directory / f"{host}{variant}.html"
         if not path.exists():
             raise FetchError(url, 404, f"no fixture at {path}")
         return path.read_text(encoding="utf-8")

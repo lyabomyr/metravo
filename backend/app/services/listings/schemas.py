@@ -7,6 +7,7 @@ class ListingOut(BaseModel):
     search_id: str
     key: str
     source: str
+    deal_type: str
     url: str
     title: str
     price: int | None

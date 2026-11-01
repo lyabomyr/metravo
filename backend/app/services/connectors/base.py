@@ -16,7 +16,7 @@ from urllib.parse import quote
 
 from .cities import get_city
 from .fetchers import FetchError, PageFetcher
-from .models import Listing, SearchQuery
+from .models import DealType, Listing, PropertyType, SearchQuery
 
 
 @dataclass
@@ -31,9 +31,10 @@ class ConnectorResult:
 
 class BaseConnector(ABC):
     name: str
-    #: ``str.format`` template. Placeholders: {city} {city_label} {region_slug}
-    #: {region_name} {max_price} {min_area}
-    URL_TEMPLATE: str
+    #: One ``str.format`` template per (deal, property) the portal can search.
+    #: A missing combination means "this portal does not offer it".
+    #: Placeholders: {city} {city_label} {region_slug} {region_name} {max_price} {min_area}
+    URL_TEMPLATES: dict[tuple[DealType, PropertyType], str]
 
     def __init__(self, fetcher: PageFetcher, pages: int = 1, delay_seconds: float = 0.0):
         self.fetcher = fetcher
@@ -41,9 +42,20 @@ class BaseConnector(ABC):
         self.delay_seconds = delay_seconds
         self.log = logging.getLogger(f"connectors.{self.name}")
 
-    def build_url(self, query: SearchQuery) -> str:
+    def supports(self, deal_type: DealType, property_type: PropertyType) -> bool:
+        return (deal_type, property_type) in self.URL_TEMPLATES
+
+    @property
+    def capabilities(self) -> list[dict[str, str]]:
+        return [{"deal_type": deal.value, "property_type": kind.value} for deal, kind in self.URL_TEMPLATES]
+
+    def build_url(self, query: SearchQuery) -> str | None:
+        """The results URL for this search, or ``None`` if the portal does not offer it."""
+        template = self.URL_TEMPLATES.get((query.deal_type, query.property_type))
+        if template is None:
+            return None
         city = get_city(query.city)
-        return self.URL_TEMPLATE.format(
+        return template.format(
             city=city.key,
             city_label=quote(city.label),
             region_slug=city.region_slug,

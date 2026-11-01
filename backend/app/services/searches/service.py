@@ -6,6 +6,7 @@ from ...core.clock import Clock, new_id
 from ...core.errors import Invalid, LimitReached, NotFound
 from ...core.service import BaseService
 from ..connectors.cities import get_city
+from ..connectors.registry import ConnectorRegistry
 from ..tenants.service import TenantService
 from ..users.models import User
 from ..users.service import UserService
@@ -14,9 +15,10 @@ from .repository import SearchRepository
 
 
 class SearchService(BaseService):
-    def __init__(self, tenants: TenantService, users: UserService, clock: Clock):
+    def __init__(self, tenants: TenantService, users: UserService, connectors: ConnectorRegistry, clock: Clock):
         super().__init__()
         self._tenants = tenants
+        self._connectors = connectors
         self._users = users
         self._clock = clock
 
@@ -66,8 +68,19 @@ class SearchService(BaseService):
             raise Invalid("Budget and minimum area must be positive")
         if search.max_area is not None and search.max_area < search.min_area:
             raise Invalid("Maximum area is below minimum area")
+        if search.min_price is not None and search.min_price > search.max_price:
+            raise Invalid("Minimum price is above the budget")
+        if search.min_rooms and search.max_rooms and search.max_rooms < search.min_rooms:
+            raise Invalid("Maximum rooms is below minimum rooms")
         if not search.sources:
             raise Invalid("Pick at least one portal")
+        unsupported = [
+            source for source in search.sources
+            if (connector := self._connectors.get(source)) is None
+            or not connector.supports(search.deal_type, search.property_type)
+        ]
+        if unsupported:
+            raise Invalid(f"{', '.join(unsupported)} cannot search {search.property_type.value}s for {search.deal_type.value}")
         plan = self._users.plan_of(user)
         locked = [source for source in search.sources if not plan.allows_source(source)]
         if locked:

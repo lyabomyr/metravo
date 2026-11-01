@@ -7,7 +7,7 @@ import re
 from collections.abc import Iterable
 
 from ..base import BaseConnector
-from ..models import Listing
+from ..models import DealType, Listing, PropertyType
 from ..parsing import as_int, parse_area
 
 _NUXT_DATA = re.compile(r'<script[^>]+id="__NUXT_DATA__"[^>]*>(.+?)</script>', re.S)
@@ -19,10 +19,15 @@ _PLAUSIBLE_FLAT_AREA = (15, 500)
 
 class KomornikConnector(BaseConnector):
     name = "komornik"
-    URL_TEMPLATE = (
+    _URL = (
         "https://licytacje.komornik.pl/wyszukiwarka-licytacji"
-        "?mainCategory=REAL_ESTATE&subCategory=APARTMENTS&province={region_name}&city={city_label}"
+        "?mainCategory=REAL_ESTATE&subCategory={category}&province={{region_name}}&city={{city_label}}"
     )
+    # Auctions are always sales — there is nothing to rent here.
+    URL_TEMPLATES = {
+        (DealType.SALE, PropertyType.FLAT): _URL.format(category="APARTMENTS"),
+        (DealType.SALE, PropertyType.HOUSE): _URL.format(category="HOUSES"),
+    }
 
     def parse(self, html: str) -> Iterable[Listing]:
         match = _NUXT_DATA.search(html)

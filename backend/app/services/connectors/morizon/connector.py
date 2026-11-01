@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from bs4 import BeautifulSoup, Tag
 
 from ..base import BaseConnector
-from ..models import Listing
+from ..models import DealType, Listing, PropertyType
 from ..parsing import parse_area, parse_price, parse_rooms
 
 _ID = re.compile(r"(mzn\d+)")
@@ -16,10 +16,13 @@ _ID = re.compile(r"(mzn\d+)")
 
 class MorizonConnector(BaseConnector):
     name = "morizon"
-    URL_TEMPLATE = (
-        "https://www.morizon.pl/mieszkania/najnowsze/{city}/"
-        "?ps%5Bprice_to%5D={max_price}&ps%5Bliving_area_from%5D={min_area}"
-    )
+    _QUERY = "?ps%5Bprice_to%5D={max_price}&ps%5Bliving_area_from%5D={min_area}"
+    URL_TEMPLATES = {
+        (DealType.SALE, PropertyType.FLAT): "https://www.morizon.pl/mieszkania/najnowsze/{city}/" + _QUERY,
+        (DealType.RENT, PropertyType.FLAT): "https://www.morizon.pl/do-wynajecia/mieszkania/najnowsze/{city}/" + _QUERY,
+        (DealType.SALE, PropertyType.HOUSE): "https://www.morizon.pl/domy/najnowsze/{city}/" + _QUERY,
+        (DealType.RENT, PropertyType.HOUSE): "https://www.morizon.pl/do-wynajecia/domy/najnowsze/{city}/" + _QUERY,
+    }
 
     def parse(self, html: str) -> Iterable[Listing]:
         for card in BeautifulSoup(html, "html.parser").select(".card"):

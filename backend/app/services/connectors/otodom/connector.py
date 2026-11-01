@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from bs4 import BeautifulSoup
 
 from ..base import BaseConnector
-from ..models import Listing
+from ..models import DealType, Listing, PropertyType
 from ..parsing import as_float, as_int
 
 # Otodom has moved the result list around between releases; try each known home.
@@ -21,10 +21,16 @@ _ITEM_PATHS = (
 
 class OtodomConnector(BaseConnector):
     name = "otodom"
-    URL_TEMPLATE = (
-        "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/{region_slug}/{city}/{city}/{city}"
-        "?priceMax={max_price}&areaMin={min_area}&limit=36&by=LATEST&direction=DESC"
+    _URL = (
+        "https://www.otodom.pl/pl/wyniki/{deal}/{kind}/{{region_slug}}/{{city}}/{{city}}/{{city}}"
+        "?priceMax={{max_price}}&areaMin={{min_area}}&limit=36&by=LATEST&direction=DESC"
     )
+    URL_TEMPLATES = {
+        (DealType.SALE, PropertyType.FLAT): _URL.format(deal="sprzedaz", kind="mieszkanie"),
+        (DealType.RENT, PropertyType.FLAT): _URL.format(deal="wynajem", kind="mieszkanie"),
+        (DealType.SALE, PropertyType.HOUSE): _URL.format(deal="sprzedaz", kind="dom"),
+        (DealType.RENT, PropertyType.HOUSE): _URL.format(deal="wynajem", kind="dom"),
+    }
 
     def parse(self, html: str) -> Iterable[Listing]:
         tag = BeautifulSoup(html, "html.parser").find("script", id="__NEXT_DATA__")

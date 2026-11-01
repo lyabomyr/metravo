@@ -4,7 +4,7 @@ import pytest
 
 from app.services.connectors.fetchers import FixturePageFetcher
 from app.services.connectors.komornik.connector import KomornikConnector
-from app.services.connectors.models import SearchQuery
+from app.services.connectors.models import DealType, PropertyType, SearchQuery
 from app.services.connectors.morizon.connector import MorizonConnector
 from app.services.connectors.olx.connector import OlxConnector
 from app.services.connectors.otodom.connector import OtodomConnector
@@ -51,11 +51,24 @@ def test_komornik_resolves_devalue_references():
 
 
 @pytest.mark.parametrize(
-    ("connector_class", "expected"),
+    ("connector_class", "deal", "kind", "expected"),
     [
-        (OtodomConnector, "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie/krakow/krakow/krakow?priceMax=610000&areaMin=39"),
-        (KomornikConnector, "province=ma%C5%82opolskie&city=Krak%C3%B3w"),
+        (OtodomConnector, DealType.SALE, PropertyType.FLAT,
+         "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie/krakow/krakow/krakow?priceMax=610000&areaMin=39"),
+        (OtodomConnector, DealType.RENT, PropertyType.HOUSE, "/pl/wyniki/wynajem/dom/malopolskie/"),
+        (OlxConnector, DealType.RENT, PropertyType.FLAT, "/nieruchomosci/mieszkania/wynajem/krakow/"),
+        (MorizonConnector, DealType.RENT, PropertyType.FLAT, "morizon.pl/do-wynajecia/mieszkania/najnowsze/krakow/"),
+        (MorizonConnector, DealType.SALE, PropertyType.HOUSE, "morizon.pl/domy/najnowsze/krakow/"),
+        (KomornikConnector, DealType.SALE, PropertyType.FLAT, "subCategory=APARTMENTS&province=ma%C5%82opolskie&city=Krak%C3%B3w"),
+        (KomornikConnector, DealType.SALE, PropertyType.HOUSE, "subCategory=HOUSES"),
     ],
 )
-def test_urls_are_built_from_the_search(connector_class, expected):
-    assert expected in connector_class(FixturePageFetcher(str(FIXTURES))).build_url(QUERY)
+def test_urls_are_built_from_the_search(connector_class, deal, kind, expected):
+    query = SearchQuery(city="krakow", deal_type=deal, property_type=kind, max_price=610000, min_area=39)
+    assert expected in connector_class(FixturePageFetcher(str(FIXTURES))).build_url(query)
+
+
+def test_auctions_cannot_be_rented():
+    connector = KomornikConnector(FixturePageFetcher(str(FIXTURES)))
+    assert not connector.supports(DealType.RENT, PropertyType.FLAT)
+    assert connector.build_url(SearchQuery(city="krakow", deal_type=DealType.RENT)) is None

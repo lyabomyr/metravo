@@ -1,9 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 # Location parts that say nothing about which flat it is.
 _GENERIC_LOCATION_PARTS = frozenset({"polska", "poland"})
+
+
+class DealType(str, Enum):
+    SALE = "sale"
+    RENT = "rent"
+
+
+class PropertyType(str, Enum):
+    FLAT = "flat"
+    HOUSE = "house"
 
 
 @dataclass(frozen=True)
@@ -11,13 +22,15 @@ class SearchQuery:
     """What a connector needs to build its search URL."""
 
     city: str
+    deal_type: DealType = DealType.SALE
+    property_type: PropertyType = PropertyType.FLAT
     max_price: int | None = None
     min_area: float | None = None
 
 
 @dataclass
 class Listing:
-    """One apartment offer from one portal. ``None`` means "not published"."""
+    """One offer (flat or house, sale or rent) from one portal. ``None`` means "not published"."""
 
     source: str
     external_id: str

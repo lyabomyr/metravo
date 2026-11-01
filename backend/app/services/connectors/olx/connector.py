@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from bs4 import BeautifulSoup, Tag
 
 from ..base import BaseConnector
-from ..models import Listing
+from ..models import DealType, Listing, PropertyType
 from ..parsing import parse_area, parse_price
 
 _ID_FROM_URL = re.compile(r"ID([A-Za-z0-9]+)\.html")
@@ -19,10 +19,16 @@ _TIMESTAMP = re.compile(r"\s+-\s+(?:Odświeżono|Dzisiaj|Wczoraj|\d{1,2}\s+\w+\s
 
 class OlxConnector(BaseConnector):
     name = "olx"
-    URL_TEMPLATE = (
-        "https://www.olx.pl/nieruchomosci/mieszkania/sprzedaz/{city}/"
-        "?search%5Bfilter_float_price%3Ato%5D={max_price}&search%5Bfilter_float_m%3Afrom%5D={min_area}"
+    _URL = (
+        "https://www.olx.pl/nieruchomosci/{kind}/{deal}/{{city}}/"
+        "?search%5Bfilter_float_price%3Ato%5D={{max_price}}&search%5Bfilter_float_m%3Afrom%5D={{min_area}}"
     )
+    URL_TEMPLATES = {
+        (DealType.SALE, PropertyType.FLAT): _URL.format(kind="mieszkania", deal="sprzedaz"),
+        (DealType.RENT, PropertyType.FLAT): _URL.format(kind="mieszkania", deal="wynajem"),
+        (DealType.SALE, PropertyType.HOUSE): _URL.format(kind="domy", deal="sprzedaz"),
+        (DealType.RENT, PropertyType.HOUSE): _URL.format(kind="domy", deal="wynajem"),
+    }
 
     def parse(self, html: str) -> Iterable[Listing]:
         for card in BeautifulSoup(html, "html.parser").select('[data-cy="l-card"]'):

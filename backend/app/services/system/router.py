@@ -29,5 +29,6 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "telegram_bot": settings.telegram_bot_username,
         "billing_provider": settings.billing_provider,
         "sources": container.connectors.names,
+        "source_capabilities": container.connectors.capabilities(),
         "cities": [{"key": city.key, "label": city.label} for city in CITIES],
     }

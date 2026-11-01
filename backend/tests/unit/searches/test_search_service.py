@@ -43,3 +43,25 @@ def test_users_cannot_see_each_others_searches(container, sign_in):
     search = container.searches.create(sign_in("anna@x.pl"), make_search())
     with pytest.raises(NotFound):
         container.searches.get(sign_in("ben@x.pl"), search.id)
+
+
+def test_portal_that_cannot_search_this_deal_is_refused(container, sign_in):
+    from app.services.connectors.models import DealType
+
+    user = sign_in()
+    container.users.set_plan(user.id, PRO)
+    with pytest.raises(Invalid, match="komornik cannot search flats for rent"):
+        container.searches.create(container.users.get(user.id), make_search(deal_type=DealType.RENT, sources=["komornik"]))
+
+
+def test_new_fields_round_trip(container, sign_in):
+    from app.services.connectors.models import DealType, PropertyType
+
+    user = sign_in()
+    created = container.searches.create(user, make_search(
+        deal_type=DealType.RENT, property_type=PropertyType.HOUSE, min_rooms=2, max_rooms=4,
+        max_price_per_m2=80, required_keywords=["ogród"], max_price=6000,
+    ))
+    stored = container.searches.get(user, created.id)
+    assert (stored.deal_type, stored.property_type, stored.min_rooms, stored.required_keywords) == (
+        DealType.RENT, PropertyType.HOUSE, 2, ["ogród"])

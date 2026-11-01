@@ -30,3 +30,26 @@ def test_missing_area_does_not_reject():
 def test_reject_keywords_match_inflected_forms():
     rules = ListingFilter(make_search(reject_keywords=["udział"]))
     assert not rules.accepts(listing(title="Sprzedam 1/2 udziału w mieszkaniu"))
+
+
+def test_rooms_range():
+    rules = ListingFilter(make_search(min_rooms=2, max_rooms=3))
+    assert rules.reason_to_reject(listing(rooms=1)) == "rooms 1 < 2"
+    assert rules.reason_to_reject(listing(rooms=4)) == "rooms 4 > 3"
+    assert rules.accepts(listing(rooms=None))  # unknown never rejects
+
+
+def test_price_per_square_metre():
+    rules = ListingFilter(make_search(max_price_per_m2=10000))
+    assert rules.accepts(listing(price=450000, area=45.0))
+    assert rules.reason_to_reject(listing(price=500000, area=45.0)) == "11111 zł/m² > 10000"
+
+
+def test_minimum_price_filters_out_placeholders():
+    assert not ListingFilter(make_search(min_price=1000)).accepts(listing(price=1))
+
+
+def test_required_keywords_must_be_present():
+    rules = ListingFilter(make_search(required_keywords=["balkon"]))
+    assert rules.accepts(listing(title="2 pokoje z balkonem"))
+    assert rules.reason_to_reject(listing(title="2 pokoje")).startswith("missing required keyword")

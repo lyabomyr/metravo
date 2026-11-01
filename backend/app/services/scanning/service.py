@@ -56,14 +56,17 @@ class ScanService(BaseService):
             connector = self._connectors.get(source)
             if connector is None or not plan.allows_source(source):
                 continue
-            result = cache.get(connector, connector.build_url(search.query))
+            url = connector.build_url(search.query)
+            if url is None:
+                continue  # this portal does not offer e.g. rentals
+            result = cache.get(connector, url)
             if result.error:
                 report.errors.append(f"{source}: {result.error}")
             for listing in result.listings:
                 report.listings_seen += 1
                 if not listing_filter.accepts(listing):
                     continue
-                event = self._listings.record(user.id, search.id, listing)
+                event = self._listings.record(user.id, search, listing)
                 if event is None:
                     continue
                 if event.kind is EventKind.NEW:

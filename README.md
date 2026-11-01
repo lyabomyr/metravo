@@ -1,7 +1,7 @@
 # Metravo
 
-New flats from Otodom, OLX, Morizon and bailiff auctions — matched to your
-search and sent to your Telegram. Every user gets their own database, can
+Flats and houses to buy or rent from Otodom, OLX, Morizon and bailiff
+auctions — matched to your search and sent to your Telegram. Every user gets their own database, can
 download it at any time, and on Pro can connect to it directly.
 
 Runs entirely on free tiers: Angular on Cloudflare Pages, FastAPI on Render,
@@ -44,6 +44,7 @@ docs/
   ARCHITECTURE.md     how it fits together, the free stack, the main flows
   CODING_STANDARD.md  the one standard for all code here — read before contributing
   DEPLOYMENT.md       one-time setup of every free account, step by step
+  SETUP.uk.md         the same, in Ukrainian: which secret, where it comes from, where it goes
 .github/workflows/    ci · deploy · scan
 render.yaml           the API on Render
 ```
@@ -51,7 +52,8 @@ render.yaml           the API on Render
 ## Adding a portal
 
 1. `backend/app/services/connectors/<portal>/connector.py` — extend
-   `BaseConnector`, set `URL_TEMPLATE`, implement `parse()`.
+   `BaseConnector`, fill `URL_TEMPLATES` with one URL per (deal, property)
+   the portal offers, implement `parse()`.
 2. Add the class to `CONNECTOR_CLASSES` in `connectors/registry.py`.
 3. Save a results page to `backend/tests/fixtures/pages/<host>.html` and add
    a test to `tests/unit/connectors/test_parsers.py`.

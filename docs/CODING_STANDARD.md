@@ -56,7 +56,7 @@ router → service → repository → Database
 | `Database` | `core/database.py` | `execute`, `query`, `query_one`; `SqliteDatabase` and `TursoDatabase` implement it |
 | `BaseRepository` | `core/repository.py` | `SCHEMA` auto-migration, `_one`, `_all`, `_exec` helpers |
 | `BaseService` | `core/service.py` | logger, `require()` guard that raises a typed error |
-| `BaseConnector` | `services/connectors/base.py` | URL building, paging, retries, de-duplication inside a scan; a connector only implements `parse()` |
+| `BaseConnector` | `services/connectors/base.py` | URL building per deal/property type, paging, de-duplication inside a scan; a connector declares `URL_TEMPLATES` and implements `parse()` |
 | `BaseCommand` | `services/telegram/commands/base.py` | one Telegram command = one class |
 | `PaymentProvider` | `services/billing/providers/base.py` | checkout, portal, webhook parsing |
 | `IdentityProvider` | `services/auth/providers/base.py` | turn a credential into a verified email |

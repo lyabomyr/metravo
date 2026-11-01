@@ -1,4 +1,15 @@
 <form class="stack" [formGroup]="form" (ngSubmit)="submit()">
+  <div class="row">
+    <div class="segmented" role="radiogroup" aria-label="Deal">
+      <label><input type="radio" formControlName="deal_type" value="sale" data-cy="deal-sale" /> Buy</label>
+      <label><input type="radio" formControlName="deal_type" value="rent" data-cy="deal-rent" /> Rent</label>
+    </div>
+    <div class="segmented" role="radiogroup" aria-label="Property">
+      <label><input type="radio" formControlName="property_type" value="flat" data-cy="property-flat" /> Flat</label>
+      <label><input type="radio" formControlName="property_type" value="house" data-cy="property-house" /> House</label>
+    </div>
+  </div>
+
   <div class="form-grid">
     <label>
       Name
@@ -13,8 +24,12 @@
       </select>
     </label>
     <label>
-      Budget, zł
+      {{ form.controls.deal_type.value === 'rent' ? 'Max rent, zł / month' : 'Budget, zł' }}
       <input type="number" formControlName="max_price" data-cy="search-max-price" />
+    </label>
+    <label>
+      Min price, zł <span class="muted">(optional)</span>
+      <input type="number" formControlName="min_price" />
     </label>
     <label>
       Min area, m²
@@ -25,22 +40,43 @@
       <input type="number" formControlName="max_area" />
     </label>
     <label>
+      Rooms from <span class="muted">(optional)</span>
+      <input type="number" formControlName="min_rooms" data-cy="search-min-rooms" />
+    </label>
+    <label>
+      Rooms up to <span class="muted">(optional)</span>
+      <input type="number" formControlName="max_rooms" />
+    </label>
+    <label>
+      Max zł per m² <span class="muted">(optional)</span>
+      <input type="number" formControlName="max_price_per_m2" data-cy="search-max-per-m2" />
+    </label>
+    <label>
       Built after <span class="muted">(optional)</span>
       <input type="number" formControlName="min_build_year" />
     </label>
   </div>
 
+  <label>
+    Must mention <span class="muted">(comma-separated, e.g. balkon, winda — optional)</span>
+    <input formControlName="required_keywords" data-cy="search-required" />
+  </label>
+
   <fieldset class="checks" style="border: 0; padding: 0">
     <legend class="muted">Portals</legend>
     @for (source of config.sources; track source) {
-      <label>
+      <label [class.muted]="!supports(source)">
         <input
           type="checkbox"
-          [checked]="selectedSources.has(source)"
+          [checked]="selectedSources().has(source) && supports(source)"
+          [disabled]="!supports(source)"
           (change)="toggleSource(source, $any($event.target).checked)"
           [attr.data-cy]="'source-' + source"
         />
         {{ source }}
+        @if (!supports(source)) {
+          <span>(not available for this search)</span>
+        }
       </label>
     }
   </fieldset>

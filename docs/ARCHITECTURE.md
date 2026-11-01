@@ -3,7 +3,8 @@
 ## The product in one paragraph
 
 A person signs in with their email, gets **their own database**, saves one or
-more searches (city, budget, area, portals), and connects Telegram in two
+more searches — buy or rent, flat or house, city, budget, area, rooms, price
+per m², words that must appear, portals — and connects Telegram in two
 clicks. A scanner reads Otodom, OLX, Morizon and bailiff auctions, keeps what
 matches each search, and sends new flats and price drops to Telegram. Free
 gets one search every two hours; Pro (19 zł/month) gets five searches every

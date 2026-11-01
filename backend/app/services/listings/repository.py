@@ -15,6 +15,7 @@ class ListingRepository(BaseRepository):
             key           TEXT NOT NULL,      -- "<source>:<external id>"
             fuzzy_key     TEXT,               -- price|area|place, for cross-portal duplicates
             source        TEXT NOT NULL,
+            deal_type     TEXT NOT NULL DEFAULT 'sale',
             url           TEXT NOT NULL,
             title         TEXT NOT NULL,
             price         INTEGER,
@@ -49,12 +50,12 @@ class ListingRepository(BaseRepository):
         )
         return row is not None
 
-    def insert(self, search_id: str, listing: Listing, fuzzy_key: str | None, now: str) -> None:
+    def insert(self, search_id: str, deal_type: str, listing: Listing, fuzzy_key: str | None, now: str) -> None:
         self._exec(
-            """INSERT INTO listings (search_id, key, fuzzy_key, source, url, title, price, area, rooms,
+            """INSERT INTO listings (search_id, key, fuzzy_key, source, deal_type, url, title, price, area, rooms,
                                      location, image_url, first_seen_at, last_seen_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (search_id, listing.key, fuzzy_key, listing.source, listing.url, listing.title, listing.price,
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (search_id, listing.key, fuzzy_key, listing.source, deal_type, listing.url, listing.title, listing.price,
              listing.area, listing.rooms, listing.location, listing.image_url, now, now),
         )
 

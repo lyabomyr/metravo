@@ -27,7 +27,8 @@ class StatusCommand(BaseCommand):
             "",
         ]
         lines += [
-            f"{'🟢' if s.enabled else '⚪️'} {escape(s.name)} — {s.city}, ≤ {s.max_price:,} zł, ≥ {s.min_area:g} m²".replace(",", " ")
+            f"{'🟢' if s.enabled else '⚪️'} {escape(s.name)} — {s.deal_type.value} {s.property_type.value}, "
+            f"{s.city}, ≤ {s.max_price:,} zł, ≥ {s.min_area:g} m²".replace(",", " ")
             for s in searches
         ] or ["No searches yet — add one on the website."]
         return "\n".join(lines)

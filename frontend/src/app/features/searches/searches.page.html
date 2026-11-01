@@ -12,7 +12,8 @@
         <span class="badge">{{ search.enabled ? 'active' : 'off' }}</span>
       </div>
       <div class="muted">
-        {{ search.city }} · up to {{ search.max_price | number: '1.0-0' }} zł · from {{ search.min_area }} m²
+        {{ search.deal_type === 'rent' ? 'Rent' : 'Buy' }} {{ search.property_type }} · {{ search.city }} · up to
+        {{ search.max_price | number: '1.0-0' }} zł{{ search.deal_type === 'rent' ? ' / month' : '' }} · from {{ search.min_area }} m²
         <br />
         {{ search.sources.join(', ') }}
         <br />

@@ -69,7 +69,13 @@ class Container:
             self.tenants,
             SessionTokenService(settings.jwt_secret, settings.jwt_ttl_hours, self.clock),
         )
-        self.searches = SearchService(self.tenants, self.users, self.clock)
+        self.connectors = ConnectorRegistry.build(
+            page_fetcher or self._page_fetcher(),
+            overrides=self._fetcher_overrides() if page_fetcher is None else None,
+            pages=settings.scan_pages,
+            delay_seconds=settings.scan_delay_seconds,
+        )
+        self.searches = SearchService(self.tenants, self.users, self.connectors, self.clock)
         self.listings = ListingService(self.tenants, self.clock)
         self.export = ExportService(self.tenants)
         self.billing = BillingService(self._payment_provider(), subscription_repo, self.users, self.plans, self.clock)
@@ -78,12 +84,6 @@ class Container:
         self.telegram_links = TelegramLinkService(telegram_repo, self.users, settings.telegram_bot_username, self.clock)
         self.telegram_dispatcher = self._telegram_dispatcher()
 
-        self.connectors = ConnectorRegistry.build(
-            page_fetcher or self._page_fetcher(),
-            overrides=self._fetcher_overrides() if page_fetcher is None else None,
-            pages=settings.scan_pages,
-            delay_seconds=settings.scan_delay_seconds,
-        )
         self.scanner = ScanService(
             self.tenants,
             self.users,

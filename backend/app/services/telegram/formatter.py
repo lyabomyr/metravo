@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from html import escape
 
+from ..connectors.models import DealType
 from ..listings.models import EventKind, ListingEvent
 from ..searches.models import Search
 
@@ -18,15 +19,16 @@ class ListingMessageFormatter:
     def messages(self, search: Search, events: list[ListingEvent]) -> list[str]:
         shown, hidden = events[:MAX_LISTINGS_PER_SCAN], len(events) - MAX_LISTINGS_PER_SCAN
         header = f"🏠 <b>{escape(search.name)}</b> — {len(events)} new"
-        lines = [self._line(event) for event in shown]
+        unit = " zł/mies." if search.deal_type is DealType.RENT else " zł"
+        lines = [self._line(event, unit) for event in shown]
         if hidden > 0:
             lines.append(f'…and {hidden} more on <a href="{self._website}/listings">the website</a>')
         return self._pack(header, lines)
 
     @staticmethod
-    def _line(event: ListingEvent) -> str:
+    def _line(event: ListingEvent, unit: str) -> str:
         listing = event.listing
-        price = f"{listing.price:,} zł".replace(",", " ") if listing.price is not None else "price n/a"
+        price = f"{listing.price:,}{unit}".replace(",", " ") if listing.price is not None else "price n/a"
         area = f" · {listing.area:g} m²" if listing.area else ""
         place = f" · {escape(listing.location)}" if listing.location else ""
         prefix = ""
