@@ -19,6 +19,8 @@ MESSAGES = {
     "auth.no_verified_email": "У цього акаунта немає підтвердженого email",
     "tenant.no_database": "У цього акаунта ще немає бази даних",
     "tenant.credentials_pro": "Прямий доступ до бази входить у план Pro",
+    "tenant.provision_failed": "Не вдалося створити вашу базу даних. Спробуйте ще раз за хвилину.",
+    "errors.unexpected": "Щось пішло не так на нашому боці. Спробуйте ще раз.",
     "user.not_found": "Користувача не знайдено",
     "user.email_invalid": "Потрібна правильна email-адреса",
     "user.locale_unsupported": "Мова не підтримується",

@@ -45,8 +45,8 @@ def create_app(settings: Settings | None = None, container: Container | None = N
 
     app = FastAPI(title="Metravo API", version="1.0.0", lifespan=lifespan)
     app.state.container = container
-    install_cors(app, settings)
     install_error_handlers(app)
+    install_cors(app, settings)
     for router in ROUTERS:
         app.include_router(router)
     return app

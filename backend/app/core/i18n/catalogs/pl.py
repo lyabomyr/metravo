@@ -19,6 +19,8 @@ MESSAGES = {
     "auth.no_verified_email": "To konto nie ma potwierdzonego e-maila",
     "tenant.no_database": "To konto nie ma jeszcze bazy danych",
     "tenant.credentials_pro": "Bezpośredni dostęp do bazy jest w planie Pro",
+    "tenant.provision_failed": "Nie udało się utworzyć Twojej bazy danych. Spróbuj ponownie za minutę.",
+    "errors.unexpected": "Coś poszło nie tak po naszej stronie. Spróbuj ponownie.",
     "user.not_found": "Nie znaleziono użytkownika",
     "user.email_invalid": "Podaj prawidłowy adres e-mail",
     "user.locale_unsupported": "Nieobsługiwany język",

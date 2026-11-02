@@ -20,6 +20,8 @@ MESSAGES = {
     "auth.no_verified_email": "This account has no verified email",
     "tenant.no_database": "This account has no database yet",
     "tenant.credentials_pro": "Direct database access is part of the Pro plan",
+    "tenant.provision_failed": "Could not create your database. Please try again in a minute.",
+    "errors.unexpected": "Something went wrong on our side. Please try again.",
     "user.not_found": "User not found",
     "user.email_invalid": "A valid email address is required",
     "user.locale_unsupported": "Unsupported language",
