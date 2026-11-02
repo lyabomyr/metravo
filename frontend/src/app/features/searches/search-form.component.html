@@ -91,11 +91,11 @@
     <div class="list">
       <label class="list__row list__row--stacked">
         <span>{{ 'form.mustMention' | t }}</span>
-        <input class="words" formControlName="required_keywords" [placeholder]="'form.mustMentionExample' | t" data-cy="search-required" />
+        <input formControlName="required_keywords" [placeholder]="'form.mustMentionExample' | t" data-cy="search-required" />
       </label>
       <label class="list__row list__row--stacked">
         <span>{{ 'form.mustNotMention' | t }}</span>
-        <input class="words" formControlName="reject_keywords" [placeholder]="'form.mustNotMentionExample' | t" data-cy="search-reject" />
+        <input formControlName="reject_keywords" [placeholder]="'form.mustNotMentionExample' | t" data-cy="search-reject" />
       </label>
     </div>
     <p class="section-note">{{ 'form.wordsHint' | t }}</p>

@@ -152,10 +152,14 @@ class Container:
         return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor)
 
     def _places(self):
-        from ..services.places.directory import KnownPlaceDirectory, NominatimDirectory
+        from ..services.places.directory import PlaceDirectory
+        from ..services.places.nominatim import NominatimDirectory
+        from ..services.places.photon import PhotonDirectory
 
         # Live lookups only where portals are live too; elsewhere the built-in list, no network.
-        return KnownPlaceDirectory() if self.settings.page_fetcher == "fixtures" else NominatimDirectory()
+        # Photon first: Nominatim blocks many shared cloud addresses, Render's among them.
+        sources = [] if self.settings.page_fetcher == "fixtures" else [PhotonDirectory(), NominatimDirectory()]
+        return PlaceDirectory(sources)
 
     def _mailer(self):
         from ..services.email.mailer import RecordingMailer, SmtpMailer

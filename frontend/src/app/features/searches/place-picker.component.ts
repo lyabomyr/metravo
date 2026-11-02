@@ -60,7 +60,7 @@ import { Place } from './search.model';
     <p class="section-note">{{ 'form.placeHint' | t }}</p>
   `,
   styles: `
-    .place-query { flex: 1; text-align: left; }
+    .place-query { flex: 1; }
   `,
 })
 export class PlacePickerComponent extends BasePage {

@@ -35,5 +35,6 @@
 .list__row--stacked { flex-direction: column; align-items: stretch; gap: 4px; }
 .list__row--button { width: 100%; border: none; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .list__row--button:hover { background: var(--fill); }
-.list__row--stacked input:not([type='checkbox']) { text-align: left; max-width: none; }
+/* Same weight as the row rule above (plus one class), so a stacked row's field reads left to right. */
+.list__row--stacked input:not([type='checkbox']):not([type='radio']) { text-align: left; max-width: none; }
 .list__hint { font-size: 13px; color: var(--muted); }

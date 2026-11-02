@@ -14,9 +14,6 @@ import { DEFAULT_SEARCH, DealType, KRAKOW, Place, PropertyType, SearchDraft } fr
   selector: 'app-search-form',
   imports: [ReactiveFormsModule, IntervalPipe, PlacePickerComponent, TranslatePipe],
   templateUrl: './search-form.component.html',
-  styles: `
-    .words { text-align: left; }
-  `,
 })
 export class SearchFormComponent {
   readonly value = input<SearchDraft>(DEFAULT_SEARCH);

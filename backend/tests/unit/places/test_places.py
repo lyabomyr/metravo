@@ -1,7 +1,13 @@
 """Any city, town or village, found by name or on the map, saved with a radius."""
 
-from app.services.places.directory import NominatimDirectory
+import pytest
+
+from app.core.errors import Unavailable
+from app.services.places.directory import PlaceDirectory
+from app.services.places.http import PoliteClient
 from app.services.places.models import Place
+from app.services.places.nominatim import NominatimDirectory
+from app.services.places.photon import PhotonDirectory
 
 ZABIERZOW = {
     "name": "Zabierzów", "addresstype": "village", "lat": "50.1146", "lon": "19.7993",
@@ -12,15 +18,23 @@ KRAKOW = {"name": "Kraków", "addresstype": "city", "lat": "50.06", "lon": "19.9
           "address": {"city": "Kraków", "state": "województwo małopolskie"}}
 
 
-class FakeNominatim:
-    def __init__(self, answer):
-        self.headers, self.answer, self.calls = {}, answer, []
+class FakeHttp:
+    """A requests.Session that answers every GET with the same body, or fails."""
+
+    def __init__(self, answer, fail=False):
+        self.headers, self.answer, self.fail, self.calls = {}, answer, fail, []
 
     def get(self, url, params=None, timeout=None):
+        import requests
+
         self.calls.append((url, params))
+        if self.fail:
+            raise requests.ConnectionError("blocked")
         answer = self.answer
 
         class Response:
+            text = answer if isinstance(answer, str) else ""
+
             def raise_for_status(self):
                 pass
 
@@ -30,21 +44,31 @@ class FakeNominatim:
         return Response()
 
 
+def nominatim(answer, fail=False):
+    http = FakeHttp(answer, fail)
+    return NominatimDirectory(PoliteClient("https://nominatim", 0, session=http)), http
+
+
+PHOTON_BIBICE = {"features": [{"geometry": {"coordinates": [19.9552, 50.1240]},
+                               "properties": {"name": "Bibice", "osm_value": "village", "countrycode": "PL"}}]}
+ULDK_ZIELONKI = "0\nZielonki|powiat krakowski|małopolskie\n"
+ULDK_KRAKOW = "0\nKraków (miasto)|powiat Kraków|małopolskie\n"
+
+
 def test_a_village_becomes_the_path_the_portals_use():
-    [place] = NominatimDirectory(FakeNominatim([ZABIERZOW])).search("Zabierzów")
+    [place] = nominatim([ZABIERZOW])[0].search("Zabierzów")
     assert place.path == "malopolskie/krakowski/zabierzow/zabierzow"
     assert place.slug == "zabierzow" and place.region_name == "małopolskie"
     assert place.detail == "gmina Zabierzów, powiat krakowski, województwo małopolskie"
 
 
 def test_a_city_with_county_rights_is_its_own_county_and_municipality():
-    [place] = NominatimDirectory(FakeNominatim([KRAKOW])).search("Kraków")
+    [place] = nominatim([KRAKOW])[0].search("Kraków")
     assert place.path == "malopolskie/krakow/krakow/krakow"
 
 
 def test_lookups_are_cached_and_identify_us():
-    http = FakeNominatim([ZABIERZOW])
-    directory = NominatimDirectory(http)
+    directory, http = nominatim([ZABIERZOW])
     directory.search("Zabierzów")
     directory.search("Zabierzów")
     assert len(http.calls) == 1
@@ -52,7 +76,7 @@ def test_lookups_are_cached_and_identify_us():
 
 
 def test_a_point_on_the_map():
-    place = NominatimDirectory(FakeNominatim(ZABIERZOW)).at(50.1146, 19.7993)
+    place = nominatim(ZABIERZOW)[0].at(50.1146, 19.7993)
     assert place and place.name == "Zabierzów"
 
 
@@ -101,3 +125,31 @@ def test_a_search_saved_before_places_reads_as_its_city(tmp_path):
 
     [search] = SearchRepository(db, "u1").all()
     assert search.place.path == "malopolskie/krakow/krakow/krakow" and search.radius_km == 0
+
+
+
+def test_photon_finds_the_place_and_the_geoportal_its_municipality():
+    photon = PoliteClient("https://photon", 0, session=FakeHttp(PHOTON_BIBICE))
+    uldk = PoliteClient("https://uldk", 0, session=FakeHttp(ULDK_ZIELONKI))
+    [place] = PhotonDirectory(photon, uldk).search("Bibice")
+    assert place.path == "malopolskie/krakowski/zielonki/bibice"  # Otodom 404s without the right municipality
+
+
+def test_a_city_with_county_rights_from_the_geoportal():
+    photon = PoliteClient("https://photon", 0, session=FakeHttp({"features": [
+        {"geometry": {"coordinates": [19.94, 50.06]}, "properties": {"name": "Kraków", "osm_value": "city", "countrycode": "PL"}}]}))
+    uldk = PoliteClient("https://uldk", 0, session=FakeHttp(ULDK_KRAKOW))
+    assert PhotonDirectory(photon, uldk).search("Kraków")[0].path == "malopolskie/krakow/krakow/krakow"
+
+
+def test_when_one_service_is_blocked_the_next_one_answers():
+    blocked, _ = nominatim(None, fail=True)
+    working, _ = nominatim([ZABIERZOW])
+    assert [p.name for p in PlaceDirectory([blocked, working]).search("Zabierzów")] == ["Zabierzów"]
+
+
+def test_every_service_down_says_so_instead_of_nothing_found():
+    blocked, _ = nominatim(None, fail=True)
+    with pytest.raises(Unavailable):
+        PlaceDirectory([blocked]).search("Szczyrk")
+    assert [p.name for p in PlaceDirectory([blocked]).search("Katowice")] == ["Katowice"]  # big cities still work

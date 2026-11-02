@@ -74,4 +74,5 @@ MESSAGES = {
     "search.place_invalid": "Wybierz miasto, miasteczko lub wieś w Polsce",
     "search.radius_invalid": "Odległość od miejsca może wynosić: {choices} km",
     "tg.start.first_batch": "📬 Za chwilę: {n} najnowszych ogłoszeń dla Twoich wyszukiwań naraz. Potem już tylko nowe, gdy się pojawią.",
+    "places.unavailable": "Wyszukiwanie miejscowości jest teraz niedostępne. Spróbuj za minutę albo wybierz duże miasto.",
 }

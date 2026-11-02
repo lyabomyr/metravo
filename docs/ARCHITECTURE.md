@@ -56,9 +56,15 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   outside it (`infra/worker/uptime.js`) checks the site and the API every 5
   minutes. Admin → System shows the same numbers and the last warnings.
 - **Places.** `services/places` finds any city, town or village by name or
-  by a point on the map (OpenStreetMap's Nominatim: an identifying
-  User-Agent, one request a second, answers cached) and turns it into the
-  `voivodeship/county/municipality/locality` path the portals use. A search
+  by a point on the map and turns it into the
+  `voivodeship/county/municipality/locality` path the portals use. Photon
+  (OpenStreetMap, by Komoot) finds the place; Poland's geoportal (ULDK,
+  GUGiK) says which municipality it lies in — Otodom answers 404 without the
+  right one. Nominatim is the fallback: it blocks many shared cloud
+  addresses, Render's among them. Each service is called through one polite
+  client (identifying User-Agent, throttled, cached); the big cities are
+  built in, and if every service is down the site says so instead of
+  "nothing found". A search
   stores that place and a radius. Otodom searches the path with
   `distanceRadius`, OLX the locality with `search[dist]` rounded up to its
   steps, Morizon and the bailiff auctions the locality itself. Local runs and
@@ -94,7 +100,7 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
 | CI / deploy | GitHub Actions | unlimited on public repos, 2 000 min/month private; no schedules | — |
 | Database | Turso, one database | free plan storage and row reads — check the current quota | Turso paid |
 | Sign-in | Firebase Auth (Google; email links are built but switched off in the UI) | free; Google sends the emails, no domain needed | — |
-| Places | OpenStreetMap Nominatim + map tiles | free within its usage policy: 1 request/second, cached | a hosted geocoder |
+| Places | Photon (OSM) + ULDK (Polish geoportal), Nominatim as fallback, OSM map tiles | free; throttled and cached | a hosted geocoder |
 | Email alerts | any SMTP; Gmail with an app password | about 500 emails/day, no domain needed | Brevo (300/day free) or a paid SMTP |
 | Payments | off for now (`BILLING_PROVIDER=none`); Stripe later | Stripe: no monthly fee, a cut per payment | — |
 

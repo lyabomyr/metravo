@@ -77,4 +77,5 @@ MESSAGES = {
     "search.place_invalid": "Pick a city, town or village in Poland",
     "search.radius_invalid": "The distance around the place can be: {choices} km",
     "tg.start.first_batch": "📬 Coming up: the {n} newest listings for your searches in one go. After that, only new ones, as they appear.",
+    "places.unavailable": "Place search is not available right now. Try again in a minute, or pick a big city.",
 }
