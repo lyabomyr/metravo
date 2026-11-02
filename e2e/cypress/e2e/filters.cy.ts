@@ -6,14 +6,16 @@ const DLUGA = '2 pokoje przy Długiej';
 const BRONOWICE = '2 pokoje Bronowice';
 const NOWA_HUTA = 'Duże mieszkanie Nowa Huta';
 
+/** The search the fixture table is written for: ≤ 600 000 zł, ≥ 40 m² (a new search has no limits). */
+const FIXTURE_SEARCH = { 'search-max-price': '600000', 'search-min-area': '40' };
+const FIXTURE_RENT = { 'search-max-price': '4000' };
+
 /** Fill the form like a user, save, then press “Check now”. */
-function searchFor(fields: Record<string, string>, options: { only?: string[]; extra?: string[]; rent?: boolean } = {}) {
+function searchFor(fields: Record<string, string>, options: { only?: string[]; extra?: string[]; rent?: boolean; noLimits?: boolean } = {}) {
   cy.visit('/searches/new');
-  if (options.rent) {
-    chooseSegment('deal-rent');
-    cy.get('[data-cy=search-max-price]').should('have.value', '4000'); // the form has switched to renting
-  }
-  for (const [field, value] of Object.entries(fields)) cy.get(`[data-cy=${field}]`).clear().type(value);
+  if (options.rent) chooseSegment('deal-rent');
+  const base = options.noLimits ? {} : options.rent ? FIXTURE_RENT : FIXTURE_SEARCH;
+  for (const [field, value] of Object.entries({ ...base, ...fields })) cy.get(`[data-cy=${field}]`).clear().type(value);
   if (options.only) {
     ['otodom', 'olx', 'morizon'].filter((source) => !options.only!.includes(source)).forEach((source) => cy.get(`[data-cy=source-${source}]`).uncheck());
   }
@@ -35,6 +37,20 @@ describe('Every filter changes what arrives', () => {
     cy.contains('TBS').should('not.exist');
     cy.contains('Kawalerka Czyżyny').should('not.exist');
     cy.contains(WIELICKA_MORIZON).should('not.exist');
+  });
+
+  it('FLT-14 a new search without limits tracks everything but TBS and duplicates', () => {
+    searchFor({}, { noLimits: true });
+    expectListings([...DEFAULT_MATCHES, 'Penthouse', 'Kawalerka Czyżyny']);
+    cy.contains('TBS').should('not.exist');
+    cy.contains(WIELICKA_MORIZON).should('not.exist');
+  });
+
+  it('FLT-15 “must not mention” can be changed: emptied, TBS comes back', () => {
+    cy.visit('/searches/new');
+    cy.get('[data-cy=search-reject]').should('contain.value', 'TBS');
+    searchFor({ 'search-reject': ' ' });
+    cy.contains('TBS').should('exist');
   });
 
   it('FLT-2 price up to', () => {

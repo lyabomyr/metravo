@@ -32,8 +32,9 @@ export interface SearchDraft {
   deal_type: DealType;
   property_type: PropertyType;
   min_price: number | null;
-  max_price: number;
-  min_area: number;
+  /** null = no limit: a new search tracks everything until narrowed. */
+  max_price: number | null;
+  min_area: number | null;
   max_area: number | null;
   min_rooms: number | null;
   max_rooms: number | null;
@@ -41,6 +42,8 @@ export interface SearchDraft {
   min_build_year: number | null;
   sources: string[];
   required_keywords: string[];
+  /** Missing on a new search: the form fills in the server's defaults (TBS, basements, shares). */
+  reject_keywords?: string[];
   interval_minutes: number;
   enabled: boolean;
 }
@@ -52,9 +55,6 @@ export interface Search extends SearchDraft {
   created_at: string;
 }
 
-/** A budget that makes sense for each deal: a flat to buy vs a month's rent. */
-export const DEFAULT_BUDGET: Record<DealType, number> = { sale: 600000, rent: 4000 };
-
 export const DEFAULT_SEARCH: SearchDraft = {
   name: 'My flat',
   place: KRAKOW,
@@ -62,14 +62,15 @@ export const DEFAULT_SEARCH: SearchDraft = {
   deal_type: 'sale',
   property_type: 'flat',
   min_price: null,
-  max_price: DEFAULT_BUDGET.sale,
-  min_area: 40,
+  max_price: null,
+  min_area: null,
   max_area: null,
   min_rooms: null,
   max_rooms: null,
   max_price_per_m2: null,
   min_build_year: null,
-  sources: ['otodom', 'olx', 'morizon'],
+  /** Empty = every portal the plan includes. */
+  sources: [],
   required_keywords: [],
   interval_minutes: 1440,
   enabled: true,

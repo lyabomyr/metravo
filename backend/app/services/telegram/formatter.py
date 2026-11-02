@@ -10,7 +10,7 @@ from ..searches.models import Search
 # Telegram rejects messages over 4096 characters; a rejected message is lost.
 MAX_MESSAGE_LENGTH = 4000
 #: More than this per scan is noise — the rest are on the website.
-MAX_LISTINGS_PER_SCAN = 15
+MAX_LISTINGS_PER_SCAN = 20
 
 
 def zloty(amount: int) -> str:

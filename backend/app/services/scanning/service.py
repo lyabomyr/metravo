@@ -15,8 +15,9 @@ from .listing_filter import ListingFilter
 from .models import ScanReport
 from .notifier import ListingNotifier
 
-#: How many already-found listings a newly connected channel receives per search.
-FIRST_DELIVERY = 15
+#: How many already-found listings a newly connected channel receives per search
+#: (the newest; the website tells the user to expect this one longer message).
+FIRST_DELIVERY = 20
 
 
 class ScanService(BaseService):

@@ -10,17 +10,20 @@ import { SearchDraft } from '../searches/search.model';
 import { SearchFormComponent } from '../searches/search-form.component';
 import { SearchesApiService } from '../searches/searches-api.service';
 import { TelegramApiService } from '../telegram/telegram-api.service';
-import { TelegramConnectComponent } from '../telegram/telegram-connect.component';
+import { ChannelSettingsComponent } from '../alerts/channel-settings.component';
+import { TelegramChannelComponent } from '../telegram/telegram-channel.component';
 
 /**
- * Setup: a search (click 1), then Telegram (click 2, then Start there). Every
+ * Setup: a search (click 1), then where to send alerts — Telegram is the one open to everyone today. Every
  * sign-in lands here and it skips what is already done, so an account that
  * was created but never finished setup is taken through the rest. Once
  * Telegram connects, the server sends what it has found and scans at once.
  */
 @Component({
   selector: 'app-onboarding-page',
-  imports: [RouterLink, ErrorBannerComponent, PageHeaderComponent, SearchFormComponent, TelegramConnectComponent, TranslatePipe],
+  imports: [
+    RouterLink, ChannelSettingsComponent, ErrorBannerComponent, PageHeaderComponent, SearchFormComponent, TelegramChannelComponent, TranslatePipe,
+  ],
   template: `
     <app-page-header [title]="'onboarding.title' | t" [subtitle]="'onboarding.subtitle' | t" />
     <app-error-banner [error]="error()" />
@@ -42,7 +45,9 @@ import { TelegramConnectComponent } from '../telegram/telegram-connect.component
             <p data-cy="onboarding-done">{{ 'onboarding.done' | t }}</p>
             <a class="button button--primary" routerLink="/listings" data-cy="onboarding-listings">{{ 'onboarding.seeListings' | t }}</a>
           } @else if (searchSaved()) {
-            <app-telegram-connect (connected)="connected.set(true)" />
+            <app-channel-settings>
+              <app-telegram-channel (connected)="connected.set(true)" />
+            </app-channel-settings>
           } @else {
             <p class="muted">{{ 'onboarding.saveFirst' | t }}</p>
           }

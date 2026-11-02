@@ -32,8 +32,8 @@ class SearchFields(BaseModel):
     deal_type: DealType = DealType.SALE
     property_type: PropertyType = PropertyType.FLAT
     min_price: int | None = Field(default=None, ge=0)
-    max_price: int = Field(gt=0)
-    min_area: float = Field(gt=0)
+    max_price: int | None = Field(default=None, gt=0)
+    min_area: float | None = Field(default=None, gt=0)
     max_area: float | None = None
     min_rooms: int | None = Field(default=None, ge=1)
     max_rooms: int | None = Field(default=None, ge=1)

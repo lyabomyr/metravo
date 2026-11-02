@@ -8,14 +8,16 @@ import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { ChannelSetting, NotificationsApiService } from './notifications-api.service';
 import { TestChannelComponent } from './test-channel.component';
 
-/** WhatsApp, Viber, Signal, email: tick to get the same listings there too. Pro only. */
+/** The channel list: Telegram (projected in), then email, WhatsApp, Viber, Signal — tick to get the same listings there too. */
 @Component({
   selector: 'app-channel-settings',
   imports: [FormsModule, RouterLink, ErrorBannerComponent, TestChannelComponent, TranslatePipe],
   template: `
-    <h3 class="section-title">{{ 'alerts.more' | t }}</h3>
+    <h3 class="section-title">{{ 'alerts.channels' | t }}</h3>
     <app-error-banner [error]="error()" />
     <div class="list">
+      <!-- Telegram's own row goes first; it has chats instead of an address. -->
+      <ng-content />
       @for (channel of others(); track channel.code) {
         <div class="list__row list__row--stacked" [class.list__row--disabled]="!channel.allowed" [attr.data-cy]="'channel-' + channel.code">
           <label class="row row--between">

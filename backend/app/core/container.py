@@ -100,8 +100,8 @@ class Container:
             pages=settings.scan_pages,
             delay_seconds=settings.scan_delay_seconds,
         )
-        self.searches = SearchService(self.control_db, self.users, self.connectors, self.clock)
         self.listings = ListingService(self.control_db, self.clock)
+        self.searches = SearchService(self.control_db, self.users, self.connectors, self.clock, self.listings.forget_search)
         self.export = ExportService(self.control_db)
         self.billing = BillingService(self._payment_provider(), subscription_repo, self.users, self.plans, self.clock)
 

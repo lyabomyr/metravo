@@ -11,8 +11,9 @@ class ListingFilter:
 
     A value the portal did not publish never rejects on its own — bailiff
     auctions rarely state the area, and they are worth seeing. Two
-    exceptions: an unpriced listing cannot be checked against the budget, and
-    a required keyword has to actually be there.
+    exceptions: an unpriced listing cannot be checked against a price limit,
+    and a required keyword has to actually be there. A limit left empty
+    (None) does not filter at all.
     """
 
     def __init__(self, search: Search):
@@ -22,13 +23,14 @@ class ListingFilter:
 
     def reason_to_reject(self, listing: Listing) -> str | None:
         search = self._search
-        if listing.price is None:
+        priced = search.max_price is not None or search.min_price is not None or search.max_price_per_m2
+        if listing.price is None and priced:
             return "no price published"
-        if listing.price > search.max_price:
+        if listing.price is not None and search.max_price is not None and listing.price > search.max_price:
             return f"price {listing.price} > {search.max_price}"
-        if search.min_price is not None and listing.price < search.min_price:
+        if listing.price is not None and search.min_price is not None and listing.price < search.min_price:
             return f"price {listing.price} < {search.min_price}"
-        if listing.area is not None and listing.area < search.min_area:
+        if listing.area is not None and search.min_area is not None and listing.area < search.min_area:
             return f"area {listing.area} < {search.min_area}"
         if search.max_area is not None and listing.area is not None and listing.area > search.max_area:
             return f"area {listing.area} > {search.max_area}"
@@ -36,7 +38,7 @@ class ListingFilter:
             return f"rooms {listing.rooms} < {search.min_rooms}"
         if search.max_rooms and listing.rooms is not None and listing.rooms > search.max_rooms:
             return f"rooms {listing.rooms} > {search.max_rooms}"
-        if search.max_price_per_m2 and listing.area:
+        if search.max_price_per_m2 and listing.area and listing.price is not None:
             per_m2 = listing.price / listing.area
             if per_m2 > search.max_price_per_m2:
                 return f"{per_m2:.0f} zł/m² > {search.max_price_per_m2}"

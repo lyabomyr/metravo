@@ -8,7 +8,8 @@ from ...core.config import parse_web_config
 from ...core.container import Container
 from ..auth.dependencies import get_container
 from ..places.models import RADIUS_CHOICES
-from ..searches.models import SCAN_INTERVALS
+from ..scanning.service import FIRST_DELIVERY
+from ..searches.models import DEFAULT_REJECT_KEYWORDS, SCAN_INTERVALS
 
 router = APIRouter(prefix="/api", tags=["system"])
 
@@ -34,4 +35,6 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "plan_min_intervals": {plan.code: plan.min_interval_minutes for plan in container.plans},
         "plan_sources": {plan.code: list(plan.sources) for plan in container.plans},
         "radius_choices": list(RADIUS_CHOICES),
+        "default_reject_keywords": list(DEFAULT_REJECT_KEYWORDS),
+        "first_batch": FIRST_DELIVERY,
     }

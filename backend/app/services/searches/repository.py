@@ -99,7 +99,7 @@ class SearchRepository(OwnedRepository):
             search.id, self.user_id, search.name, search.place.slug, search.place.name, search.place.path,
             search.place.region_name, search.place.lat, search.place.lon, search.radius_km,
             search.deal_type.value, search.property_type.value,
-            search.min_price, search.max_price, search.min_area, search.max_area, search.min_rooms, search.max_rooms,
+            search.min_price, search.max_price or 0, search.min_area or 0, search.max_area, search.min_rooms, search.max_rooms,
             search.max_price_per_m2, search.min_build_year, json.dumps(search.sources),
             json.dumps(search.required_keywords, ensure_ascii=False), json.dumps(search.reject_keywords, ensure_ascii=False),
             search.interval_minutes, int(search.enabled), search.last_scanned_at, search.created_at,
@@ -112,6 +112,9 @@ class SearchRepository(OwnedRepository):
         stored = (row.pop("place_name"), row.pop("place_path"), row.pop("place_region"), row.pop("lat"), row.pop("lon"))
         row.pop("user_id")
         place = Place(*stored) if stored[1] else known_place(city)
+        # max_price and min_area are NOT NULL columns in existing databases: 0 is stored for "no limit".
+        row["max_price"] = row["max_price"] or None
+        row["min_area"] = row["min_area"] or None
         return Search(
             place=place,
             **{

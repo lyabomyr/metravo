@@ -35,8 +35,9 @@ class Search:
     id: str
     name: str
     place: Place
-    max_price: int
-    min_area: float
+    #: None = no limit. A new search tracks everything until the user narrows it.
+    max_price: int | None = None
+    min_area: float | None = None
     deal_type: DealType = DealType.SALE
     property_type: PropertyType = PropertyType.FLAT
     min_price: int | None = None

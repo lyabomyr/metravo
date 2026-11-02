@@ -34,3 +34,20 @@ def test_plan_limits_count_only_the_users_own_searches(container, sign_in):
     anna, ben = sign_in("anna@x.pl"), sign_in("ben@x.pl")
     container.searches.create(anna, make_search())
     container.searches.create(ben, make_search())  # Free allows one each
+
+
+def test_deleting_a_search_deletes_its_results(container, sign_in):
+    anna, ben = sign_in("anna@x.pl"), sign_in("ben@x.pl")
+    annas = container.searches.create(anna, make_search())
+    container.searches.create(ben, make_search())
+    container.scanner.run()
+
+    container.searches.delete(anna, annas.id)
+
+    assert container.listings.latest(anna) == []
+    assert container.export.listings_csv(anna).strip().count("\n") == 0
+    assert len(container.listings.latest(ben)) == 4  # Ben's results and the offers they point to stay
+    offers = container.control_db.query_one("SELECT COUNT(*) AS n FROM portal_listings")["n"]
+    assert offers == 4
+    container.searches.delete(ben, container.searches.list(ben)[0].id)
+    assert container.control_db.query_one("SELECT COUNT(*) AS n FROM portal_listings")["n"] == 0  # nobody needs them

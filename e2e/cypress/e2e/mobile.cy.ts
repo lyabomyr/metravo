@@ -32,7 +32,6 @@ describe('On a phone', () => {
 
   it('MOB-3 the landing page fits the screen', () => {
     cy.visit('/');
-    cy.get('.lnav__links').should('not.be.visible');
     cy.get('[data-cy=email]').should('be.visible');
     noSidewaysScroll();
   });

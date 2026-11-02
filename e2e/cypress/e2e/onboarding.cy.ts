@@ -7,12 +7,14 @@ describe('First visit: sign in, save a search, connect Telegram, see listings', 
     cy.get('[data-cy=email]').type(email);
     cy.get('[data-cy=sign-in]').click();
 
-    // Step 1 — the defaults are fine, one click saves them.
+    // Step 1 — the defaults are fine (no limits: everything in Kraków), one click saves them.
     cy.location('pathname').should('eq', '/welcome');
     cy.get('[data-cy=search-save]').click();
     cy.get('[data-cy=onboarding-search-saved]').should('be.visible');
 
     // Step 2 — the button is a real t.me deep link; Telegram's Start is played by the test.
+    cy.get('[data-cy=first-batch-note]').should('contain', '20 newest'); // warned before connecting
+    cy.get('[data-cy=channel-email]').should('contain', 'Pro'); // Telegram is one channel among several
     cy.get('[data-cy=telegram-open]')
       .should('have.attr', 'href')
       .and('match', /^https:\/\/t\.me\/\w+\?start=/)
@@ -21,7 +23,7 @@ describe('First visit: sign in, save a search, connect Telegram, see listings', 
 
     // Connecting starts the search at once: the listings are there without pressing anything.
     cy.get('[data-cy=onboarding-listings]').click();
-    cy.get('[data-cy=listing]', { timeout: 10000 }).should('have.length', 4);
+    cy.get('[data-cy=listing]', { timeout: 10000 }).should('have.length', 6);
     cy.get('[data-cy=connect-reminder]').should('not.exist');
     cy.get('[data-cy=user-email]').should('have.text', email);
   });

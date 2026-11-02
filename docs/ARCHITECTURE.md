@@ -4,7 +4,7 @@
 
 A person signs in with their email, saves one or more searches — buy or rent, flat or house, any city, town or village with a radius around it, price from–to, area, rooms, price
 per m², words that must appear, portals, how often to check (daily by
-default) — and connects Telegram in two clicks. A scanner reads Otodom, OLX,
+default) — and picks where alerts go: Telegram (two clicks) for everyone, email on Pro. A scanner reads Otodom, OLX,
 Morizon and bailiff auctions, keeps what matches each search, and sends new
 flats and price drops to Telegram. Free gets one search checked once a day;
 Pro ($10/month, on sale from the day in `PRO_AVAILABLE_FROM`) gets five
@@ -93,7 +93,7 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
 | API + scanner | Render free web service | 750 h/month (one service 24/7); kept awake by its own ping | Render Starter |
 | CI / deploy | GitHub Actions | unlimited on public repos, 2 000 min/month private; no schedules | — |
 | Database | Turso, one database | free plan storage and row reads — check the current quota | Turso paid |
-| Sign-in | Firebase Auth (email link + Google) | free; Google sends the emails, no domain needed | — |
+| Sign-in | Firebase Auth (Google; email links are built but switched off in the UI) | free; Google sends the emails, no domain needed | — |
 | Places | OpenStreetMap Nominatim + map tiles | free within its usage policy: 1 request/second, cached | a hosted geocoder |
 | Email alerts | any SMTP; Gmail with an app password | about 500 emails/day, no domain needed | Brevo (300/day free) or a paid SMTP |
 | Payments | off for now (`BILLING_PROVIDER=none`); Stripe later | Stripe: no monthly fee, a cut per payment | — |

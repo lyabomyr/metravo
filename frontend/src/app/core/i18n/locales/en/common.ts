@@ -31,6 +31,7 @@ export const COMMON = {
   'errors.generic': 'Something went wrong. Please try again.',
   'errors.firebase.disabled': 'This sign-in method is switched off. Use the email link instead.',
   'errors.firebase.popupClosed': 'The sign-in window was closed before finishing.',
+  'errors.firebase.popupBlocked': 'The sign-in window was blocked. Allow pop-ups for this site, or open it in Safari or Chrome.',
   'errors.firebase.invalidLink': 'This sign-in link is invalid or has expired. Request a new one.',
   'errors.firebase.domain': 'Sign-in is not allowed from this address yet.',
   'nav.main': 'Main',

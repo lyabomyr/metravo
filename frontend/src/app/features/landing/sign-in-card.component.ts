@@ -11,7 +11,10 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 
-/** Email link and Google with Firebase; any email in local and e2e runs. A new account goes to onboarding. */
+/**
+ * Google with Firebase (email links are off for now: opened on a phone they land in a
+ * different browser than the one that asked). Any email in local and e2e runs.
+ */
 @Component({
   selector: 'app-sign-in-card',
   imports: [FormsModule, ErrorBannerComponent, TranslatePipe],
@@ -19,13 +22,24 @@ import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
     <section class="card stack sign-in" id="start">
       <div class="stack stack--tight">
         <h2>{{ 'auth.title' | t }}</h2>
-        <p class="muted small">{{ 'auth.subtitle' | t }}</p>
+        <p class="muted small">{{ (usesFirebase() ? 'auth.subtitleGoogle' : 'auth.subtitle') | t }}</p>
       </div>
       <app-error-banner [error]="error()" />
-      @if (linkSent()) {
-        <div class="banner banner--success" data-cy="link-sent">{{ 'auth.linkSent' | t: { email: email() } }}</div>
+      @if (usesFirebase()) {
+        @if (inAppBrowser) {
+          <div class="banner banner--warning stack stack--tight" data-cy="in-app-browser">
+            <span>{{ 'auth.inApp' | t }}</span>
+            <button class="button button--small" type="button" (click)="copyLink()" data-cy="copy-link">
+              {{ (copied() ? 'auth.copied' : 'auth.copyLink') | t }}
+            </button>
+          </div>
+        }
+        <button class="button button--primary button--block" type="button" (click)="signInWithGoogle()" [disabled]="loading()" data-cy="google">
+          <span aria-hidden="true">G</span> {{ 'auth.google' | t }}
+        </button>
       } @else {
-        <form class="stack" (ngSubmit)="usesFirebase() ? sendEmailLink() : signInDev()">
+        <!-- Local and e2e runs: any email signs in, no account needed. -->
+        <form class="stack" (ngSubmit)="signInDev()">
           <input
             type="email"
             name="email"
@@ -38,18 +52,10 @@ import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
             data-cy="email"
           />
           <button class="button button--primary button--block" type="submit" [disabled]="loading() || !email()" data-cy="sign-in">
-            {{ (usesFirebase() ? 'auth.sendLink' : 'auth.signIn') | t }}
+            {{ 'auth.signIn' | t }}
           </button>
         </form>
-        @if (usesFirebase()) {
-          <div class="divider small muted">{{ 'auth.or' | t }}</div>
-          <button class="button button--block" type="button" (click)="signInWithGoogle()" [disabled]="loading()" data-cy="google">
-            <span aria-hidden="true">G</span> {{ 'auth.google' | t }}
-          </button>
-        }
-        @if (usesDevLogin() && !usesFirebase()) {
-          <p class="muted small">{{ 'auth.devNote' | t }}</p>
-        }
+        <p class="muted small">{{ 'auth.devNote' | t }}</p>
       }
     </section>
   `,
@@ -61,16 +67,17 @@ export class SignInCardComponent extends BasePage {
   private readonly providers = inject(PublicConfigService).value.auth_providers;
 
   protected readonly email = signal('');
-  protected readonly linkSent = signal(false);
+  protected readonly copied = signal(false);
+  /** Google refuses to sign in inside apps' own browsers (Instagram, Facebook, TikTok, …). */
+  protected readonly inAppBrowser = isInAppBrowser(navigator.userAgent);
   protected readonly usesFirebase = computed(() => this.providers.includes('firebase'));
-  protected readonly usesDevLogin = computed(() => this.providers.includes('dev'));
 
   protected signInDev(): void {
     this.run(this.session.signIn('dev', this.email()), (session) => this.continue(session));
   }
 
-  protected sendEmailLink(): void {
-    this.run(from(this.firebase.sendEmailLink(this.email())), () => this.linkSent.set(true));
+  protected copyLink(): void {
+    void navigator.clipboard?.writeText(location.href).then(() => this.copied.set(true));
   }
 
   protected signInWithGoogle(): void {
@@ -79,7 +86,13 @@ export class SignInCardComponent extends BasePage {
     );
   }
 
-  private continue(session: Session): void {
+  private continue(_: Session): void {
     this.router.navigateByUrl('/welcome');
   }
+}
+
+/** An app's built-in browser, where Google sign-in is blocked: iOS web views lack "Safari/", Android ones say "; wv)". */
+export function isInAppBrowser(userAgent: string): boolean {
+  if (/FBAN|FBAV|Instagram|Line\/|TikTok|musical_ly|; wv\)|Snapchat|LinkedInApp/.test(userAgent)) return true;
+  return /iPhone|iPad|iPod/.test(userAgent) && !/Safari\//.test(userAgent);
 }

@@ -76,4 +76,5 @@ MESSAGES = {
     "channel.test_failed": "Could not send to {channel}. Check the address and try again",
     "search.place_invalid": "Pick a city, town or village in Poland",
     "search.radius_invalid": "The distance around the place can be: {choices} km",
+    "tg.start.first_batch": "📬 Coming up: the {n} newest listings for your searches in one go. After that, only new ones, as they appear.",
 }

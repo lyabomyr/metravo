@@ -19,7 +19,16 @@
           <span class="chip">⏱ {{ search.interval_minutes | interval }}</span>
         </div>
         <div class="muted small">
-          {{ 'searches.summary' | t: { price: (search.max_price | money), area: search.min_area, sources: search.sources.join(', ') } }}
+          @if (search.max_price) {
+            {{ 'searches.priceUpTo' | t: { price: (search.max_price | money) } }} ·
+          }
+          @if (search.min_area) {
+            {{ 'searches.areaFrom' | t: { area: search.min_area } }} ·
+          }
+          @if (!search.max_price && !search.min_area) {
+            {{ 'searches.noLimits' | t }} ·
+          }
+          {{ search.sources.join(', ') }}
           @if (search.deal_type === 'rent') {
             {{ 'common.perMonth' | t }}
           }

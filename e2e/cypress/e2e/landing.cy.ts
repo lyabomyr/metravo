@@ -4,7 +4,8 @@ describe('Landing page', () => {
   beforeEach(() => cy.visit('/', { onBeforeLoad: (win) => win.localStorage.setItem('metravo.locale', 'en') }));
 
   it('LND-1 explains the product from top to bottom', () => {
-    cy.get('[data-cy=hero-title]').should('contain', 'Telegram');
+    cy.get('[data-cy=hero-title]').should('contain', 'before anyone else calls');
+    cy.get('.lnav a[href^="#"]').should('not.exist'); // no menu: the page reads top to bottom
     cy.contains('h2', 'Good flats are gone within hours').should('be.visible');
     cy.get('#how li').should('have.length', 3);
     cy.get('[data-cy=use-case]').should('have.length', 4).each((card) => {

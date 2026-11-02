@@ -27,6 +27,11 @@ class ListingService(BaseService):
     def price_changes(self, user: User, limit: int = 50) -> list[PriceChange]:
         return self._repo(user.id).price_changes(min(limit, MAX_PAGE_SIZE))
 
+    def forget_search(self, user: User, search_id: str) -> None:
+        """A deleted search takes its results with it; offers nobody else has go too."""
+        self._repo(user.id).forget_search(search_id)
+        self._catalog.drop_unmatched()
+
     def record(self, user_id: str, search: Search, listing: Listing) -> ListingEvent | None:
         """Store a matched listing; return an event if the user should hear about it."""
         repo = self._repo(user_id)

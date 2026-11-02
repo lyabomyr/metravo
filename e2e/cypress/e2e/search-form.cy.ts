@@ -11,17 +11,23 @@ describe('Search form', () => {
     cy.get('[data-cy=search-radius]').should('have.value', '0');
     cy.get('[data-cy=place-map]').should('be.visible');
     cy.get('[data-cy=search-interval]').find('option:selected').should('contain', 'Once a day');
+    cy.get('[data-cy=search-max-price]').should('have.value', ''); // no limits: a new search tracks everything
+    cy.get('[data-cy=search-min-area]').should('have.value', '');
+    cy.get('[data-cy=search-required]').should('have.value', '');
+    cy.get('[data-cy=search-reject]').should('contain.value', 'TBS'); // editable, prefilled
     ['otodom', 'olx', 'morizon'].forEach((source) => cy.get(`[data-cy=source-${source}]`).should('be.checked'));
     cy.get('[data-cy=source-komornik]').should('not.be.checked');
   });
 
   it('FORM-2 renting switches to a monthly price range and drops auctions', () => {
     cy.visit('/searches/new');
+    cy.get('[data-cy=search-max-price]').type('600000');
     chooseSegment('deal-rent');
-    cy.get('[data-cy=search-max-price]').should('have.value', '4000');
+    cy.get('[data-cy=search-max-price]').should('have.value', ''); // a sale price is no monthly rent
     cy.get('[data-cy=source-komornik]').should('be.disabled');
+    cy.get('[data-cy=search-max-price]').type('4000');
     chooseSegment('deal-sale');
-    cy.get('[data-cy=search-max-price]').should('have.value', '600000');
+    cy.get('[data-cy=search-max-price]').should('have.value', '');
     cy.get('[data-cy=source-komornik]').should('be.enabled');
   });
 
@@ -41,13 +47,13 @@ describe('Search form', () => {
   });
 
   it('FORM-5 refuses impossible searches with a clear message', () => {
-    const cases: [string, string, string][] = [
-      ['search-max-area', '30', 'Maximum area is below minimum area'],
-      ['search-min-price', '700000', '“Price from” is higher than “price up to”'],
+    const cases: [Record<string, string>, string][] = [
+      [{ 'search-min-area': '40', 'search-max-area': '30' }, 'Maximum area is below minimum area'],
+      [{ 'search-max-price': '600000', 'search-min-price': '700000' }, '“Price from” is higher than “price up to”'],
     ];
-    cases.forEach(([field, value, message]) => {
+    cases.forEach(([fields, message]) => {
       cy.visit('/searches/new');
-      cy.get(`[data-cy=${field}]`).type(value);
+      Object.entries(fields).forEach(([field, value]) => cy.get(`[data-cy=${field}]`).type(value));
       cy.get('[data-cy=search-save]').click();
       cy.get('[data-cy=error]').should('contain', message);
       cy.location('pathname').should('eq', '/searches/new');

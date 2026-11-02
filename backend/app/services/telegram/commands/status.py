@@ -36,5 +36,7 @@ class StatusCommand(BaseCommand):
         where = escape(search.place.name) + (f" +{search.radius_km} km" if search.radius_km else "")
         return (
             f"{'🟢' if search.enabled else '⚪️'} {escape(search.name)} — {what}, {where}, "
-            f"≤ {zloty(search.max_price)} zł, ≥ {search.min_area:g} m², {describe_interval(search.interval_minutes, context.locale)}"
+            + (f"≤ {zloty(search.max_price)} zł, " if search.max_price else "")
+            + (f"≥ {search.min_area:g} m², " if search.min_area else "")
+            + describe_interval(search.interval_minutes, context.locale)
         )

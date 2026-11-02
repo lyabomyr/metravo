@@ -51,7 +51,7 @@
       </label>
       <label class="list__row">
         <span>{{ (form.controls.deal_type.value === 'rent' ? 'form.rentTo' : 'form.priceTo') | t }}</span>
-        <input type="number" inputmode="numeric" formControlName="max_price" data-cy="search-max-price" />
+        <input type="number" inputmode="numeric" formControlName="max_price" [placeholder]="'common.any' | t" data-cy="search-max-price" />
       </label>
       <label class="list__row">
         <span>{{ 'form.maxPerM2' | t }}</span>
@@ -65,7 +65,7 @@
     <div class="list">
       <label class="list__row">
         <span>{{ 'form.minArea' | t }}</span>
-        <input type="number" inputmode="decimal" formControlName="min_area" data-cy="search-min-area" />
+        <input type="number" inputmode="decimal" formControlName="min_area" [placeholder]="'common.any' | t" data-cy="search-min-area" />
       </label>
       <label class="list__row">
         <span>{{ 'form.maxArea' | t }}</span>
@@ -87,13 +87,18 @@
   </section>
 
   <section>
-    <h3 class="section-title">{{ 'form.mustMention' | t }}</h3>
+    <h3 class="section-title">{{ 'form.words' | t }}</h3>
     <div class="list">
       <label class="list__row list__row--stacked">
-        <input formControlName="required_keywords" placeholder="balkon, winda" data-cy="search-required" />
+        <span>{{ 'form.mustMention' | t }}</span>
+        <input class="words" formControlName="required_keywords" [placeholder]="'form.mustMentionExample' | t" data-cy="search-required" />
+      </label>
+      <label class="list__row list__row--stacked">
+        <span>{{ 'form.mustNotMention' | t }}</span>
+        <input class="words" formControlName="reject_keywords" [placeholder]="'form.mustNotMentionExample' | t" data-cy="search-reject" />
       </label>
     </div>
-    <p class="section-note">{{ 'form.mustMentionHint' | t }}</p>
+    <p class="section-note">{{ 'form.wordsHint' | t }}</p>
   </section>
 
   <section>

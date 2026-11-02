@@ -62,6 +62,11 @@ class ListingCatalog(BaseRepository):
     def seen(self, key: str, price: int | None, now: str) -> None:
         self._exec("UPDATE portal_listings SET price = ?, last_seen_at = ? WHERE key = ?", (price, now, key))
 
+    def drop_unmatched(self) -> int:
+        """Offers no search points to any more, and their price history."""
+        self._exec("DELETE FROM listing_prices WHERE key NOT IN (SELECT key FROM search_matches)")
+        return self._exec("DELETE FROM portal_listings WHERE key NOT IN (SELECT key FROM search_matches)")
+
     def add_price_change(self, key: str, old_price: int, new_price: int, now: str) -> None:
         self._exec(
             "INSERT INTO listing_prices (key, old_price, new_price, changed_at) VALUES (?, ?, ?, ?)",
@@ -82,6 +87,7 @@ class ListingRepository(OwnedRepository):
             PRIMARY KEY (search_id, key)
         )""",
         "CREATE INDEX IF NOT EXISTS search_matches_user ON search_matches (user_id, matched_at)",
+        "CREATE INDEX IF NOT EXISTS search_matches_key ON search_matches (key)",
     )
 
     _LISTING = """m.search_id, l.key, l.source, l.deal_type, l.url, l.title, l.price, l.area, l.rooms, l.location,
@@ -144,6 +150,9 @@ class ListingRepository(OwnedRepository):
 
     def count(self) -> int:
         return self._one("SELECT COUNT(*) AS n FROM search_matches WHERE user_id = ?", (self.user_id,))["n"]
+
+    def forget_search(self, search_id: str) -> None:
+        self._exec("DELETE FROM search_matches WHERE user_id = ? AND search_id = ?", (self.user_id, search_id))
 
 
 def _adopt_per_user_tables(db: Database) -> None:

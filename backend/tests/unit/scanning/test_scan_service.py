@@ -119,3 +119,21 @@ def test_rental_search_reads_rental_pages_and_skips_auctions(container, sign_in,
     assert report.fetches == 2
     assert all(item.deal_type == "rent" for item in container.listings.latest(user))
     assert "2 400 zł/month" in telegram.outbox[-1].text
+
+
+def test_a_search_without_limits_tracks_everything(container, sign_in):
+    user = sign_in()
+    container.searches.create(user, make_search(max_price=None, min_area=None, sources=["otodom", "olx"]))
+    container.scanner.run()
+    keys = {listing.key for listing in container.listings.latest(user)}
+    assert {"otodom:102", "olx:301"} <= keys  # the 900 000 zł penthouse and the 35 m² studio
+    assert "otodom:103" not in keys  # TBS is still excluded by the default "must not mention" words
+
+
+def test_without_a_budget_an_unpriced_offer_is_kept(container, sign_in):
+    from app.services.connectors.models import Listing
+    from app.services.scanning.listing_filter import ListingFilter
+
+    unpriced = Listing(source="otodom", external_id="9", url="https://x", title="Dom", price=None, area=120)
+    assert ListingFilter(make_search(max_price=None, min_area=None)).accepts(unpriced)
+    assert not ListingFilter(make_search()).accepts(unpriced)

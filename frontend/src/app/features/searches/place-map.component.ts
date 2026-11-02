@@ -33,7 +33,9 @@ export class PlaceMapComponent implements OnDestroy {
   }
 
   private async draw(place: Place, radiusKm: number): Promise<void> {
-    const L = await import('leaflet');
+    // Leaflet is CommonJS: depending on the bundler it arrives as the module or as its `default`.
+    const module = await import('leaflet');
+    const L = ((module as unknown as { default?: typeof module }).default ?? module) as typeof module;
     if (!this.map) {
       this.map = L.map(this.element().nativeElement, { scrollWheelZoom: false });
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

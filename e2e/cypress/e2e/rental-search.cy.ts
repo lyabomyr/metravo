@@ -6,7 +6,7 @@ describe('Renting, not buying', () => {
   it('LST-4 finds rentals up to a monthly rent, with required keywords', () => {
     cy.visit('/searches/new');
     chooseSegment('deal-rent');
-    cy.get('[data-cy=search-max-price]').should('have.value', '4000'); // "rent up to" switched to a monthly amount
+    cy.get('[data-cy=search-max-price]').type('4000');
     cy.get('[data-cy=source-komornik]').should('be.disabled'); // auctions are never rentals
     cy.get('[data-cy=search-name]').clear().type('Wynajem z balkonem');
     cy.get('[data-cy=search-min-area]').clear().type('25');

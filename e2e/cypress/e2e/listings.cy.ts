@@ -23,4 +23,17 @@ describe('Listings', () => {
     cy.get('[data-cy=scan-report]').should('contain', 'Nothing to check right now');
     cy.get('[data-cy=listing]').should('have.length', 4);
   });
+
+  it('LST-5 deleting a search deletes what it found', () => {
+    cy.api('POST', '/api/searches', DEFAULT_SEARCH);
+    cy.api('POST', '/api/scan/mine');
+    cy.visit('/listings');
+    cy.get('[data-cy=listing]').should('have.length', 4);
+    cy.visit('/searches');
+    cy.get('[data-cy=search-delete]').click(); // the confirm dialog ("… and the listings it found?") is accepted
+    cy.get('[data-cy=search-card]').should('not.exist');
+    cy.visit('/listings');
+    cy.get('[data-cy=no-listings]').should('be.visible');
+    cy.api('GET', '/api/listings').its('body').should('have.length', 0);
+  });
 });

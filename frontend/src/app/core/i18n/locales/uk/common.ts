@@ -33,6 +33,7 @@ export const COMMON: Section<typeof EN> = {
   'errors.generic': 'Щось пішло не так. Спробуйте ще раз.',
   'errors.firebase.disabled': 'Цей спосіб входу вимкнено. Увійдіть за посиланням з листа.',
   'errors.firebase.popupClosed': 'Вікно входу закрито до завершення входу.',
+  'errors.firebase.popupBlocked': 'Вікно входу заблоковано. Дозвольте спливні вікна для цього сайту або відкрийте його в Safari чи Chrome.',
   'errors.firebase.invalidLink': 'Посилання для входу недійсне або термін його дії минув. Запросіть нове.',
   'errors.firebase.domain': 'Вхід з цієї адреси поки не дозволено.',
   'nav.main': 'Головне',

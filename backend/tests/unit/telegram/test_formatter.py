@@ -15,7 +15,7 @@ def test_long_batches_are_split_and_capped():
     assert all(len(message) <= MAX_MESSAGE_LENGTH for message in messages)
     text = "\n".join(messages)
     assert text.count("•") == MAX_LISTINGS_PER_SCAN
-    assert "and 25 more" in text
+    assert f"and {40 - MAX_LISTINGS_PER_SCAN} more" in text
 
 
 def test_price_is_formatted_with_spaces():

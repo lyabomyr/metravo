@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import replace
 
 from ...core.clock import Clock, new_id
@@ -15,9 +16,18 @@ from .repository import SearchRepository
 
 
 class SearchService(BaseService):
-    def __init__(self, db: Database, users: UserService, connectors: ConnectorRegistry, clock: Clock):
+    def __init__(
+        self,
+        db: Database,
+        users: UserService,
+        connectors: ConnectorRegistry,
+        clock: Clock,
+        on_delete: Callable[[User, str], None] = lambda user, search_id: None,
+    ):
         super().__init__()
         self._db = db
+        #: Drops what the search found; listings are another service's tables.
+        self._on_delete = on_delete
         self._connectors = connectors
         self._users = users
         self._clock = clock
@@ -49,6 +59,7 @@ class SearchService(BaseService):
     def delete(self, user: User, search_id: str) -> None:
         if not self._repo(user.id).delete(search_id):
             raise NotFound("search.not_found")
+        self._on_delete(user, search_id)
 
     def set_enabled_all(self, user: User, enabled: bool) -> None:
         self._repo(user.id).set_enabled_all(enabled)
@@ -77,11 +88,11 @@ class SearchService(BaseService):
             raise Invalid("search.place_invalid")
         if search.radius_km not in RADIUS_CHOICES:
             raise Invalid("search.radius_invalid", choices=", ".join(map(str, RADIUS_CHOICES)))
-        if search.max_price <= 0 or search.min_area <= 0:
+        if (search.max_price is not None and search.max_price <= 0) or (search.min_area is not None and search.min_area <= 0):
             raise Invalid("search.budget_positive")
-        if search.max_area is not None and search.max_area < search.min_area:
+        if search.max_area is not None and search.min_area is not None and search.max_area < search.min_area:
             raise Invalid("search.area_range")
-        if search.min_price is not None and search.min_price > search.max_price:
+        if search.min_price is not None and search.max_price is not None and search.min_price > search.max_price:
             raise Invalid("search.price_range")
         if search.min_rooms and search.max_rooms and search.max_rooms < search.min_rooms:
             raise Invalid("search.rooms_range")

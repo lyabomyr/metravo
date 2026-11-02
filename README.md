@@ -33,7 +33,7 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
           Cloudflare Worker (cron 5 min) ─┤        │         └────────────────┘
           checks site + API, alerts admin │        ▼
                          Firebase Auth ◄──┘   Turso (libSQL)
-                       (email link, Google)   metravo-control — one database: accounts, plans,
+                       (Google)               metravo-control — one database: accounts, plans,
                                               chats, channels, and searches + listings per user_id
                                                       ▲
                      Otodom · OLX · Morizon · Komornik ┘ fetched once per scan for all users
@@ -41,16 +41,21 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
 
 **A user's journey**
 
-1. Lands on the website, reads what it does, enters an email. Firebase emails a
-   sign-in link (or they use Google). On first sign-in the API creates the
-   account.
+1. Lands on the website, reads what it does, and signs in with Google (the
+   only sign-in for now; opened inside an app such as Instagram, the page asks
+   to open it in Safari or Chrome, where Google allows it). On first sign-in
+   the API creates the account.
 2. A short tour explains the app. They save a search: buy or rent, flat or
    house, any city, town or village (by name or on a map) and how many km around
-   it, price from–to, area, rooms, price per m², year built, words
-   that must appear, portals, and **how often to check** (once a day by default).
-3. They connect Telegram in **two clicks**: "Open Telegram", then "Start". The
-   moment the chat is linked, the bot sends what was already found and scans
-   any search not checked yet. Every sign-in returns to the setup page until
+   it, price from–to, area, rooms, price per m², year built, words that must
+   and must not appear, portals, and **how often to check**. A new search has
+   no limits: it tracks everything in the place, once a day, on every portal
+   of the plan, until narrowed. Deleting a search deletes what it found.
+3. They choose where alerts go: one list of channels, where Telegram is
+   available to everyone today (**two clicks**: "Open Telegram", then "Start")
+   and email comes with Pro. The moment a chat is linked, the bot sends the
+   20 newest listings already found — the page warns about this batch — and
+   scans any search not checked yet; after that, only new ones. Every sign-in returns to the setup page until
    both steps are done, and every page shows a reminder while no messenger is
    connected.
 4. Inside the API a scheduler runs every minute. It scans the searches that are
@@ -231,7 +236,8 @@ AGENTS.md                rules for AI agents working here
 | Symptom | Cause and fix |
 |---|---|
 | Site loads but shows nothing | The API is starting or deploying. Open `/api/health` and wait a minute |
-| "This sign-in method is switched off" | Firebase → Authentication → Sign-in method → enable it (Google, or Email link) |
+| "This sign-in method is switched off" | Firebase → Authentication → Sign-in method → enable Google |
+| Google sign-in fails on a phone | The page was opened inside an app (Instagram, Messenger, …): Google refuses those browsers. Open it in Safari or Chrome — the page says so and offers “Copy link” |
 | Sign-in link does nothing | Firebase → Authentication → Settings → Authorized domains must contain `metravo.pages.dev` |
 | Render deploy fails right after start | Render → Logs → "Invalid configuration: …" names the missing or broken secret |
 | Bot is silent | The latest deploy's step "Point the Telegram bot" must say `Webhook was set` |

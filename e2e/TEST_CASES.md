@@ -33,14 +33,15 @@ Contents: [Landing](#landing-page--landingcyts) · [Sign-in](#sign-in-and-sessio
 | otodom rent | 501 / 502 / 503 | 2 400 / 3 200 / 7 500 | 28 / 45 / 90 | | | Kawalerka z balkonem / 2 pokoje, balkon, winda / Apartament premium |
 | morizon rent | mzn900 | 3 900 | 60 | 3 | | 3 pokoje Ruczaj, balkon |
 
-The default search (buy, flat, Kraków, ≤ 600 000 zł, ≥ 40 m², otodom + olx + morizon)
-matches **101, 104, 302, mzn201**.
+A new search has no price or area limits (FLT-14). The filter cases start from the
+**fixture search** (buy, flat, Kraków, ≤ 600 000 zł, ≥ 40 m², otodom + olx + morizon),
+which matches **101, 104, 302, mzn201**.
 
 ## Landing page — `landing.cy.ts`
 
 | Id | Case | Expected |
 |---|---|---|
-| LND-1 | Open `/` signed out | Hero, problem, how it works, 4 use cases with photos, features, pricing (Free and Pro), FAQ and footer credits are shown |
+| LND-1 | Open `/` signed out | No menu; hero, problem, how it works, 4 use cases with photos, features, pricing (Free and Pro), FAQ and footer credits are shown |
 | LND-2 | Click a FAQ question | The answer opens |
 | LND-3 | Click “Sign in” in the bar, or the final call to action | The page scrolls to the sign-in form and focuses the email field |
 | LND-4 | Pick Polski, Українська, Русский in the language picker | The headline changes language; the choice survives a reload |
@@ -62,7 +63,7 @@ matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| ONB-1 | Save the default search, open the Telegram deep link, press Start | “All set”; the scan starts by itself: 4 listings are on the page without pressing anything, and Telegram gets them |
+| ONB-1 | Save the default search, open the Telegram deep link, press Start | Telegram is one row of the channel list (email etc. alongside); before connecting, a note says the 20 newest arrive at once; “All set”; the scan starts by itself: the 6 Kraków listings are on the page without pressing anything, and Telegram gets them |
 | ONB-2 | Sign in to an account that has a search but no Telegram | Back on `/welcome`: step 1 shown as done, step 2 (Telegram) is what is left |
 | TOUR-1 | First sign-in | The tour opens at step 1 of 5 |
 | TOUR-2 | Next / Back through all steps, then “Let’s go” | Titles change per step; closing hides it and it does not come back after a reload |
@@ -80,8 +81,8 @@ matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| FORM-1 | New search defaults | Buy, Flat, Kraków (only the place itself, map shown), once a day, otodom + olx + morizon on |
-| FORM-2 | Switch to Rent | “Rent up to” becomes 4 000 zł/month; komornik is disabled |
+| FORM-1 | New search defaults | Buy, Flat, Kraków (only the place itself, map shown), once a day, no price or area limits, “must mention” empty, “must not mention” prefilled (TBS, …) and editable, every portal of the plan on |
+| FORM-2 | Switch to Rent and back | A price of the wrong size is cleared; komornik is disabled for rent |
 | FORM-3 | Check rate on Free | Only “Once a day” can be picked; faster ones say Pro and are disabled |
 | FORM-4 | Check rate on Pro | “Every hour” can be saved and shows on the card |
 | FORM-5 | Invalid combinations: max area < min area, price from > price up to, rooms to < rooms from, no portal | A translated error banner each time, nothing saved |
@@ -110,6 +111,8 @@ matches **101, 104, 302, mzn201**.
 | FLT-11 | Only olx | 302 |
 | FLT-12 | Pro with komornik | the 4 defaults + 9001 |
 | FLT-13 | Rent ≤ 4 000, must mention “winda” | 502 |
+| FLT-14 | A new search, no limits | the 4 defaults + Penthouse (102) + Kawalerka (301); still no TBS, no duplicate |
+| FLT-15 | “Must not mention” emptied | the TBS listing (103) comes back |
 
 ## Listings — `listings.cy.ts`, `rental-search.cy.ts`
 
@@ -119,6 +122,7 @@ matches **101, 104, 302, mzn201**.
 | LST-2 | Check now | Report “4 new”; cards show price, area, rooms, price per m², portal and open the ad in a new tab |
 | LST-3 | Check now again at once | “Nothing to check right now” — the daily schedule holds |
 | LST-4 | Rental search with “balkon” | 3 rentals, prices per month |
+| LST-5 | Delete a search after a scan | Its listings are gone from the page and the API |
 
 ## Alerts — `alerts.cy.ts`
 
@@ -160,15 +164,15 @@ matches **101, 104, 302, mzn201**.
 |---|---|---|
 | MOB-1 | Signed in | The tab bar is at the bottom and switches pages |
 | MOB-2 | Every page | No horizontal scrolling |
-| MOB-3 | Landing | Section links are hidden, the sign-in form fits the screen |
+| MOB-3 | Landing | The sign-in form fits the screen, nothing scrolls sideways |
 
 ## Every button and the case that presses it
 
 | Page | Element (`data-cy`) | Case |
 |---|---|---|
 | Landing | Sign in (`landing-sign-in`), final call to action (`cta`), FAQ, language picker | LND-2, LND-3, LND-4 |
-| Landing | Email + “Email me a sign-in link” (`email`, `sign-in`) | AUTH-1 … AUTH-3, ONB-1 |
-| Landing | Continue with Google (`google`) | AUTH-6 (shown only with Firebase; checked in production) |
+| Landing | Email + Sign in (`email`, `sign-in`) — local and test runs only; production shows Google alone | AUTH-1 … AUTH-3, ONB-1 |
+| Landing | Continue with Google (`google`), Copy link in an app's browser (`copy-link`) | AUTH-6 (shown only with Firebase; the in-app browser check has a unit spec) |
 | Top bar | Tabs (`nav-*`), Help (`help`), language (`language`), Sign out (`sign-out`) | NAV-1, TOUR-3, I18N-1, NAV-2 |
 | Every page | Reminder → Connect Telegram (`connect-reminder-action`) | ALR-6 |
 | Tour | Next, Back, Skip, Let’s go (`tour-*`) | TOUR-1 … TOUR-4 |

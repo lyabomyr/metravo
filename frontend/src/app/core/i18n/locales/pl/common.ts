@@ -33,6 +33,7 @@ export const COMMON: Section<typeof EN> = {
   'errors.generic': 'Coś poszło nie tak. Spróbuj ponownie.',
   'errors.firebase.disabled': 'Ta metoda logowania jest wyłączona. Zaloguj się linkiem wysłanym e-mailem.',
   'errors.firebase.popupClosed': 'Okno logowania zostało zamknięte przed zakończeniem.',
+  'errors.firebase.popupBlocked': 'Okno logowania zostało zablokowane. Zezwól na wyskakujące okna dla tej strony albo otwórz ją w Safari lub Chrome.',
   'errors.firebase.invalidLink': 'Link do logowania jest nieprawidłowy lub wygasł. Poproś o nowy.',
   'errors.firebase.domain': 'Logowanie z tego adresu nie jest jeszcze dozwolone.',
   'nav.main': 'Główne',

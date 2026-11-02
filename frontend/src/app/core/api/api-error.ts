@@ -17,6 +17,7 @@ export interface ApiError {
 const FIREBASE_KEYS: Record<string, TranslationKey> = {
   'auth/operation-not-allowed': 'errors.firebase.disabled',
   'auth/popup-closed-by-user': 'errors.firebase.popupClosed',
+  'auth/popup-blocked': 'errors.firebase.popupBlocked',
   'auth/cancelled-popup-request': 'errors.firebase.popupClosed',
   'auth/invalid-action-code': 'errors.firebase.invalidLink',
   'auth/expired-action-code': 'errors.firebase.invalidLink',

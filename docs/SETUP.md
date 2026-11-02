@@ -34,11 +34,12 @@ turso db tokens create metravo-control     # → CONTROL_DB_TOKEN
 
 ## 2. Firebase — sign-in
 
-Firebase verifies emails (sign-in link) and Google accounts. It never sees any data.
+Firebase verifies Google accounts — the website's only sign-in for now. It never sees any data.
 
 1. https://console.firebase.google.com → **Create a project** → `metravo`; Analytics off.
 2. **Build → Authentication → Get started → Sign-in method**:
-   - **Email/Password** → enable **Email link (passwordless sign-in)** → Save.
+   - Optional, for later: **Email/Password** → enable **Email link (passwordless sign-in)** → Save.
+     The website does not offer email links at the moment.
    - **Add new provider → Google** → Enable → choose a support email → Save.
      *Without this, the Google button fails with `auth/operation-not-allowed`.*
 3. **Project settings (gear) → General → Your apps → `</>`** → register the app `metravo-web`.

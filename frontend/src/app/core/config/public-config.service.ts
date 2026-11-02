@@ -24,6 +24,10 @@ export interface PublicConfig {
   plan_sources: Record<string, string[]>;
   /** Kilometres a search may reach around its place. */
   radius_choices: number[];
+  /** Words a new search excludes unless the user changes them. */
+  default_reject_keywords: string[];
+  /** How many already-found listings a newly connected channel gets at once. */
+  first_batch: number;
 }
 
 /** What the backend says the frontend may offer: sign-in methods, portals, schedules. */
