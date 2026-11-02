@@ -37,4 +37,5 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "radius_choices": list(RADIUS_CHOICES),
         "default_reject_keywords": list(DEFAULT_REJECT_KEYWORDS),
         "first_batch": FIRST_DELIVERY,
+        "portal_status": container.portal_access.status(),
     }

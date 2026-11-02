@@ -157,6 +157,13 @@ steps already done and moves on to the listings when nothing is left, so an
 account created in a sign-in that failed halfway is still taken through
 setup.
 
+**Portal access.** `scanning/PortalAccess` remembers a portal that refuses
+us (401/403/451): it is paused for 30 minutes, then 1, 2, 4 and 6 hours,
+probed once each time, and resumes on the first success. Temporary errors
+(429, 5xx, timeouts) are retried by the fetcher with exponential backoff and
+`Retry-After`. The API checks each portal once at start, and `/api/config`
+publishes their state.
+
 **A scan.** For every user who has a search, take the searches whose own interval has
 elapsed (never faster than the plan allows). For each portal, build the URL from the search and fetch it
 **once per run for everyone** (`FetchCache`) — portals see the same load with

@@ -48,7 +48,9 @@ def check_api() -> str:
     assert {"otodom", "olx", "morizon"} <= set(config["sources"]), "portals missing"
     plans = json.loads(request(API + "/api/billing/plans")[2])
     assert [plan["code"] for plan in plans] == ["free", "pro"], "plans missing"
-    return f"API healthy; sign-in {config['auth_providers']}, portals {config['sources']}"
+    portals = {name: state["state"] + (f" ({state['http_status']})" if state.get("http_status") else "")
+               for name, state in config.get("portal_status", {}).items()}
+    return f"API healthy; sign-in {config['auth_providers']}; portals as the server sees them: {portals or 'not checked yet'}"
 
 
 def check_cors() -> str:

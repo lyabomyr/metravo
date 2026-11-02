@@ -4,9 +4,11 @@ import threading
 
 from ...core.errors import LimitReached
 from ...core.service import BaseService
+from ..connectors.models import SearchQuery
 from ..connectors.registry import ConnectorRegistry
 from ..listings.models import EventKind, ListingEvent
 from ..listings.service import ListingService
+from ..places.known import known_place
 from ..searches.models import Search
 from ..searches.service import SearchService
 from ..users.models import User
@@ -15,6 +17,7 @@ from .fetch_cache import FetchCache
 from .listing_filter import ListingFilter
 from .models import ScanReport
 from .notifier import ListingNotifier
+from .portal_access import PortalAccess
 
 #: How many already-found listings a newly connected channel receives per search
 #: (the newest; the website tells the user to expect this one longer message).
@@ -31,6 +34,7 @@ class ScanService(BaseService):
         listings: ListingService,
         connectors: ConnectorRegistry,
         notifier: ListingNotifier,
+        access: PortalAccess | None = None,
     ):
         super().__init__()
         self._users = users
@@ -38,6 +42,7 @@ class ScanService(BaseService):
         self._listings = listings
         self._connectors = connectors
         self._notifier = notifier
+        self._access = access
         # The scheduler and "Scan now" may fire together; one run at a time
         # keeps a listing from being recorded — and announced — twice.
         self._lock = threading.Lock()
@@ -45,6 +50,16 @@ class ScanService(BaseService):
     def run(self, only_user_id: str | None = None) -> ScanReport:
         with self._lock:
             return self._run(only_user_id)
+
+    def check_portals(self) -> None:
+        """One request per portal (flats for sale in Kraków), so the portals' state is known right after a start."""
+        query = SearchQuery(place=known_place("krakow"))
+        cache = FetchCache(self._access)
+        for name in self._connectors.names:
+            connector = self._connectors.get(name)
+            if url := connector.build_url(query):
+                cache.get(connector, url)
+        self.log.info("portals: %s", {name: state["state"] for name, state in self._access.status().items()})
 
     def check_now(self, user: User) -> ScanReport:
         """"Check now" on the website: the user's due searches, if their plan is running."""
@@ -62,7 +77,7 @@ class ScanService(BaseService):
             return 0
         with self._lock:
             sent = 0
-            cache, report = FetchCache(), ScanReport()
+            cache, report = FetchCache(self._access), ScanReport()
             for search in self._searches.list(user):
                 if not search.enabled:
                     continue
@@ -77,7 +92,7 @@ class ScanService(BaseService):
 
     def _run(self, only_user_id: str | None) -> ScanReport:
         report = ScanReport()
-        cache = FetchCache()
+        cache = FetchCache(self._access)
         for user_id in self._searches.owners():
             if only_user_id and user_id != only_user_id:
                 continue

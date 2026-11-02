@@ -57,6 +57,7 @@ class Container:
         from ..services.notifications.notifier import FanOutNotifier
         from ..services.notifications.repository import NotificationRepository
         from ..services.notifications.service import NotificationService
+        from ..services.scanning.portal_access import PortalAccess
         from ..services.scanning.service import ScanService
         from ..services.searches.repository import SearchRepository
         from ..services.searches.service import SearchService
@@ -121,7 +122,8 @@ class Container:
         live = frozenset(sender.channel for sender in senders)
         self.notifications = NotificationService(notification_repo, self.users, self.clock, live)
         self.notifier = FanOutNotifier(self.notifications, senders)
-        self.scanner = ScanService(self.users, self.searches, self.listings, self.connectors, self.notifier)
+        self.portal_access = PortalAccess(self.clock)
+        self.scanner = ScanService(self.users, self.searches, self.listings, self.connectors, self.notifier, self.portal_access)
         self.admin = AdminService(self.users, self.telegram_links)
         self.recent_logs = RecentLogs()
         self.monitor = HealthMonitor(

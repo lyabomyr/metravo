@@ -22,6 +22,8 @@ from .models import DealType, Listing, PropertyType, SearchQuery
 class ConnectorResult:
     listings: list[Listing] = field(default_factory=list)
     error: str | None = None
+    #: The HTTP status behind ``error``, when there was one (403 = the portal refuses us).
+    status: int | None = None
 
     @property
     def ok(self) -> bool:
@@ -85,7 +87,7 @@ class BaseConnector(ABC):
             except FetchError as exc:
                 if page > 1 and exc.status in (404, 410):
                     break  # walked past the last page
-                result.error = str(exc)
+                result.error, result.status = str(exc), exc.status
                 self.log.warning("fetch failed: %s", exc)
                 break
             fresh = [listing for listing in self._safe_parse(html) if listing.external_id not in seen]
