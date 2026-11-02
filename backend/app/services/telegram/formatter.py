@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, replace
 from html import escape
 
 from ...core.i18n import translator
@@ -11,6 +12,21 @@ from ..searches.models import Search
 MAX_MESSAGE_LENGTH = 4000
 #: More than this per scan is noise — the rest are on the website.
 MAX_LISTINGS_PER_SCAN = 20
+# Telegram's limit for a photo's caption; a longer card goes as text.
+MAX_CAPTION_LENGTH = 1024
+MAX_TITLE_LENGTH = 200
+
+
+@dataclass(frozen=True)
+class Card:
+    """One listing as one Telegram message: its photo, when the portal has one, and a caption.
+
+    ``photo`` is the portal's own image address. Telegram downloads it while sending,
+    so we never store or fetch the picture ourselves.
+    """
+
+    text: str
+    photo: str | None = None
 
 
 def zloty(amount: int) -> str:
@@ -31,6 +47,27 @@ class ListingMessageFormatter:
         if hidden > 0:
             lines.append(translator.t(locale, "tg.more", n=hidden, url=f"{self._website}/listings"))
         return self._pack(header, lines)
+
+    def cards(self, search: Search, events: list[ListingEvent], locale: str = "en") -> list[Card]:
+        """Telegram: a card per listing, the first one under the search's header."""
+        shown, hidden = events[:MAX_LISTINGS_PER_SCAN], len(events) - MAX_LISTINGS_PER_SCAN
+        if not shown:
+            return []
+        unit = translator.t(locale, "tg.per_month") if search.deal_type is DealType.RENT else " zł"
+        cards = [self._card(event, unit, locale) for event in shown]
+        header = translator.t(locale, "tg.new", name=escape(search.name), n=len(events))
+        cards[0] = replace(cards[0], text=f"{header}\n\n{cards[0].text}")
+        if hidden > 0:
+            cards.append(Card(translator.t(locale, "tg.more", n=hidden, url=f"{self._website}/listings")))
+        return [card if len(card.text) <= MAX_CAPTION_LENGTH else Card(card.text) for card in cards]
+
+    def _card(self, event: ListingEvent, unit: str, locale: str) -> Card:
+        listing = event.listing
+        text = self._line(event, unit, locale).removeprefix("• ")
+        if listing.title:
+            text = f"{text}\n{escape(listing.title[:MAX_TITLE_LENGTH])}"
+        photo = listing.image_url if (listing.image_url or "").startswith(("https://", "http://")) else None
+        return Card(text, photo)
 
     @staticmethod
     def _line(event: ListingEvent, unit: str, locale: str) -> str:

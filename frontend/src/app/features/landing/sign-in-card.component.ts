@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { from } from 'rxjs';
@@ -82,7 +82,7 @@ import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
     }
   `,
 })
-export class SignInCardComponent extends BasePage {
+export class SignInCardComponent extends BasePage implements OnInit {
   private readonly session = inject(SessionStore);
   private readonly firebase = inject(FirebaseAuthClient);
   private readonly router = inject(Router);
@@ -94,6 +94,15 @@ export class SignInCardComponent extends BasePage {
   protected readonly inAppBrowser = isInAppBrowser(navigator.userAgent);
   protected readonly usesFirebase = computed(() => this.providers.includes('firebase'));
 
+  ngOnInit(): void {
+    if (!this.usesFirebase()) return;
+    void this.firebase.prepare();
+    // Back from Google's page, when the browser refused the window and we went there instead.
+    this.run(from(this.firebase.redirectResult()), (idToken) => {
+      if (idToken) this.signInWith(idToken);
+    });
+  }
+
   protected signInDev(): void {
     this.run(this.session.signIn('dev', this.email()), (session) => this.continue(session));
   }
@@ -103,9 +112,11 @@ export class SignInCardComponent extends BasePage {
   }
 
   protected signInWithGoogle(): void {
-    this.run(from(this.firebase.signInWithGoogle()), (idToken) =>
-      this.run(this.session.signIn('firebase', idToken), (session) => this.continue(session)),
-    );
+    this.run(from(this.firebase.signInWithGoogle()), (idToken) => this.signInWith(idToken));
+  }
+
+  private signInWith(idToken: string): void {
+    this.run(this.session.signIn('firebase', idToken), (session) => this.continue(session));
   }
 
   private continue(_: Session): void {

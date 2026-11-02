@@ -11,7 +11,7 @@ from .link_service import TelegramLinkService
 
 
 class TelegramSender(ChannelSender):
-    """Sends listings to every Telegram chat the user linked and has not paused."""
+    """Sends listings, each with its photo, to every Telegram chat the user linked and has not paused."""
 
     channel = "telegram"
 
@@ -23,8 +23,11 @@ class TelegramSender(ChannelSender):
     def deliver(self, user: User, address: str, search: Search, events: list[ListingEvent]) -> int:
         sent = 0
         for chat in self._links.active_chats_of(user):
-            for text in self._formatter.messages(search, events, user.locale):
-                sent += int(self._client.send_message(chat.chat_id, text))
+            for card in self._formatter.cards(search, events, user.locale):
+                if card.photo:
+                    sent += int(self._client.send_photo(chat.chat_id, card.photo, card.text))
+                else:
+                    sent += int(self._client.send_message(chat.chat_id, card.text))
         return sent
 
     def send_test(self, user: User, address: str) -> bool:

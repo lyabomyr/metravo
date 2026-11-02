@@ -5,7 +5,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
-import { DEFAULT_SEARCH, SearchDraft } from './search.model';
+import { DEFAULT_SEARCH, SearchDraft, SearchFormValue } from './search.model';
 import { SearchFormComponent } from './search-form.component';
 import { SearchesApiService } from './searches-api.service';
 
@@ -27,7 +27,7 @@ export class SearchEditPage extends BasePage implements OnInit {
 
   private readonly api = inject(SearchesApiService);
   private readonly router = inject(Router);
-  protected readonly draft = signal<SearchDraft>(DEFAULT_SEARCH);
+  protected readonly draft = signal<SearchFormValue>(DEFAULT_SEARCH);
 
   ngOnInit(): void {
     const id = this.id();

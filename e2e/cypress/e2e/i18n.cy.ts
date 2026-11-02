@@ -1,4 +1,4 @@
-import { uniqueEmail } from '../support/commands';
+import { pickPlace, uniqueEmail } from '../support/commands';
 
 describe('Languages inside the app', () => {
   beforeEach(() => cy.signIn(uniqueEmail('i18n')));
@@ -21,6 +21,7 @@ describe('Languages inside the app', () => {
     cy.api('POST', '/api/searches', { name: 'one', city: 'krakow', max_price: 1, min_area: 1, sources: ['otodom'] });
     cy.visit('/searches/new');
     cy.get('[data-cy=language]').select('pl');
+    pickPlace('Kraków');
     cy.get('[data-cy=search-save]').click();
     cy.get('[data-cy=error]').should('contain', 'Plan Free pozwala');
     cy.get('[data-cy=upgrade-link]').should('contain', 'Przejdź na Pro');

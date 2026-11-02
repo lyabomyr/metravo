@@ -7,7 +7,7 @@ import { PublicConfigService } from '../../core/config/public-config.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IntervalPipe } from './interval.pipe';
 import { PlacePickerComponent } from './place-picker.component';
-import { DEFAULT_SEARCH, DealType, KRAKOW, Place, PropertyType, SearchDraft } from './search.model';
+import { DEFAULT_SEARCH, DealType, Place, PropertyType, SearchDraft, SearchFormValue } from './search.model';
 
 /** The one search form, used by the editor and the onboarding wizard alike. */
 @Component({
@@ -16,7 +16,7 @@ import { DEFAULT_SEARCH, DealType, KRAKOW, Place, PropertyType, SearchDraft } fr
   templateUrl: './search-form.component.html',
 })
 export class SearchFormComponent {
-  readonly value = input<SearchDraft>(DEFAULT_SEARCH);
+  readonly value = input<SearchFormValue>(DEFAULT_SEARCH);
   /** Empty = the translated “Save”. */
   readonly submitLabel = input('');
   readonly busy = input(false);
@@ -25,7 +25,7 @@ export class SearchFormComponent {
   protected readonly config = inject(PublicConfigService).value;
   protected readonly form = inject(FormBuilder).nonNullable.group({
     name: [''],
-    place: [KRAKOW as Place],
+    place: [null as Place | null, Validators.required],
     radius_km: [0],
     deal_type: ['sale' as DealType],
     property_type: ['flat' as PropertyType],
@@ -87,11 +87,13 @@ export class SearchFormComponent {
 
   protected submit(): void {
     if (this.form.invalid) return;
-    const { required_keywords, reject_keywords, name, ...values } = this.form.getRawValue();
+    const { required_keywords, reject_keywords, name, place, ...values } = this.form.getRawValue();
+    if (!place) return;
     this.saved.emit({
       ...values,
+      place,
       // Left empty, the search is called after its place ("Zabierzów").
-      name: name.trim() || values.place.name,
+      name: name.trim() || place.name,
       required_keywords: words(required_keywords),
       reject_keywords: words(reject_keywords),
       sources: [...this.selectedSources()].filter((source) => this.supports(source)),

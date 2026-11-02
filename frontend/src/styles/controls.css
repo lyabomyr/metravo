@@ -23,7 +23,9 @@ input, select {
   transition: box-shadow 0.2s var(--ease);
 }
 input:focus, select:focus { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent); }
-input::placeholder { color: var(--muted); }
+input::placeholder, textarea::placeholder { color: var(--muted); transition: color 0.1s; }
+/* A hint, not a value: it steps aside as soon as the field is focused for typing. */
+input:focus::placeholder, textarea:focus::placeholder { color: transparent; }
 
 /* iOS switch: <input type="checkbox" class="switch"> */
 .switch {

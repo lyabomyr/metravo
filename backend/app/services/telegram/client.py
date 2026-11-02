@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -8,11 +9,17 @@ import requests
 
 log = logging.getLogger(__name__)
 
+MAX_WAIT_SECONDS = 30
+
 
 class TelegramClient(ABC):
     @abstractmethod
     def send_message(self, chat_id: str, text: str) -> bool:
         """Send HTML-formatted text. Return False instead of raising."""
+
+    @abstractmethod
+    def send_photo(self, chat_id: str, photo_url: str, caption: str) -> bool:
+        """A photo by its address, with an HTML caption; Telegram downloads the picture itself."""
 
     @abstractmethod
     def set_webhook(self, url: str, secret: str) -> None:
@@ -36,18 +43,30 @@ class HttpTelegramClient(TelegramClient):
         self._timeout = timeout
 
     def send_message(self, chat_id: str, text: str) -> bool:
-        try:
-            response = requests.post(
-                f"{self._base}/sendMessage",
-                json={"chat_id": chat_id, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True},
-                timeout=self._timeout,
-            )
-        except requests.RequestException as exc:
-            log.warning("telegram send failed: %s", exc)
-            return False
-        if not response.ok:
-            log.warning("telegram refused message to %s: %s", chat_id, response.text[:200])
-        return response.ok
+        body = {"chat_id": chat_id, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True}
+        return self._send("sendMessage", body)
+
+    def send_photo(self, chat_id: str, photo_url: str, caption: str) -> bool:
+        if self._send("sendPhoto", {"chat_id": chat_id, "photo": photo_url, "caption": caption, "parse_mode": "HTML"}):
+            return True
+        # Telegram could not fetch or read the picture: the listing matters more than its photo.
+        return self.send_message(chat_id, caption)
+
+    def _send(self, method: str, body: dict) -> bool:
+        for attempt in range(2):
+            try:
+                response = requests.post(f"{self._base}/{method}", json=body, timeout=self._timeout)
+            except requests.RequestException as exc:
+                log.warning("telegram %s failed: %s", method, exc)
+                return False
+            if response.status_code == 429 and attempt == 0:
+                # Too many messages to one chat at once: Telegram says how long to wait.
+                time.sleep(min(_retry_after(response), MAX_WAIT_SECONDS))
+                continue
+            if not response.ok:
+                log.warning("telegram refused %s to %s: %s", method, body.get("chat_id"), response.text[:200])
+            return response.ok
+        return False
 
     def set_webhook(self, url: str, secret: str) -> None:
         response = requests.post(
@@ -77,10 +96,18 @@ class HttpTelegramClient(TelegramClient):
         return ok
 
 
+def _retry_after(response: requests.Response) -> int:
+    try:
+        return int(response.json().get("parameters", {}).get("retry_after", 1))
+    except (ValueError, AttributeError):
+        return 1
+
+
 @dataclass(frozen=True)
 class SentMessage:
     chat_id: str
     text: str
+    photo: str | None = None
 
 
 class RecordingTelegramClient(TelegramClient):
@@ -93,6 +120,11 @@ class RecordingTelegramClient(TelegramClient):
     def send_message(self, chat_id: str, text: str) -> bool:
         self.outbox.append(SentMessage(chat_id, text))
         log.info("[telegram → %s] %s", chat_id, text[:120])
+        return True
+
+    def send_photo(self, chat_id: str, photo_url: str, caption: str) -> bool:
+        self.outbox.append(SentMessage(chat_id, caption, photo_url))
+        log.info("[telegram → %s] 🖼 %s", chat_id, caption[:120])
         return True
 
     def set_webhook(self, url: str, secret: str) -> None:

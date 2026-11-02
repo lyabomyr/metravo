@@ -18,6 +18,7 @@ export const COMMON: Section<typeof EN> = {
   'common.next': 'Далее',
   'common.skip': 'Пропустить',
   'common.any': 'Не важно',
+  'common.loading': 'Загрузка…',
   'common.soon': 'скоро',
   'common.pro': 'Pro',
   'common.perMonth': '/ мес.',

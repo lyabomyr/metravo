@@ -81,7 +81,7 @@ which matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| FORM-1 | New search defaults | Buy, Flat, Kraków (only the place itself, map shown), once a day, no price or area limits, “must mention” empty, “must not mention” prefilled (TBS, …) and editable, every portal of the plan on |
+| FORM-1 | New search defaults | Buy, Flat, no place yet (map of Poland, Save disabled with “Choose a place”), only the place itself, once a day, no price or area limits, “must mention” empty, “must not mention” prefilled (TBS, …) and editable, every portal of the plan on |
 | FORM-2 | Switch to Rent and back | A price of the wrong size is cleared; komornik is disabled for rent |
 | FORM-3 | Check rate on Free | Only “Once a day” can be picked; faster ones say Pro and are disabled |
 | FORM-4 | Check rate on Pro | “Every hour” can be saved and shows on the card |
@@ -91,9 +91,11 @@ which matches **101, 104, 302, mzn201**.
 | FORM-8 | komornik on Free | Pro badge on the portal; saving is refused with the portal named |
 | FORM-9 | House instead of flat | Saved as a house; the card says House |
 | FORM-10 | “Create your first search” on the empty page, and “New search” | Both open the form |
-| FORM-11 | Find a village by name, pick it, +15 km | The card shows “Zabierzów +15 km”; saved with its voivodeship/county/municipality path and the radius |
+| FORM-11 | Type part of a village's name, pick the suggestion, +15 km | The card shows “Zabierzów +15 km”; saved with its voivodeship/county/municipality path and the radius |
 | FORM-12 | A name that matches nothing; a click on the map | “Nothing found”; the click picks the place at that point |
-| FORM-13 | The name field | Empty with the place as a hint, so typing needs no deleting; saved empty, the search is named after its place |
+| FORM-13 | The name field | Empty with “Named after the place”, then the chosen place, as a hint, so typing needs no deleting; saved empty, the search is named after its place |
+| FORM-14 | Type “k”, then “kato”; press Enter | Nothing asked for one letter; a spinner while places load; one request for the word; Enter picks the first suggestion (Katowice) |
+| FORM-15 | Focus an empty field | Its placeholder disappears at once, before typing |
 
 ## Filters — `filters.cy.ts` (each through the form, then “Check now”)
 
@@ -181,7 +183,7 @@ which matches **101, 104, 302, mzn201**.
 | Welcome | Save and continue (`search-save`), Open Telegram (`telegram-open`), See your listings (`onboarding-listings`) | ONB-1, ONB-2 |
 | Listings | Check now (`scan-now`), open an ad | LST-2, LST-3 |
 | Searches | New search, Create your first search, Edit, Delete (`new-search`, `create-first-search`, `search-edit`, `search-delete`) | FORM-10, FORM-6 |
-| Search form | Buy/Rent, Flat/House, place search, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-12, FLT-1 … FLT-13 |
+| Search form | Buy/Rent, Flat/House, place autocomplete, spinner, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-15, FLT-1 … FLT-13 |
 | Alerts | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
 | Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |
 | My data | Download listings (.csv) (`download-csv`) | DATA-1 |

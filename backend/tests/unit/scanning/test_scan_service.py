@@ -23,7 +23,11 @@ def test_scan_stores_matches_and_notifies_telegram(container, sign_in, telegram)
     assert keys == {"otodom:101", "otodom:104", "morizon:mzn201", "olx:302"}
     assert report.new_listings == 4
     assert report.searches_scanned == 1
-    assert len(telegram.outbox) == 1 and "4 new" in telegram.outbox[0].text
+    # One card per listing, the first under the search's header.
+    assert len(telegram.outbox) == 4 and "4 new" in telegram.outbox[0].text
+    # Telegram gets the portal's own image address; no picture is stored or downloaded here.
+    assert telegram.outbox[0].photo == "https://img.example/101.jpg"
+    assert sum(message.photo is None for message in telegram.outbox) == 1  # otodom 104 has no photo
 
 
 def test_each_page_is_fetched_once_for_all_users(container, sign_in):
@@ -118,7 +122,7 @@ def test_rental_search_reads_rental_pages_and_skips_auctions(container, sign_in,
     assert {item.key for item in container.listings.latest(user)} == {"otodom:501", "otodom:502", "morizon:mzn900"}
     assert report.fetches == 2
     assert all(item.deal_type == "rent" for item in container.listings.latest(user))
-    assert "2 400 zł/month" in telegram.outbox[-1].text
+    assert any("2 400 zł/month" in message.text for message in telegram.outbox)
 
 
 def test_a_search_without_limits_tracks_everything(container, sign_in):

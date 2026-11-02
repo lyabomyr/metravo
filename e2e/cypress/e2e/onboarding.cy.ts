@@ -1,4 +1,4 @@
-import { uniqueEmail, visitAsReturning } from '../support/commands';
+import { pickPlace, uniqueEmail, visitAsReturning } from '../support/commands';
 
 describe('First visit: sign in, save a search, connect Telegram, see listings', () => {
   it('ONB-1 takes a new user from the landing page to their first listings', () => {
@@ -7,8 +7,10 @@ describe('First visit: sign in, save a search, connect Telegram, see listings', 
     cy.get('[data-cy=email]').type(email);
     cy.get('[data-cy=sign-in]').click();
 
-    // Step 1 — the defaults are fine (no limits: everything in Kraków), one click saves them.
+    // Step 1 — pick a place; the other defaults are fine (no limits: everything there).
     cy.location('pathname').should('eq', '/welcome');
+    cy.get('[data-cy=search-save]').should('be.disabled');
+    pickPlace('Kraków');
     cy.get('[data-cy=search-save]').click();
     cy.get('[data-cy=onboarding-search-saved]').should('be.visible');
 

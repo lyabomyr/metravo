@@ -15,15 +15,6 @@ export interface Place {
   detail: string;
 }
 
-export const KRAKOW: Place = {
-  name: 'Kraków',
-  path: 'malopolskie/krakow/krakow/krakow',
-  region_name: 'małopolskie',
-  lat: 50.0614,
-  lon: 19.9366,
-  detail: 'małopolskie',
-};
-
 export interface SearchDraft {
   name: string;
   place: Place;
@@ -55,10 +46,13 @@ export interface Search extends SearchDraft {
   created_at: string;
 }
 
-export const DEFAULT_SEARCH: SearchDraft = {
+/** What the form edits: a new search has no place until the user picks one. */
+export type SearchFormValue = Omit<SearchDraft, 'place'> & { place: Place | null };
+
+export const DEFAULT_SEARCH: SearchFormValue = {
   /** Empty: the form shows a hint and the search is named after its place. */
   name: '',
-  place: KRAKOW,
+  place: null,
   radius_km: 0,
   deal_type: 'sale',
   property_type: 'flat',

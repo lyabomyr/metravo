@@ -1,10 +1,11 @@
-import { chooseSegment, uniqueEmail } from '../support/commands';
+import { chooseSegment, pickPlace, uniqueEmail } from '../support/commands';
 
 describe('Renting, not buying', () => {
   beforeEach(() => cy.signIn(uniqueEmail('rent')));
 
   it('LST-4 finds rentals up to a monthly rent, with required keywords', () => {
     cy.visit('/searches/new');
+    pickPlace('Kraków');
     chooseSegment('deal-rent');
     cy.get('[data-cy=search-max-price]').type('4000');
     cy.get('[data-cy=source-komornik]').should('be.disabled'); // auctions are never rentals

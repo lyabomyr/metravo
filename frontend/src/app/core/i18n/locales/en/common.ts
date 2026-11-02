@@ -16,6 +16,7 @@ export const COMMON = {
   'common.next': 'Next',
   'common.skip': 'Skip',
   'common.any': 'Any',
+  'common.loading': 'Loading…',
   'common.soon': 'soon',
   'common.pro': 'Pro',
   'common.perMonth': '/ month',

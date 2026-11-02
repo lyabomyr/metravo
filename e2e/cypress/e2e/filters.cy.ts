@@ -1,4 +1,4 @@
-import { DEFAULT_MATCHES, chooseSegment, expectListings, uniqueEmail } from '../support/commands';
+import { DEFAULT_MATCHES, chooseSegment, expectListings, pickPlace, uniqueEmail } from '../support/commands';
 
 const WIELICKA_OTODOM = '3 pokoje Wielicka';
 const WIELICKA_MORIZON = 'Wielicka 3 pokoje';
@@ -13,6 +13,7 @@ const FIXTURE_RENT = { 'search-max-price': '4000' };
 /** Fill the form like a user, save, then press “Check now”. */
 function searchFor(fields: Record<string, string>, options: { only?: string[]; extra?: string[]; rent?: boolean; noLimits?: boolean } = {}) {
   cy.visit('/searches/new');
+  pickPlace('Kraków');
   if (options.rent) chooseSegment('deal-rent');
   const base = options.noLimits ? {} : options.rent ? FIXTURE_RENT : FIXTURE_SEARCH;
   for (const [field, value] of Object.entries({ ...base, ...fields })) cy.get(`[data-cy=${field}]`).clear().type(value);

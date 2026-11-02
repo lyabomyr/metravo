@@ -76,6 +76,15 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   without can still be ticked and starts delivering the day its sender is
   added. Every live channel has “Send a test message”
   (`POST /api/notifications/channels/{code}/test`).
+  Telegram sends one card per listing with its photo (`sendPhoto`). We keep
+  only the portal's image address (`portal_listings.image_url`); Telegram
+  downloads the picture while sending, so no image is stored or fetched by
+  us. A photo Telegram cannot fetch, or a caption over 1024 characters,
+  falls back to a text message; a 429 waits `retry_after` once.
+- **Google sign-in.** The Firebase SDK is loaded when the sign-in card
+  appears, so the Google window opens straight from the tap (phones block
+  windows opened after a wait). A browser that still blocks it is sent to
+  Google in the same tab (`signInWithRedirect`) and finished on return.
 - **Languages.** The backend translates with `core/i18n` (one catalog per
   language, `Accept-Language` for API errors, the user's saved language for
   Telegram). The frontend has a dictionary per language and section under

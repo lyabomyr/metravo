@@ -15,7 +15,7 @@
     <div class="list">
       <label class="list__row">
         <span>{{ 'form.name' | t }}</span>
-        <input formControlName="name" [placeholder]="form.controls.place.value.name" data-cy="search-name" />
+        <input formControlName="name" [placeholder]="form.controls.place.value?.name ?? ('form.namedAfterPlace' | t)" data-cy="search-name" />
       </label>
       <label class="list__row">
         <span>{{ 'form.frequency' | t }}</span>
@@ -127,6 +127,9 @@
     </div>
   </section>
 
+  @if (!form.controls.place.value) {
+    <p class="section-note" data-cy="place-needed">{{ 'form.placeNeeded' | t }}</p>
+  }
   <button class="button button--primary button--block" type="submit" [disabled]="busy() || form.invalid" data-cy="search-save">
     {{ submitLabel() || ('common.save' | t) }}
   </button>

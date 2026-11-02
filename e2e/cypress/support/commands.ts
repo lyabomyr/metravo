@@ -93,3 +93,10 @@ export const visitAsReturning = (path: string) =>
   cy.visit(path, { onBeforeLoad: (win) => win.localStorage.setItem('metravo.introSeen', '1') });
 
 export {};
+
+/** Type a place's name and pick it from the suggestions, as a user would; a new search has no place. */
+export const pickPlace = (name: string) => {
+  cy.get('[data-cy=place-query]').clear().type(name);
+  cy.contains('[data-cy=place-result]', name).click();
+  cy.get('[data-cy=place-name]').should('have.text', name);
+};
