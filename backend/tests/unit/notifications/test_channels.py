@@ -46,6 +46,9 @@ def test_listings_go_to_every_switched_on_channel_that_has_a_sender(container, s
             self.calls.append(address)
             return 1
 
+        def send_test(self, user, address):
+            return True
+
     telegram, email = Recording("telegram"), Recording("email")
     sent = FanOutNotifier(container.notifications, [telegram, email]).notify(pro, None, [])
     assert sent == 2  # whatsapp has no sender yet: kept, skipped

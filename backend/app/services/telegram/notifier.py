@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ...core.i18n import translator
 from ..listings.models import ListingEvent
 from ..notifications.senders.base import ChannelSender
 from ..searches.models import Search
@@ -25,3 +26,8 @@ class TelegramSender(ChannelSender):
             for text in self._formatter.messages(search, events, user.locale):
                 sent += int(self._client.send_message(chat.chat_id, text))
         return sent
+
+    def send_test(self, user: User, address: str) -> bool:
+        chats = self._links.active_chats_of(user)
+        text = "✅ " + translator.t(user.locale, "channel.test_message")
+        return bool(chats) and all([self._client.send_message(chat.chat_id, text) for chat in chats])

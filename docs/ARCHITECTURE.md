@@ -57,8 +57,11 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   minutes. Admin → System shows the same numbers and the last warnings.
 - **Channels.** `services/notifications` keeps, per user, which channels get
   listings. `FanOutNotifier` sends to each switched-on channel that has a
-  `ChannelSender`; Telegram is the first. A channel without a sender yet can
-  still be ticked and starts delivering the day its sender is added.
+  `ChannelSender`: Telegram, and email (`services/email`, SMTP) when
+  `SMTP_HOST` is set. A channel is “live” exactly when it has a sender; one
+  without can still be ticked and starts delivering the day its sender is
+  added. Every live channel has “Send a test message”
+  (`POST /api/notifications/channels/{code}/test`).
 - **Languages.** The backend translates with `core/i18n` (one catalog per
   language, `Accept-Language` for API errors, the user's saved language for
   Telegram). The frontend has a dictionary per language and section under
@@ -83,6 +86,7 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
 | CI / deploy | GitHub Actions | unlimited on public repos, 2 000 min/month private; no schedules | — |
 | Database | Turso, one database | free plan storage and row reads — check the current quota | Turso paid |
 | Sign-in | Firebase Auth (email link + Google) | free; Google sends the emails, no domain needed | — |
+| Email alerts | any SMTP; Gmail with an app password | about 500 emails/day, no domain needed | Brevo (300/day free) or a paid SMTP |
 | Payments | off for now (`BILLING_PROVIDER=none`); Stripe later | Stripe: no monthly fee, a cut per payment | — |
 
 Every external service sits behind an interface with a local fake, so the
@@ -110,7 +114,8 @@ Each folder under `backend/app/services/` owns its tables, logic and routes.
 | `connectors` | one sub-folder per portal | — |
 | `scanning` | filter, fetch cache, scan run | `POST /api/scan/mine`, `/all` (admin), `/cron` |
 | `telegram` | `telegram_chats`, `telegram_link_tokens`, commands, `TelegramSender` | `POST /api/telegram/link`, `/chats`, `/webhook` |
-| `notifications` | `notification_settings`, channel catalog, fan-out | `GET /api/notifications/channels`, `PUT /channels/{code}` |
+| `notifications` | `notification_settings`, channel catalog, fan-out | `GET /api/notifications/channels`, `PUT /channels/{code}`, `POST /channels/{code}/test` |
+| `email` | SMTP mailer, `EmailSender` | — |
 | `monitoring` | probe, health monitor, admin alerts, recent logs | `GET /api/admin/system` |
 | `billing` | plans, `subscriptions`, providers | `/api/billing/plans`, `/checkout`, `/portal`, `/webhook` |
 | `admin` | — (accounts and plans only) | `/api/admin/overview`, `/users`, `/users/{id}/plan` |

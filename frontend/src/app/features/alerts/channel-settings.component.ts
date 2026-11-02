@@ -6,11 +6,12 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { ChannelSetting, NotificationsApiService } from './notifications-api.service';
+import { TestChannelComponent } from './test-channel.component';
 
 /** WhatsApp, Viber, Signal, email: tick to get the same listings there too. Pro only. */
 @Component({
   selector: 'app-channel-settings',
-  imports: [FormsModule, RouterLink, ErrorBannerComponent, TranslatePipe],
+  imports: [FormsModule, RouterLink, ErrorBannerComponent, TestChannelComponent, TranslatePipe],
   template: `
     <h3 class="section-title">{{ 'alerts.more' | t }}</h3>
     <app-error-banner [error]="error()" />
@@ -43,6 +44,9 @@ import { ChannelSetting, NotificationsApiService } from './notifications-api.ser
               (blur)="save(channel)"
               [attr.data-cy]="'channel-address-' + channel.code"
             />
+          }
+          @if (channel.enabled && channel.allowed && channel.live) {
+            <app-test-channel [code]="channel.code" />
           }
         </div>
       }

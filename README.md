@@ -70,9 +70,11 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
 | Listings as CSV | download | download |
 
 Payments are off for now (`BILLING_PROVIDER=none`), so Pro is shown as
-"coming soon". The extra channels can be ticked today; each starts delivering
-as soon as its sender is built, and the user's choice is kept until then (see
-`backend/app/services/notifications/`).
+"coming soon". Email works once the SMTP secrets are set
+([docs/SETUP.md](docs/SETUP.md#7a-email-alerts-optional)); WhatsApp, Viber and
+Signal can be ticked today and start delivering as soon as their sender is
+built — the user's choice is kept until then. Every working channel has a
+“Send a test message” button.
 
 ---
 
@@ -196,7 +198,7 @@ Opening the Worker's URL shows its last check.
 | Change infrastructure | edit `infra/terraform/*.tf` → merge |
 | Change the Pro launch date | `PRO_AVAILABLE_FROM` in `render.yaml` |
 | Turn on payments | three Stripe secrets + `BILLING_PROVIDER: stripe` ([docs/SETUP.md](docs/SETUP.md#later-turning-on-payments)) |
-| Add a delivery channel | a `ChannelSender` subclass in `services/notifications/senders/`, registered in `core/container.py`; set `live=True` in `channels.py` |
+| Add a delivery channel | a `ChannelSender` subclass (`deliver` and `send_test`, like `services/email/sender.py`), added to `senders` in `core/container.py` — that makes the channel live |
 | Add a portal | `connectors/<portal>/connector.py` (extend `BaseConnector`) → `CONNECTOR_CLASSES` → fixture page + test → allow it in `billing/plans.py` |
 | Add a language | a catalog in `backend/app/core/i18n/catalogs/` and a folder in `frontend/src/app/core/i18n/locales/`; the compiler and the tests list every missing key |
 

@@ -139,7 +139,7 @@ Straight from *The Pragmatic Programmer*:
 | add a Telegram command | `telegram/commands/<name>.py` (extend `BaseCommand`) + `container._telegram_dispatcher` |
 | change the look | `frontend/src/styles/*.css` (shared classes); landing, tour and admin panels keep their own component styles |
 | add or change text | `frontend/src/app/core/i18n/locales/<lang>/*.ts` (all four), `backend/app/core/i18n/catalogs/*.py` |
-| add a delivery channel | `notifications/senders/<channel>.py` (extend `ChannelSender`) + `container.py`; `live=True` in `notifications/channels.py` |
+| add a delivery channel | a `ChannelSender` (`deliver` + `send_test`), see `email/sender.py`; add it to `senders` in `container.py` — a channel is live when it has a sender |
 | change alert thresholds | `monitoring/monitor.py` (`Thresholds`), `infra/worker/uptime.js` |
 | change infrastructure | `infra/terraform/*.tf`, `render.yaml`, `.github/workflows/deploy.yml` |
 

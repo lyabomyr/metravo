@@ -18,7 +18,7 @@ class ChannelOut(BaseModel):
     def of(cls, setting: ChannelSetting) -> ChannelOut:
         channel = setting.channel
         return cls(
-            code=channel.code, name=channel.name, address_kind=channel.address_kind, live=channel.live,
+            code=channel.code, name=channel.name, address_kind=channel.address_kind, live=setting.live,
             enabled=setting.enabled, address=setting.address, allowed=setting.allowed,
         )
 

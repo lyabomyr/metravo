@@ -86,3 +86,14 @@ def test_connecting_with_nothing_saved_sends_only_the_greeting(container, sign_i
     user = sign_in()
     container.telegram_dispatcher.handle(update(f"/start {container.telegram_links.create_link(user).token}"))
     assert len(telegram.outbox) == 1
+
+
+def test_disconnect_in_telegram_unlinks_the_chat(container, sign_in, telegram):
+    user = sign_in()
+    container.telegram_dispatcher.handle(update(f"/start {container.telegram_links.create_link(user).token}"))
+    container.telegram_dispatcher.handle(update("/disconnect"))
+    assert container.telegram_links.chats_of(user) == []
+    container.searches.create(user, make_search())
+    sent_before = len(telegram.outbox)
+    container.scanner.run()
+    assert len(telegram.outbox) == sent_before  # nothing goes to a disconnected chat

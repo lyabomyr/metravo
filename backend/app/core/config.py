@@ -71,6 +71,13 @@ class Settings:
     telegram_bot_username: str = "metravo_bot"
     telegram_webhook_secret: str = "dev-webhook-secret"
 
+    # Email alerts over SMTP. Empty host = no email channel in production.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""  # "Metravo <you@gmail.com>"; defaults to the username
+
     # Billing
     billing_provider: str = "fake"  # none | fake | stripe
     pro_available_from: date | None = None  # Pro is shown as "coming soon" until this day
@@ -123,6 +130,11 @@ class Settings:
             telegram_bot_token=get("TELEGRAM_BOT_TOKEN", ""),
             telegram_bot_username=get("TELEGRAM_BOT_USERNAME", defaults.telegram_bot_username),
             telegram_webhook_secret=get("TELEGRAM_WEBHOOK_SECRET", defaults.telegram_webhook_secret),
+            smtp_host=get("SMTP_HOST", ""),
+            smtp_port=int(get("SMTP_PORT", str(defaults.smtp_port))),
+            smtp_username=get("SMTP_USERNAME", ""),
+            smtp_password=get("SMTP_PASSWORD", ""),
+            smtp_from=get("SMTP_FROM", ""),
             billing_provider=get("BILLING_PROVIDER", defaults.billing_provider),
             pro_available_from=date.fromisoformat(pro_from) if pro_from else None,
             stripe_secret_key=get("STRIPE_SECRET_KEY", ""),

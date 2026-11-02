@@ -11,17 +11,14 @@ class Channel:
     name: str
     #: What the user must give us to reach them there: "email", "phone" or None.
     address_kind: str | None
-    #: False while delivery is not built yet. Users can already tick it; their
-    #: choice is kept and messages start flowing once a sender exists.
-    live: bool
 
 
 CHANNELS: tuple[Channel, ...] = (
-    Channel("telegram", "Telegram", address_kind=None, live=True),
-    Channel("email", "Email", address_kind="email", live=False),
-    Channel("whatsapp", "WhatsApp", address_kind="phone", live=False),
-    Channel("viber", "Viber", address_kind="phone", live=False),
-    Channel("signal", "Signal", address_kind="phone", live=False),
+    Channel("telegram", "Telegram", address_kind=None),
+    Channel("email", "Email", address_kind="email"),
+    Channel("whatsapp", "WhatsApp", address_kind="phone"),
+    Channel("viber", "Viber", address_kind="phone"),
+    Channel("signal", "Signal", address_kind="phone"),
 )
 
 BY_CODE = {channel.code: channel for channel in CHANNELS}

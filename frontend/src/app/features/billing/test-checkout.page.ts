@@ -20,7 +20,7 @@ import { BillingApiService } from './billing-api.service';
       <p class="muted">{{ 'billing.testNoMoney' | t }}</p>
       <app-error-banner [error]="error()" />
       <button class="button button--primary" type="button" (click)="pay()" [disabled]="loading()" data-cy="test-pay">{{ 'billing.testPay' | t }}</button>
-      <button class="link" type="button" (click)="cancel()">{{ 'common.cancel' | t }}</button>
+      <button class="link" type="button" (click)="cancel()" data-cy="test-checkout-cancel">{{ 'common.cancel' | t }}</button>
     </section>
   `,
 })

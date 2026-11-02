@@ -2,6 +2,8 @@
 
 @if (status() === 'success') {
   <div class="banner banner--success" data-cy="billing-success">{{ 'billing.success' | t }}</div>
+} @else if (status() === 'cancelled') {
+  <div class="banner banner--info" data-cy="billing-cancelled">{{ 'billing.cancelled' | t }}</div>
 }
 <app-error-banner [error]="error()" />
 

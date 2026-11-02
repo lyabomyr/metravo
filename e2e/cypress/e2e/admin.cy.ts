@@ -28,4 +28,15 @@ describe('Service management', () => {
       cy.contains('Recent warnings and errors').should('exist');
     });
   });
+
+  it('ADM-4 refreshes health and runs a scan for everyone', () => {
+    cy.signIn(uniqueEmail('scanned'));
+    cy.api('POST', '/api/searches', { name: 'Admin scan', city: 'krakow', max_price: 600000, min_area: 40, sources: ['otodom'] });
+    cy.signIn(Cypress.env('adminEmail'));
+    cy.visit('/admin');
+    cy.get('[data-cy=system-refresh]').click();
+    cy.get('[data-cy=memory]').should('contain', 'MB');
+    cy.get('[data-cy=scan-all]').click();
+    cy.get('[data-cy=scan-all-report]').should('contain', 'searches').and('contain', 'page fetches');
+  });
 });

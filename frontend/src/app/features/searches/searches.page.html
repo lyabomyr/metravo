@@ -29,8 +29,8 @@
         </div>
       </div>
       <div class="row">
-        <a class="button button--small" [routerLink]="['/searches', search.id]">{{ 'common.edit' | t }}</a>
-        <button class="button button--small button--danger" type="button" (click)="remove(search)">{{ 'common.delete' | t }}</button>
+        <a class="button button--small" [routerLink]="['/searches', search.id]" data-cy="search-edit">{{ 'common.edit' | t }}</a>
+        <button class="button button--small button--danger" type="button" (click)="remove(search)" data-cy="search-delete">{{ 'common.delete' | t }}</button>
       </div>
     </article>
   } @empty {
@@ -38,7 +38,7 @@
       <div class="empty">
         <div class="empty__icon">🔍</div>
         <p>{{ 'searches.empty' | t }}</p>
-        <a class="button button--primary" routerLink="/searches/new">{{ 'searches.createFirst' | t }}</a>
+        <a class="button button--primary" routerLink="/searches/new" data-cy="create-first-search">{{ 'searches.createFirst' | t }}</a>
       </div>
     }
   }

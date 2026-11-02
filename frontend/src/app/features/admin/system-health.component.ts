@@ -14,7 +14,7 @@ import { AdminApiService, SystemHealth } from './admin-api.service';
     <section class="card stack" style="margin-bottom: 16px" data-cy="system-health">
       <div class="row row--between">
         <h2>System</h2>
-        <button class="button button--small" type="button" (click)="load()" [disabled]="loading()">Refresh</button>
+        <button class="button button--small" type="button" (click)="load()" [disabled]="loading()" data-cy="system-refresh">Refresh</button>
       </div>
       <app-error-banner [error]="error()" />
       @if (health(); as health) {

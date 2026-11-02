@@ -18,7 +18,7 @@ import { BillingApiService } from './billing-api.service';
       <button class="button button--danger" type="button" (click)="cancelSubscription()" [disabled]="loading()" data-cy="test-cancel">
         {{ 'billing.testCancel' | t }}
       </button>
-      <button class="link" type="button" (click)="back()">{{ 'common.back' | t }}</button>
+      <button class="link" type="button" (click)="back()" data-cy="test-portal-back">{{ 'common.back' | t }}</button>
     </section>
   `,
 })

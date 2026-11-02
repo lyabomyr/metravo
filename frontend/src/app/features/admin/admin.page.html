@@ -7,7 +7,7 @@
 <app-system-health />
 
 @if (scanReport(); as report) {
-  <div class="banner banner--success">
+  <div class="banner banner--success" data-cy="scan-all-report">
     {{ report.searches_scanned }} searches · {{ report.fetches }} page fetches · {{ report.new_listings }} new ·
     {{ report.messages_sent }} messages
     @if (report.errors.length) {

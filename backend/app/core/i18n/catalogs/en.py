@@ -68,4 +68,11 @@ MESSAGES = {
     "tg.unknown": "I don't know that command. /help lists what I can do.",
     "tg.not_connected": 'This chat is not connected yet. Press “Connect Telegram” on <a href="{url}">the website</a>.',
     "tg.failed": "⚠️ Something went wrong. Please try again.",
+    "email.subject": "Metravo: {n} new for “{name}”",
+    "email.test_subject": "Metravo: email alerts work",
+    "email.footer": "You get this because email alerts are on. Switch them off any time: {url}",
+    "channel.test_message": "Metravo can reach you here. New listings for your searches will arrive like this.",
+    "channel.email_invalid": "That does not look like an email address",
+    "channel.test_off": "Switch {channel} on first",
+    "channel.test_failed": "Could not send to {channel}. Check the address and try again",
 }

@@ -3,8 +3,19 @@
 Every case below is automated in `cypress/e2e/` and runs in CI on every push
 (`.github/workflows/ci.yml` → job `e2e`). The backend runs with fake adapters
 (`APP_ENV=e2e`): saved portal pages instead of live portals, a test payment
-provider, a recording Telegram client. Each test signs in with a fresh email,
-so tests are independent and can run in any order.
+provider, a recording Telegram client and a recording mailer. Each test signs
+in with a fresh email, so tests are independent and can run in any order. The
+test name starts with the case id, so a failure in CI points to a row here.
+
+Run them: `make api` and `make web` in two terminals, then `make e2e`.
+
+Contents: [Landing](#landing-page--landingcyts) · [Sign-in](#sign-in-and-session--authcyts) ·
+[First run](#first-run--onboardingcyts-tourcyts) · [Navigation](#navigation--navigationcyts) ·
+[Searches](#searches--search-formcyts) · [Filters](#filters--filterscyts-each-through-the-form-then-check-now) ·
+[Listings](#listings--listingscyts-rental-searchcyts) · [Alerts](#alerts--alertscyts) ·
+[Plan, data, admin](#plan-data-admin--billingcyts-data-exportcyts-admincyts) ·
+[Languages](#languages--i18ncyts) · [Phones](#phones--mobilecyts-375--812) ·
+[Every button](#every-button-and-the-case-that-presses-it) · [Below the UI](#below-the-ui--backend-unit-tests)
 
 **Fixture data** — the saved results pages in `backend/tests/fixtures/pages/`:
 
@@ -58,6 +69,13 @@ matches **101, 104, 302, mzn201**.
 | TOUR-3 | Help (“?”) in the top bar | Opens the tour again |
 | TOUR-4 | Skip, or Escape | Closes the tour |
 
+## Navigation — `navigation.cy.ts`
+
+| Id | Case | Expected |
+|---|---|---|
+| NAV-1 | Click every tab: Searches, Alerts, My data, Plan, Listings | Each opens its page, is marked active and shows the page title |
+| NAV-2 | Sign out, then open `/searches` | Back on the landing page; the app is closed until signing in again |
+
 ## Searches — `search-form.cy.ts`
 
 | Id | Case | Expected |
@@ -70,6 +88,8 @@ matches **101, 104, 302, mzn201**.
 | FORM-6 | Edit a search, then delete it | The card shows the change; after confirming, it is gone |
 | FORM-7 | Second search on Free | “allows 1 search” with an upgrade link |
 | FORM-8 | komornik on Free | Pro badge on the portal; saving is refused with the portal named |
+| FORM-9 | House instead of flat | Saved as a house; the card says House |
+| FORM-10 | “Create your first search” on the empty page, and “New search” | Both open the form |
 
 ## Filters — `filters.cy.ts` (each through the form, then “Check now”)
 
@@ -102,23 +122,28 @@ matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| ALR-1 | Connect Telegram from the Alerts page | The chat appears by itself; Disconnect removes it |
+| ALR-1 | Connect Telegram from the Alerts page, then Disconnect | The chat appears by itself; Disconnect removes it on the server too, the test button goes, and the “not connected” reminder is back |
 | ALR-2 | Extra channels on Free | Email, WhatsApp, Viber, Signal are shown, locked, with a Pro badge |
 | ALR-3 | WhatsApp on Pro | Switch on, enter a phone, saved; reload keeps it |
 | ALR-4 | Email on Pro | Address defaults to the account email |
 | ALR-5 | Old `/telegram` link | Redirects to `/alerts` |
 | ALR-6 | Signed in without Telegram | Every page shows “Alerts are not connected” with a button to setup; gone once a chat is connected |
+| ALR-7 | “Send a test message” for Telegram | “Sent” is shown; the bot posts a short message to the chat |
+| ALR-8 | Email on Pro: switch on, send a test, type a wrong address, switch off | Email is live (no “soon”); the test is sent; a wrong address is refused with a message; switched off, the test button goes, it stays off after a reload, and the server refuses a test |
 
 ## Plan, data, admin — `billing.cy.ts`, `data-export.cy.ts`, `admin.cy.ts`
 
 | Id | Case | Expected |
 |---|---|---|
 | PLAN-1 | Free → test checkout ($10) → Pro → cancel → Free | Badge follows the plan |
+| PLAN-2 | Cancel on the checkout page | Back on Plan with “Payment cancelled”; still Free |
+| PLAN-3 | Manage subscription → Back | Back on Plan; still Pro |
 | DATA-1 | “My data” → CSV | A CSV with a header and one row per match, named after the search |
 | DATA-2 | Another user's export, searches and listings | Empty: everyone shares one database, nobody sees anyone else's rows |
 | ADM-1 | Regular user opens `/admin` | Redirected; no Admin tab |
 | ADM-2 | Admin changes a user's plan | The table shows the new plan |
 | ADM-3 | Admin opens System | Memory, CPU, last scan, active alerts and recent warnings are shown |
+| ADM-4 | Refresh, then “Run scan for everyone” | Health reloads; a report of searches, page fetches and new listings appears |
 
 ## Languages — `i18n.cy.ts`
 
@@ -134,3 +159,38 @@ matches **101, 104, 302, mzn201**.
 | MOB-1 | Signed in | The tab bar is at the bottom and switches pages |
 | MOB-2 | Every page | No horizontal scrolling |
 | MOB-3 | Landing | Section links are hidden, the sign-in form fits the screen |
+
+## Every button and the case that presses it
+
+| Page | Element (`data-cy`) | Case |
+|---|---|---|
+| Landing | Sign in (`landing-sign-in`), final call to action (`cta`), FAQ, language picker | LND-2, LND-3, LND-4 |
+| Landing | Email + “Email me a sign-in link” (`email`, `sign-in`) | AUTH-1 … AUTH-3, ONB-1 |
+| Landing | Continue with Google (`google`) | AUTH-6 (shown only with Firebase; checked in production) |
+| Top bar | Tabs (`nav-*`), Help (`help`), language (`language`), Sign out (`sign-out`) | NAV-1, TOUR-3, I18N-1, NAV-2 |
+| Every page | Reminder → Connect Telegram (`connect-reminder-action`) | ALR-6 |
+| Tour | Next, Back, Skip, Let’s go (`tour-*`) | TOUR-1 … TOUR-4 |
+| Welcome | Save and continue (`search-save`), Open Telegram (`telegram-open`), See your listings (`onboarding-listings`) | ONB-1, ONB-2 |
+| Listings | Check now (`scan-now`), open an ad | LST-2, LST-3 |
+| Searches | New search, Create your first search, Edit, Delete (`new-search`, `create-first-search`, `search-edit`, `search-delete`) | FORM-10, FORM-6 |
+| Search form | Buy/Rent, Flat/House, every field and portal switch, Save | FORM-1 … FORM-9, FLT-1 … FLT-13 |
+| Alerts | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
+| Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |
+| My data | Download listings (.csv) (`download-csv`) | DATA-1 |
+| Plan | Upgrade, Manage subscription; test checkout Pay / Cancel; test portal Cancel subscription / Back | PLAN-1 … PLAN-3 |
+| Admin | Make pro / Make free, Refresh, Run scan for everyone | ADM-2, ADM-4 |
+
+## Below the UI — backend unit tests
+
+`backend/tests/unit/` (pytest, `make test`) checks what the browser cannot see:
+
+| Area | File | What it proves |
+|---|---|---|
+| Isolation | `searches/test_isolation.py`, `export/test_export_service.py` | One user never reads, changes, deletes or exports another's rows |
+| One copy per offer | `listings/test_shared_catalog.py` | Two users matching the same offers store them once; a price drop reaches both; old tables are migrated |
+| Telegram | `telegram/test_two_click_setup.py` | Start links the chat once; connecting sends what was found and scans at once; `/pause`, `/disconnect` stop messages |
+| Email | `notifications/test_email.py` | Listings arrive by email in the user's language with an unsubscribe link; wrong addresses are refused; switched off means nothing is sent; the test message |
+| Channels | `notifications/test_channels.py` | Plan rules for Pro channels; a downgrade stops them |
+| Scanning | `scanning/test_scan_service.py`, `test_scheduler.py` | Due searches, plan floors, price changes, the schedule |
+| Filters | `scanning/test_listing_filter.py` | Every filter rule |
+| Errors | `core/test_http.py` | A crash still answers the site with a readable message |

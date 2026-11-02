@@ -14,8 +14,38 @@ describe('Alerts', () => {
       .should('have.attr', 'href')
       .then((href) => cy.telegramStart(String(href), Date.now() % 1e9));
     cy.get('[data-cy=telegram-chat]', { timeout: 10000 }).should('contain', 'e2e chat');
-    cy.contains('[data-cy=telegram-chat] button', 'Disconnect').click();
+    cy.get('[data-cy=telegram-disconnect]').click();
     cy.get('[data-cy=no-chats]').should('be.visible');
+    cy.get('[data-cy=test-telegram]').should('not.exist');
+    cy.api('GET', '/api/telegram/chats').its('body').should('have.length', 0);
+    cy.visit('/listings');
+    cy.get('[data-cy=connect-reminder]').should('be.visible'); // nothing reaches the user any more
+  });
+
+  it('ALR-7 a test message proves Telegram works', () => {
+    cy.finishSetup();
+    cy.visit('/alerts');
+    cy.get('[data-cy=test-telegram]').click();
+    cy.get('[data-cy=test-sent-telegram]').should('be.visible');
+  });
+
+  it('ALR-8 email on Pro: on, test message, wrong address refused, off', () => {
+    cy.upgradeToPro();
+    cy.visit('/alerts');
+    cy.get('[data-cy=channel-email]').should('not.contain', 'soon'); // email is live
+    cy.get('[data-cy=channel-toggle-email]').check();
+    cy.get('[data-cy=channel-saved]').should('be.visible');
+    cy.get('[data-cy=test-email]').click();
+    cy.get('[data-cy=test-sent-email]').should('be.visible');
+
+    cy.get('[data-cy=channel-address-email]').clear().type('not-an-email').blur();
+    cy.get('[data-cy=error]').should('contain', 'email address');
+
+    cy.get('[data-cy=channel-toggle-email]').uncheck();
+    cy.get('[data-cy=test-email]').should('not.exist');
+    cy.reload();
+    cy.get('[data-cy=channel-toggle-email]').should('not.be.checked');
+    cy.api('POST', '/api/notifications/channels/email/test', undefined, false).its('status').should('eq', 422);
   });
 
   it('ALR-6 every page reminds you until Telegram is connected', () => {

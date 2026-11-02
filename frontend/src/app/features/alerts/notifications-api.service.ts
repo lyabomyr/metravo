@@ -7,7 +7,7 @@ export interface ChannelSetting {
   code: string;
   name: string;
   address_kind: 'email' | 'phone' | null;
-  /** False while delivery is not built yet; the choice is still saved. */
+  /** False while there is no way to deliver on it yet; the choice is still saved. */
   live: boolean;
   enabled: boolean;
   address: string;
@@ -25,5 +25,10 @@ export class NotificationsApiService extends BaseApiService {
 
   update(code: string, enabled: boolean, address: string): Observable<ChannelSetting> {
     return this.put<ChannelSetting>(`/channels/${code}`, { enabled, address });
+  }
+
+  /** Sends a short message on the channel, to prove it reaches the user. */
+  sendTest(code: string): Observable<void> {
+    return this.post<void>(`/channels/${code}/test`);
   }
 }

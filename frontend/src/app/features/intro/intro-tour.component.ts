@@ -41,7 +41,7 @@ const SLIDES: Slide[] = [
             <button class="link" type="button" (click)="finish()" data-cy="tour-skip">{{ 'common.skip' | t }}</button>
             <span class="row">
               @if (index() > 0) {
-                <button class="button button--small" type="button" (click)="go(index() - 1)">{{ 'common.back' | t }}</button>
+                <button class="button button--small" type="button" (click)="go(index() - 1)" data-cy="tour-back">{{ 'common.back' | t }}</button>
               }
               @if (index() < slides.length - 1) {
                 <button class="button button--small button--primary" type="button" (click)="go(index() + 1)" data-cy="tour-next">

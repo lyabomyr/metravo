@@ -10,11 +10,14 @@ import { TelegramChat } from '../telegram/telegram.model';
 import { TelegramApiService } from '../telegram/telegram-api.service';
 import { TelegramStatusService } from '../telegram/telegram-status.service';
 import { ChannelSettingsComponent } from './channel-settings.component';
+import { TestChannelComponent } from './test-channel.component';
 
 /** Where listings go: Telegram chats, plus the extra Pro channels. */
 @Component({
   selector: 'app-alerts-page',
-  imports: [ChannelSettingsComponent, ErrorBannerComponent, PageHeaderComponent, TelegramConnectComponent, TranslatePipe, WhenPipe],
+  imports: [
+    ChannelSettingsComponent, ErrorBannerComponent, PageHeaderComponent, TelegramConnectComponent, TestChannelComponent, TranslatePipe, WhenPipe,
+  ],
   template: `
     <app-page-header [title]="'alerts.title' | t" [subtitle]="'alerts.subtitle' | t" />
     <app-error-banner [error]="error()" />
@@ -32,12 +35,15 @@ import { ChannelSettingsComponent } from './channel-settings.component';
               }
             </span>
           </span>
-          <button class="button button--small button--danger" type="button" (click)="disconnect(chat)">{{ 'alerts.disconnect' | t }}</button>
+          <button class="button button--small button--danger" type="button" (click)="disconnect(chat)" data-cy="telegram-disconnect">{{ 'alerts.disconnect' | t }}</button>
         </div>
       } @empty {
         <div class="list__row muted" data-cy="no-chats">{{ 'alerts.noChats' | t }}</div>
       }
     </div>
+    @if (chats().length) {
+      <app-test-channel code="telegram" />
+    }
 
     <section class="card stack" style="margin: 16px 0 24px">
       <h2>{{ 'alerts.connect' | t }}</h2>

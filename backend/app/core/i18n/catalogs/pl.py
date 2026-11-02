@@ -65,4 +65,11 @@ MESSAGES = {
     "tg.unknown": "Nie znam tego polecenia. /help pokazuje, co potrafię.",
     "tg.not_connected": 'Ten czat nie jest jeszcze połączony. Kliknij „Połącz Telegram” na <a href="{url}">stronie</a>.',
     "tg.failed": "⚠️ Coś poszło nie tak. Spróbuj ponownie.",
+    "email.subject": "Metravo: {n} nowych dla „{name}”",
+    "email.test_subject": "Metravo: powiadomienia e-mail działają",
+    "email.footer": "Dostajesz to, bo powiadomienia e-mail są włączone. Wyłącz je w każdej chwili: {url}",
+    "channel.test_message": "Metravo może się z Tobą tu skontaktować. Nowe ogłoszenia dla Twoich wyszukiwań przyjdą właśnie tak.",
+    "channel.email_invalid": "To nie wygląda na adres e-mail",
+    "channel.test_off": "Najpierw włącz {channel}",
+    "channel.test_failed": "Nie udało się wysłać na {channel}. Sprawdź adres i spróbuj ponownie",
 }

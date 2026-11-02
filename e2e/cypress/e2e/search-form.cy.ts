@@ -68,13 +68,13 @@ describe('Search form', () => {
     cy.get('[data-cy=search-save]').click();
     cy.get('[data-cy=search-card]').should('have.length', 1).and('contain', 'Katowice tanio').and('contain', 'katowice');
 
-    cy.contains('[data-cy=search-card] a', 'Edit').click();
+    cy.get('[data-cy=search-edit]').click();
     cy.get('[data-cy=search-name]').should('have.value', 'Katowice tanio').clear().type('Katowice duże');
     cy.get('[data-cy=search-min-area]').clear().type('70');
     cy.get('[data-cy=search-save]').click();
     cy.get('[data-cy=search-card]').should('contain', 'Katowice duże').and('contain', '70 m²');
 
-    cy.contains('[data-cy=search-card] button', 'Delete').click(); // the confirm dialog is accepted
+    cy.get('[data-cy=search-delete]').click(); // the confirm dialog is accepted
     cy.get('[data-cy=search-card]').should('not.exist');
   });
 
@@ -86,11 +86,32 @@ describe('Search form', () => {
     cy.get('[data-cy=upgrade-link]').should('have.attr', 'href', '/billing');
   });
 
+  it('FORM-9 a house search is saved as a house', () => {
+    cy.visit('/searches/new');
+    cy.get('[data-cy=property-house]').parent('label').click();
+    cy.get('[data-cy=property-house]').should('be.checked');
+    cy.get('[data-cy=search-name]').clear().type('Dom pod Krakowem');
+    cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-card]').should('contain', 'Dom pod Krakowem').and('contain', 'House');
+    cy.api('GET', '/api/searches').its('body.0.property_type').should('eq', 'house');
+  });
+
+  it('FORM-10 a new search starts from the empty page or the New button', () => {
+    cy.visit('/searches');
+    cy.get('[data-cy=create-first-search]').click();
+    cy.location('pathname').should('eq', '/searches/new');
+    cy.visit('/searches');
+    cy.get('[data-cy=new-search]').click();
+    cy.location('pathname').should('eq', '/searches/new');
+    cy.get('[data-cy=search-save]').should('be.visible');
+  });
+
   it('FORM-8 bailiff auctions are Pro', () => {
     cy.visit('/searches/new');
     cy.get('[data-cy=source-komornik]').parents('label').should('contain', 'Pro');
     cy.get('[data-cy=source-komornik]').check();
-    cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=source-komornik]').should('be.checked'); // the list may redraw once the plan loads
+    cy.get('[data-cy=search-save]').should('be.enabled').click();
     cy.get('[data-cy=error]').should('contain', 'komornik');
   });
 });

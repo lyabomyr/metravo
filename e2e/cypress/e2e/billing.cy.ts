@@ -20,4 +20,22 @@ describe('Upgrading and cancelling', () => {
     cy.get('[data-cy=subscription-status]').should('contain', 'cancelled');
     cy.get('[data-cy=plan-badge]').should('have.text', 'free');
   });
+
+  it('PLAN-2 cancelling at checkout keeps the plan and says so', () => {
+    cy.visit('/billing');
+    cy.get('[data-cy=upgrade]').click();
+    cy.get('[data-cy=test-checkout-cancel]').click();
+    cy.location('search').should('contain', 'status=cancelled');
+    cy.get('[data-cy=billing-cancelled]').should('be.visible');
+    cy.get('[data-cy=plan-badge]').should('have.text', 'free');
+  });
+
+  it('PLAN-3 leaving the subscription page without changes', () => {
+    cy.upgradeToPro();
+    cy.visit('/billing');
+    cy.get('[data-cy=manage-subscription]').click();
+    cy.get('[data-cy=test-portal-back]').click();
+    cy.location('pathname').should('eq', '/billing');
+    cy.get('[data-cy=plan-badge]').should('have.text', 'pro');
+  });
 });

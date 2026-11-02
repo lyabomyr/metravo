@@ -13,3 +13,6 @@ class ChannelSetting:
     enabled: bool
     address: str
     allowed: bool  # by the user's plan
+    #: A sender exists for it. Users can tick a channel that is not live yet;
+    #: their choice is kept and delivery starts once its sender is added.
+    live: bool = False

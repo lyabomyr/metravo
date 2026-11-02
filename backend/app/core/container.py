@@ -46,6 +46,7 @@ class Container:
         from ..services.billing.repository import SubscriptionRepository
         from ..services.billing.service import BillingService
         from ..services.connectors.registry import ConnectorRegistry
+        from ..services.email.sender import EmailSender
         from ..services.export.service import ExportService
         from ..services.listings.repository import ListingCatalog
         from ..services.listings.service import ListingService
@@ -107,17 +108,17 @@ class Container:
         self.telegram_links = TelegramLinkService(telegram_repo, self.users, settings.telegram_bot_username, self.clock)
         self.telegram_dispatcher = self._telegram_dispatcher()
 
+        formatter = ListingMessageFormatter(settings.frontend_url)
+        senders = [TelegramSender(self.telegram_client, self.telegram_links, formatter)]
+        self.mailer = self._mailer()
+        if self.mailer:
+            senders.append(EmailSender(self.mailer, formatter, settings.frontend_url))
         notification_repo = NotificationRepository(self.control_db)
         notification_repo.migrate()
-        self.notifications = NotificationService(notification_repo, self.users, self.clock)
-        senders = [TelegramSender(self.telegram_client, self.telegram_links, ListingMessageFormatter(settings.frontend_url))]
-        self.scanner = ScanService(
-            self.users,
-            self.searches,
-            self.listings,
-            self.connectors,
-            FanOutNotifier(self.notifications, senders),
-        )
+        live = frozenset(sender.channel for sender in senders)
+        self.notifications = NotificationService(notification_repo, self.users, self.clock, live)
+        self.notifier = FanOutNotifier(self.notifications, senders)
+        self.scanner = ScanService(self.users, self.searches, self.listings, self.connectors, self.notifier)
         self.admin = AdminService(self.users, self.telegram_links)
         self.recent_logs = RecentLogs()
         self.monitor = HealthMonitor(
@@ -148,6 +149,15 @@ class Container:
         s = self.settings
         keep_alive = KeepAlive(f"{s.public_api_url}/api/health", s.keep_alive_minutes * 60) if s.is_production else None
         return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor)
+
+    def _mailer(self):
+        from ..services.email.mailer import RecordingMailer, SmtpMailer
+
+        s = self.settings
+        if s.smtp_host:
+            return SmtpMailer(s.smtp_host, s.smtp_port, s.smtp_username, s.smtp_password, s.smtp_from or s.smtp_username)
+        # Without SMTP settings production has no email channel; elsewhere mail is recorded.
+        return None if s.env == "prod" else RecordingMailer()
 
     def _telegram_client(self):
         from ..services.telegram.client import HttpTelegramClient, RecordingTelegramClient
