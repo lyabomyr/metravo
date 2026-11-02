@@ -133,7 +133,8 @@ Straight from *The Pragmatic Programmer*:
 | wire a new class | `backend/app/core/container.py` |
 | add a search field | `searches/models.py` → `repository.py` (SCHEMA + columns) → `schemas.py` → `service._validate` → frontend `search.model.ts` + `search-form.component.html` |
 | add a filter rule | `scanning/listing_filter.py` |
-| add a portal | `connectors/<portal>/connector.py` + `connectors/registry.py` + fixture + test |
+| add a portal | `connectors/<portal>/connector.py` (URL placeholders: `{place_path}`, `{city}`, `{radius}` + `RADII`) + `connectors/registry.py` + fixture + test |
+| change how places are found | `places/directory.py` (OpenStreetMap), `places/known.py` (offline list for tests) |
 | change plans or prices | `billing/plans.py` (the only place tariffs are defined) |
 | change the scan schedule | `scanning/scheduler.py`, `searches/models.py` (`SCAN_INTERVALS`) |
 | add a Telegram command | `telegram/commands/<name>.py` (extend `BaseCommand`) + `container._telegram_dispatcher` |

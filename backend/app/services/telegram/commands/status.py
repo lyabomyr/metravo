@@ -33,7 +33,8 @@ class StatusCommand(BaseCommand):
     @staticmethod
     def _line(search: Search, context: CommandContext) -> str:
         what = f"{context.t('deal.' + search.deal_type.value)} · {context.t('property.' + search.property_type.value)}"
+        where = escape(search.place.name) + (f" +{search.radius_km} km" if search.radius_km else "")
         return (
-            f"{'🟢' if search.enabled else '⚪️'} {escape(search.name)} — {what}, {search.city}, "
+            f"{'🟢' if search.enabled else '⚪️'} {escape(search.name)} — {what}, {where}, "
             f"≤ {zloty(search.max_price)} zł, ≥ {search.min_area:g} m², {describe_interval(search.interval_minutes, context.locale)}"
         )

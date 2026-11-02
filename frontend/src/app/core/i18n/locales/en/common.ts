@@ -33,4 +33,9 @@ export const COMMON = {
   'errors.firebase.popupClosed': 'The sign-in window was closed before finishing.',
   'errors.firebase.invalidLink': 'This sign-in link is invalid or has expired. Request a new one.',
   'errors.firebase.domain': 'Sign-in is not allowed from this address yet.',
+  'nav.main': 'Main',
+  'nav.language': 'Language',
+  'auth.emailPrompt': 'Enter the email address you signed in with',
+  'landing.demo.rentTitle': '🏠 Rent in Kraków',
+  'landing.demo.rentPrice': '3 200 zł / month',
 };

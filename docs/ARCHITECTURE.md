@@ -2,7 +2,7 @@
 
 ## The product in one paragraph
 
-A person signs in with their email, saves one or more searches — buy or rent, flat or house, city, price from–to, area, rooms, price
+A person signs in with their email, saves one or more searches — buy or rent, flat or house, any city, town or village with a radius around it, price from–to, area, rooms, price
 per m², words that must appear, portals, how often to check (daily by
 default) — and connects Telegram in two clicks. A scanner reads Otodom, OLX,
 Morizon and bailiff auctions, keeps what matches each search, and sends new
@@ -55,6 +55,14 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   starts and when it ends. A down server cannot report itself, so a Worker
   outside it (`infra/worker/uptime.js`) checks the site and the API every 5
   minutes. Admin → System shows the same numbers and the last warnings.
+- **Places.** `services/places` finds any city, town or village by name or
+  by a point on the map (OpenStreetMap's Nominatim: an identifying
+  User-Agent, one request a second, answers cached) and turns it into the
+  `voivodeship/county/municipality/locality` path the portals use. A search
+  stores that place and a radius. Otodom searches the path with
+  `distanceRadius`, OLX the locality with `search[dist]` rounded up to its
+  steps, Morizon and the bailiff auctions the locality itself. Local runs and
+  tests use the built-in `places/known.py`, no network.
 - **Channels.** `services/notifications` keeps, per user, which channels get
   listings. `FanOutNotifier` sends to each switched-on channel that has a
   `ChannelSender`: Telegram, and email (`services/email`, SMTP) when
@@ -86,6 +94,7 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
 | CI / deploy | GitHub Actions | unlimited on public repos, 2 000 min/month private; no schedules | — |
 | Database | Turso, one database | free plan storage and row reads — check the current quota | Turso paid |
 | Sign-in | Firebase Auth (email link + Google) | free; Google sends the emails, no domain needed | — |
+| Places | OpenStreetMap Nominatim + map tiles | free within its usage policy: 1 request/second, cached | a hosted geocoder |
 | Email alerts | any SMTP; Gmail with an app password | about 500 emails/day, no domain needed | Brevo (300/day free) or a paid SMTP |
 | Payments | off for now (`BILLING_PROVIDER=none`); Stripe later | Stripe: no monthly fee, a cut per payment | — |
 
@@ -116,6 +125,7 @@ Each folder under `backend/app/services/` owns its tables, logic and routes.
 | `telegram` | `telegram_chats`, `telegram_link_tokens`, commands, `TelegramSender` | `POST /api/telegram/link`, `/chats`, `/webhook` |
 | `notifications` | `notification_settings`, channel catalog, fan-out | `GET /api/notifications/channels`, `PUT /channels/{code}`, `POST /channels/{code}/test` |
 | `email` | SMTP mailer, `EmailSender` | — |
+| `places` | place lookup (OpenStreetMap), radius choices | `GET /api/places?q=`, `GET /api/places/at?lat=&lon=` |
 | `monitoring` | probe, health monitor, admin alerts, recent logs | `GET /api/admin/system` |
 | `billing` | plans, `subscriptions`, providers | `/api/billing/plans`, `/checkout`, `/portal`, `/webhook` |
 | `admin` | — (accounts and plans only) | `/api/admin/overview`, `/users`, `/users/{id}/plan` |

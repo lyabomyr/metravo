@@ -6,12 +6,13 @@ import { SessionStore } from '../../core/auth/session.store';
 import { PublicConfigService } from '../../core/config/public-config.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IntervalPipe } from './interval.pipe';
-import { DEFAULT_BUDGET, DEFAULT_SEARCH, DealType, PropertyType, SearchDraft } from './search.model';
+import { PlacePickerComponent } from './place-picker.component';
+import { DEFAULT_BUDGET, DEFAULT_SEARCH, DealType, KRAKOW, Place, PropertyType, SearchDraft } from './search.model';
 
 /** The one search form, used by the editor and the onboarding wizard alike. */
 @Component({
   selector: 'app-search-form',
-  imports: [ReactiveFormsModule, IntervalPipe, TranslatePipe],
+  imports: [ReactiveFormsModule, IntervalPipe, PlacePickerComponent, TranslatePipe],
   templateUrl: './search-form.component.html',
 })
 export class SearchFormComponent {
@@ -24,7 +25,8 @@ export class SearchFormComponent {
   protected readonly config = inject(PublicConfigService).value;
   protected readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
-    city: ['', Validators.required],
+    place: [KRAKOW as Place],
+    radius_km: [0],
     deal_type: ['sale' as DealType],
     property_type: ['flat' as PropertyType],
     min_price: [null as number | null],

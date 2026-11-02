@@ -6,8 +6,8 @@ from ...core.clock import Clock, new_id
 from ...core.database import Database
 from ...core.errors import Invalid, LimitReached, NotFound
 from ...core.service import BaseService
-from ..connectors.cities import get_city
 from ..connectors.registry import ConnectorRegistry
+from ..places.models import RADIUS_CHOICES
 from ..users.models import User
 from ..users.service import UserService
 from .models import SCAN_INTERVALS, Search
@@ -73,7 +73,10 @@ class SearchService(BaseService):
         self._repo(user.id).mark_scanned(search_id, self._clock.iso())
 
     def _validate(self, user: User, search: Search) -> None:
-        get_city(search.city)
+        if not search.place.is_valid():
+            raise Invalid("search.place_invalid")
+        if search.radius_km not in RADIUS_CHOICES:
+            raise Invalid("search.radius_invalid", choices=", ".join(map(str, RADIUS_CHOICES)))
         if search.max_price <= 0 or search.min_area <= 0:
             raise Invalid("search.budget_positive")
         if search.max_area is not None and search.max_area < search.min_area:

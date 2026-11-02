@@ -5,6 +5,8 @@ import json
 from ...core.database import Database, Row
 from ...core.repository import OwnedRepository
 from ..connectors.models import DealType, PropertyType
+from ..places.known import known_place
+from ..places.models import Place
 from .models import Search
 
 
@@ -16,7 +18,13 @@ class SearchRepository(OwnedRepository):
             id              TEXT PRIMARY KEY,
             user_id         TEXT NOT NULL,
             name            TEXT NOT NULL,
-            city            TEXT NOT NULL,
+            city            TEXT NOT NULL,   -- the place's locality slug, kept for older rows
+            place_name      TEXT,
+            place_path      TEXT,            -- voivodeship/county/municipality/locality
+            place_region    TEXT,
+            lat             REAL,
+            lon             REAL,
+            radius_km       INTEGER NOT NULL DEFAULT 0,
             deal_type       TEXT NOT NULL DEFAULT 'sale',   -- sale | rent
             property_type   TEXT NOT NULL DEFAULT 'flat',   -- flat | house
             min_price       INTEGER,
@@ -37,9 +45,19 @@ class SearchRepository(OwnedRepository):
         )""",
         "CREATE INDEX IF NOT EXISTS searches_user ON searches (user_id)",
     )
+    #: Searches saved before any place could be picked had only ``city``; they are read as that city.
+    ADDED_COLUMNS = (
+        ("searches", "place_name", "TEXT"),
+        ("searches", "place_path", "TEXT"),
+        ("searches", "place_region", "TEXT"),
+        ("searches", "lat", "REAL"),
+        ("searches", "lon", "REAL"),
+        ("searches", "radius_km", "INTEGER NOT NULL DEFAULT 0"),
+    )
 
     _COLUMNS = (
-        "id", "user_id", "name", "city", "deal_type", "property_type", "min_price", "max_price", "min_area", "max_area",
+        "id", "user_id", "name", "city", "place_name", "place_path", "place_region", "lat", "lon", "radius_km",
+        "deal_type", "property_type", "min_price", "max_price", "min_area", "max_area",
         "min_rooms", "max_rooms", "max_price_per_m2", "min_build_year", "sources", "required_keywords",
         "reject_keywords", "interval_minutes", "enabled", "last_scanned_at", "created_at",
     )
@@ -78,7 +96,9 @@ class SearchRepository(OwnedRepository):
 
     def _to_row(self, search: Search) -> tuple:
         return (
-            search.id, self.user_id, search.name, search.city, search.deal_type.value, search.property_type.value,
+            search.id, self.user_id, search.name, search.place.slug, search.place.name, search.place.path,
+            search.place.region_name, search.place.lat, search.place.lon, search.radius_km,
+            search.deal_type.value, search.property_type.value,
             search.min_price, search.max_price, search.min_area, search.max_area, search.min_rooms, search.max_rooms,
             search.max_price_per_m2, search.min_build_year, json.dumps(search.sources),
             json.dumps(search.required_keywords, ensure_ascii=False), json.dumps(search.reject_keywords, ensure_ascii=False),
@@ -87,8 +107,13 @@ class SearchRepository(OwnedRepository):
 
     @staticmethod
     def _to_search(row: Row) -> Search:
-        row = {key: value for key, value in row.items() if key != "user_id"}
+        row = dict(row)
+        city = row.pop("city")
+        stored = (row.pop("place_name"), row.pop("place_path"), row.pop("place_region"), row.pop("lat"), row.pop("lon"))
+        row.pop("user_id")
+        place = Place(*stored) if stored[1] else known_place(city)
         return Search(
+            place=place,
             **{
                 **row,
                 "deal_type": DealType(row["deal_type"]),

@@ -3,8 +3,8 @@ from __future__ import annotations
 from ...core.clock import Clock
 from ...core.database import Database
 from ...core.service import BaseService
-from ..connectors.cities import city_names
 from ..connectors.models import Listing
+from ..places.known import place_names
 from ..searches.models import Search
 from ..users.models import User
 from .models import EventKind, ListingEvent, PriceChange, StoredListing
@@ -19,7 +19,7 @@ class ListingService(BaseService):
         self._db = db
         self._catalog = ListingCatalog(db)
         self._clock = clock
-        self._city_names = city_names()
+        self._city_names = place_names()
 
     def latest(self, user: User, search_id: str | None = None, limit: int = 50) -> list[StoredListing]:
         return self._repo(user.id).latest(search_id, min(limit, MAX_PAGE_SIZE))

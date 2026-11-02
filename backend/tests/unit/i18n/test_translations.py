@@ -29,7 +29,7 @@ def test_negotiates_the_language_and_falls_back_to_english():
 def test_an_error_reads_in_the_requested_language():
     error = LimitReached("search.limit", plan="Free", n=1)
     assert error.message == "The Free plan allows 1 search(es)"
-    assert error.text("uk") == "План Free дозволяє пошуків: 1"
+    assert error.text("uk") == "Тариф Free дозволяє пошуків: 1"
 
 
 def test_api_errors_follow_accept_language(client):

@@ -1,5 +1,5 @@
-<app-page-header title="Service management" subtitle="Accounts and plans across Metravo.">
-  <button class="button" type="button" (click)="scanAll()" [disabled]="loading()" data-cy="scan-all">Run scan for everyone</button>
+<app-page-header [title]="'admin.title' | t" [subtitle]="'admin.subtitle' | t">
+  <button class="button" type="button" (click)="scanAll()" [disabled]="loading()" data-cy="scan-all">{{ 'admin.scanAll' | t }}</button>
 </app-page-header>
 
 <app-error-banner [error]="error()" />
@@ -8,20 +8,19 @@
 
 @if (scanReport(); as report) {
   <div class="banner banner--success" data-cy="scan-all-report">
-    {{ report.searches_scanned }} searches · {{ report.fetches }} page fetches · {{ report.new_listings }} new ·
-    {{ report.messages_sent }} messages
+    {{ 'admin.report' | t: { searches: report.searches_scanned, fetches: report.fetches, found: report.new_listings, sent: report.messages_sent } }}
     @if (report.errors.length) {
-      <br />Errors: {{ report.errors.join('; ') }}
+      <br />{{ 'admin.reportErrors' | t: { errors: report.errors.join('; ') } }}
     }
   </div>
 }
 
 @if (overview(); as overview) {
   <div class="grid" style="margin-bottom: 16px">
-    <div class="card"><div class="muted">Accounts</div><h1 data-cy="admin-users">{{ overview.users }}</h1></div>
-    <div class="card"><div class="muted">Telegram chats</div><h1>{{ overview.telegram_chats }}</h1></div>
+    <div class="card"><div class="muted">{{ 'admin.accounts' | t }}</div><h1 data-cy="admin-users">{{ overview.users }}</h1></div>
+    <div class="card"><div class="muted">{{ 'admin.chats' | t }}</div><h1>{{ overview.telegram_chats }}</h1></div>
     <div class="card">
-      <div class="muted">By plan</div>
+      <div class="muted">{{ 'admin.byPlan' | t }}</div>
       @for (entry of overview.users_by_plan | keyvalue; track entry.key) {
         <div>{{ entry.key }}: <b>{{ entry.value }}</b></div>
       }
@@ -32,17 +31,17 @@
 <section class="card">
   <table>
     <thead>
-      <tr><th>Email</th><th>Plan</th><th>Since</th><th></th></tr>
+      <tr><th>{{ 'admin.email' | t }}</th><th>{{ 'admin.plan' | t }}</th><th>{{ 'admin.since' | t }}</th><th></th></tr>
     </thead>
     <tbody>
       @for (user of users(); track user.id) {
         <tr data-cy="admin-user-row">
-          <td>{{ user.email }} @if (user.is_admin) {<span class="badge">admin</span>}</td>
+          <td>{{ user.email }} @if (user.is_admin) {<span class="badge">{{ 'admin.admin' | t }}</span>}</td>
           <td>{{ user.plan }}</td>
-          <td class="muted">{{ user.created_at | date: 'mediumDate' }}</td>
+          <td class="muted">{{ user.created_at | when: 'date' }}</td>
           <td>
-            <button class="link" type="button" (click)="setPlan(user, user.plan === 'pro' ? 'free' : 'pro')">
-              Make {{ user.plan === 'pro' ? 'free' : 'pro' }}
+            <button class="link" type="button" (click)="setPlan(user, user.plan === 'pro' ? 'free' : 'pro')" data-cy="admin-set-plan">
+              {{ (user.plan === 'pro' ? 'admin.makeFree' : 'admin.makePro') | t }}
             </button>
           </td>
         </tr>

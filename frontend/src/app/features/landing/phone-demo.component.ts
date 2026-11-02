@@ -28,8 +28,8 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
             <span class="bubble__line">{{ 'landing.demo.drop' | t }} · <u>535 000 zł · 52 m²</u> · Krowodrza <i>[otodom]</i></span>
           </div>
           <div class="bubble" style="--i: 2">
-            <b>🏠 Wynajem Kraków</b>
-            <span class="bubble__line">• <u>3 200 zł / mies. · 45 m²</u> · Lea, Krowodrza <i>[otodom]</i></span>
+            <b>{{ 'landing.demo.rentTitle' | t }}</b>
+            <span class="bubble__line">• <u>{{ 'landing.demo.rentPrice' | t }} · 45 m²</u> · Lea, Krowodrza <i>[otodom]</i></span>
           </div>
         </div>
       </div>

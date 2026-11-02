@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+from ..places.models import Place
+
 # Location parts that say nothing about which flat it is.
 _GENERIC_LOCATION_PARTS = frozenset({"polska", "poland"})
 
@@ -21,11 +23,13 @@ class PropertyType(str, Enum):
 class SearchQuery:
     """What a connector needs to build its search URL."""
 
-    city: str
+    place: Place
     deal_type: DealType = DealType.SALE
     property_type: PropertyType = PropertyType.FLAT
     max_price: int | None = None
     min_area: float | None = None
+    #: Kilometres around the place; 0 = the place itself.
+    radius_km: int = 0
 
 
 @dataclass

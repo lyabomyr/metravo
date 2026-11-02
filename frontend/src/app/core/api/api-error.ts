@@ -22,6 +22,7 @@ const FIREBASE_KEYS: Record<string, TranslationKey> = {
   'auth/expired-action-code': 'errors.firebase.invalidLink',
   'auth/unauthorized-domain': 'errors.firebase.domain',
   'auth/network-request-failed': 'errors.network',
+  'auth/missing-email': 'auth.emailPrompt',
 };
 
 export function toApiError(error: unknown): ApiError {

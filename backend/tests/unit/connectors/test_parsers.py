@@ -8,9 +8,11 @@ from app.services.connectors.models import DealType, PropertyType, SearchQuery
 from app.services.connectors.morizon.connector import MorizonConnector
 from app.services.connectors.olx.connector import OlxConnector
 from app.services.connectors.otodom.connector import OtodomConnector
+from app.services.places.known import known_place
 from tests.unit.conftest import FIXTURES
 
-QUERY = SearchQuery(city="krakow", max_price=610000, min_area=39)
+KRAKOW = known_place("krakow")
+QUERY = SearchQuery(place=KRAKOW, max_price=610000, min_area=39)
 
 
 def scan(connector_class):
@@ -54,7 +56,7 @@ def test_komornik_resolves_devalue_references():
     ("connector_class", "deal", "kind", "expected"),
     [
         (OtodomConnector, DealType.SALE, PropertyType.FLAT,
-         "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie/krakow/krakow/krakow?priceMax=610000&areaMin=39"),
+         "https://www.otodom.pl/pl/wyniki/sprzedaz/mieszkanie/malopolskie/krakow/krakow/krakow?distanceRadius=0&priceMax=610000&areaMin=39"),
         (OtodomConnector, DealType.RENT, PropertyType.HOUSE, "/pl/wyniki/wynajem/dom/malopolskie/"),
         (OlxConnector, DealType.RENT, PropertyType.FLAT, "/nieruchomosci/mieszkania/wynajem/krakow/"),
         (MorizonConnector, DealType.RENT, PropertyType.FLAT, "morizon.pl/do-wynajecia/mieszkania/najnowsze/krakow/"),
@@ -64,11 +66,23 @@ def test_komornik_resolves_devalue_references():
     ],
 )
 def test_urls_are_built_from_the_search(connector_class, deal, kind, expected):
-    query = SearchQuery(city="krakow", deal_type=deal, property_type=kind, max_price=610000, min_area=39)
+    query = SearchQuery(place=KRAKOW, deal_type=deal, property_type=kind, max_price=610000, min_area=39)
     assert expected in connector_class(FixturePageFetcher(str(FIXTURES))).build_url(query)
 
 
 def test_auctions_cannot_be_rented():
     connector = KomornikConnector(FixturePageFetcher(str(FIXTURES)))
     assert not connector.supports(DealType.RENT, PropertyType.FLAT)
-    assert connector.build_url(SearchQuery(city="krakow", deal_type=DealType.RENT)) is None
+    assert connector.build_url(SearchQuery(place=KRAKOW, deal_type=DealType.RENT)) is None
+
+
+
+def test_a_village_with_a_radius():
+    zabierzow = known_place("zabierzow")
+    query = SearchQuery(place=zabierzow, max_price=600000, min_area=40, radius_km=25)
+    fetcher = FixturePageFetcher(str(FIXTURES))
+    otodom = OtodomConnector(fetcher).build_url(query)
+    assert "/sprzedaz/mieszkanie/malopolskie/krakowski/zabierzow/zabierzow?distanceRadius=25&" in otodom
+    assert "/mieszkania/sprzedaz/zabierzow/?search%5Bdist%5D=30&" in OlxConnector(fetcher).build_url(query)  # OLX has no 25
+    assert "morizon.pl/mieszkania/najnowsze/zabierzow/" in MorizonConnector(fetcher).build_url(query)
+    assert "city=Zabierz%C3%B3w" in KomornikConnector(fetcher).build_url(query)

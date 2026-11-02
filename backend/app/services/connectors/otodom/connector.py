@@ -22,8 +22,8 @@ _ITEM_PATHS = (
 class OtodomConnector(BaseConnector):
     name = "otodom"
     _URL = (
-        "https://www.otodom.pl/pl/wyniki/{deal}/{kind}/{{region_slug}}/{{city}}/{{city}}/{{city}}"
-        "?priceMax={{max_price}}&areaMin={{min_area}}&limit=36&by=LATEST&direction=DESC"
+        "https://www.otodom.pl/pl/wyniki/{deal}/{kind}/{{place_path}}"
+        "?distanceRadius={{radius}}&priceMax={{max_price}}&areaMin={{min_area}}&limit=36&by=LATEST&direction=DESC"
     )
     URL_TEMPLATES = {
         (DealType.SALE, PropertyType.FLAT): _URL.format(deal="sprzedaz", kind="mieszkanie"),

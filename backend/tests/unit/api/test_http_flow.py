@@ -17,7 +17,7 @@ def test_public_endpoints(client):
     assert client.get("/api/health").json() == {"status": "ok"}
     config = client.get("/api/config").json()
     assert config["auth_providers"] == ["dev"]
-    assert "krakow" in [city["key"] for city in config["cities"]]
+    assert config["radius_choices"] == [0, 5, 10, 15, 25, 50]
     assert {"deal_type": "rent", "property_type": "flat"} in config["source_capabilities"]["otodom"]
     assert {"deal_type": "rent", "property_type": "flat"} not in config["source_capabilities"]["komornik"]
     assert [plan["code"] for plan in client.get("/api/billing/plans").json()] == ["free", "pro"]

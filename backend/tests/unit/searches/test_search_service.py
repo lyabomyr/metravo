@@ -2,6 +2,7 @@ import pytest
 
 from app.core.errors import Invalid, LimitReached, NotFound
 from app.services.billing.plans import PRO
+from app.services.places.models import Place
 from tests.unit.conftest import make_search
 
 
@@ -23,7 +24,9 @@ def test_pro_only_portal_is_locked_on_free(container, sign_in):
 def test_validation(container, sign_in):
     user = sign_in()
     with pytest.raises(Invalid):
-        container.searches.create(user, make_search(city="berlin"))
+        container.searches.create(user, make_search(place=Place("Berlin", "berlin/berlin/berlin/berlin", "Berlin", 52.52, 13.40)))
+    with pytest.raises(Invalid):
+        container.searches.create(user, make_search(radius_km=7))
     with pytest.raises(Invalid):
         container.searches.create(user, make_search(min_area=50, max_area=40))
     with pytest.raises(Invalid):
@@ -50,7 +53,7 @@ def test_portal_that_cannot_search_this_deal_is_refused(container, sign_in):
 
     user = sign_in()
     container.users.set_plan(user.id, PRO)
-    with pytest.raises(Invalid, match="komornik cannot search flats for rent"):
+    with pytest.raises(Invalid, match="komornik has no flat listings to rent"):
         container.searches.create(container.users.get(user.id), make_search(deal_type=DealType.RENT, sources=["komornik"]))
 
 

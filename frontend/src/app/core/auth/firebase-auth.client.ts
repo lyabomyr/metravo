@@ -30,7 +30,8 @@ export class FirebaseAuthClient {
   async finishEmailLink(url: string, email?: string): Promise<string> {
     const { auth, sdk } = await this.load();
     const address = email ?? localStorage.getItem(PENDING_EMAIL_KEY);
-    if (!address) throw new Error('Enter the email address you signed in with');
+    // The link was opened on another device: the page asks for the address (the key maps to a translated prompt).
+    if (!address) throw Object.assign(new Error('missing email'), { code: 'auth/missing-email' });
     const credential = await sdk.signInWithEmailLink(auth, address, url);
     localStorage.removeItem(PENDING_EMAIL_KEY);
     return credential.user.getIdToken();

@@ -17,13 +17,14 @@ from .services.billing.router import router as billing_router
 from .services.export.router import router as export_router
 from .services.listings.router import router as listings_router
 from .services.notifications.router import router as notifications_router
+from .services.places.router import router as places_router
 from .services.scanning.router import router as scan_router
 from .services.searches.router import router as searches_router
 from .services.system.router import router as system_router
 from .services.telegram.router import router as telegram_router
 
 ROUTERS = (
-    system_router, auth_router, searches_router, listings_router,
+    system_router, auth_router, searches_router, listings_router, places_router,
     export_router, telegram_router, notifications_router, billing_router, scan_router, admin_router,
 )
 

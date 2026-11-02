@@ -14,7 +14,7 @@ describe('Service management', () => {
     cy.signIn(Cypress.env('adminEmail'));
     cy.visit('/admin');
     cy.get('[data-cy=admin-users]').invoke('text').then(Number).should('be.gte', 2);
-    cy.contains('[data-cy=admin-user-row]', customer).within(() => cy.contains('Make pro').click());
+    cy.contains('[data-cy=admin-user-row]', customer).find('[data-cy=admin-set-plan]').should('contain', 'Make Pro').click();
     cy.contains('[data-cy=admin-user-row]', customer).find('td').eq(1).should('have.text', 'pro');
   });
 

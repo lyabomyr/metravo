@@ -3,9 +3,32 @@ import type { TranslationKey } from '../../core/i18n/locales/en';
 export type DealType = 'sale' | 'rent';
 export type PropertyType = 'flat' | 'house';
 
+/** Any city, town or village in Poland (see backend ``places``). */
+export interface Place {
+  name: string;
+  /** voivodeship/county/municipality/locality, as the portals spell it. */
+  path: string;
+  region_name: string;
+  lat: number;
+  lon: number;
+  /** "gmina Zabierzów, powiat krakowski, …" — tells same-named villages apart. */
+  detail: string;
+}
+
+export const KRAKOW: Place = {
+  name: 'Kraków',
+  path: 'malopolskie/krakow/krakow/krakow',
+  region_name: 'małopolskie',
+  lat: 50.0614,
+  lon: 19.9366,
+  detail: 'małopolskie',
+};
+
 export interface SearchDraft {
   name: string;
-  city: string;
+  place: Place;
+  /** Kilometres around the place; 0 = the place itself. */
+  radius_km: number;
   deal_type: DealType;
   property_type: PropertyType;
   min_price: number | null;
@@ -34,7 +57,8 @@ export const DEFAULT_BUDGET: Record<DealType, number> = { sale: 600000, rent: 40
 
 export const DEFAULT_SEARCH: SearchDraft = {
   name: 'My flat',
-  city: 'krakow',
+  place: KRAKOW,
+  radius_km: 0,
   deal_type: 'sale',
   property_type: 'flat',
   min_price: null,

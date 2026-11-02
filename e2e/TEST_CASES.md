@@ -80,7 +80,7 @@ matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| FORM-1 | New search defaults | Buy, Flat, Kraków, once a day, otodom + olx + morizon on |
+| FORM-1 | New search defaults | Buy, Flat, Kraków (only the place itself, map shown), once a day, otodom + olx + morizon on |
 | FORM-2 | Switch to Rent | “Rent up to” becomes 4 000 zł/month; komornik is disabled |
 | FORM-3 | Check rate on Free | Only “Once a day” can be picked; faster ones say Pro and are disabled |
 | FORM-4 | Check rate on Pro | “Every hour” can be saved and shows on the card |
@@ -90,6 +90,8 @@ matches **101, 104, 302, mzn201**.
 | FORM-8 | komornik on Free | Pro badge on the portal; saving is refused with the portal named |
 | FORM-9 | House instead of flat | Saved as a house; the card says House |
 | FORM-10 | “Create your first search” on the empty page, and “New search” | Both open the form |
+| FORM-11 | Find a village by name, pick it, +15 km | The card shows “Zabierzów +15 km”; saved with its voivodeship/county/municipality path and the radius |
+| FORM-12 | A name that matches nothing; a click on the map | “Nothing found”; the click picks the place at that point |
 
 ## Filters — `filters.cy.ts` (each through the form, then “Check now”)
 
@@ -173,7 +175,7 @@ matches **101, 104, 302, mzn201**.
 | Welcome | Save and continue (`search-save`), Open Telegram (`telegram-open`), See your listings (`onboarding-listings`) | ONB-1, ONB-2 |
 | Listings | Check now (`scan-now`), open an ad | LST-2, LST-3 |
 | Searches | New search, Create your first search, Edit, Delete (`new-search`, `create-first-search`, `search-edit`, `search-delete`) | FORM-10, FORM-6 |
-| Search form | Buy/Rent, Flat/House, every field and portal switch, Save | FORM-1 … FORM-9, FLT-1 … FLT-13 |
+| Search form | Buy/Rent, Flat/House, place search, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-12, FLT-1 … FLT-13 |
 | Alerts | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
 | Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |
 | My data | Download listings (.csv) (`download-csv`) | DATA-1 |
@@ -194,3 +196,4 @@ matches **101, 104, 302, mzn201**.
 | Scanning | `scanning/test_scan_service.py`, `test_scheduler.py` | Due searches, plan floors, price changes, the schedule |
 | Filters | `scanning/test_listing_filter.py` | Every filter rule |
 | Errors | `core/test_http.py` | A crash still answers the site with a readable message |
+| Places | `places/test_places.py`, `connectors/test_parsers.py` | OpenStreetMap answers become the portals' paths; cities with county rights; caching; points on the map; each portal's URL for a village with a radius; old `city` searches still read |

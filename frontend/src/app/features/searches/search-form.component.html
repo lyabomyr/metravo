@@ -18,14 +18,6 @@
         <input formControlName="name" data-cy="search-name" />
       </label>
       <label class="list__row">
-        <span>{{ 'form.city' | t }}</span>
-        <select formControlName="city" data-cy="search-city">
-          @for (city of config.cities; track city.key) {
-            <option [value]="city.key">{{ city.label }}</option>
-          }
-        </select>
-      </label>
-      <label class="list__row">
         <span>{{ 'form.frequency' | t }}</span>
         <select formControlName="interval_minutes" data-cy="search-interval">
           @for (minutes of config.scan_intervals; track minutes) {
@@ -37,6 +29,17 @@
       </label>
     </div>
     <p class="section-note">{{ 'form.frequencyHint' | t }}</p>
+  </section>
+
+  <section>
+    <h3 class="section-title">{{ 'form.where' | t }}</h3>
+    <app-place-picker
+      [place]="form.controls.place.value"
+      [radiusKm]="form.controls.radius_km.value"
+      [radiusChoices]="config.radius_choices"
+      (placeChange)="form.controls.place.setValue($event)"
+      (radiusChange)="form.controls.radius_km.setValue($event)"
+    />
   </section>
 
   <section>

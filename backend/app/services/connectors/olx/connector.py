@@ -21,8 +21,10 @@ class OlxConnector(BaseConnector):
     name = "olx"
     _URL = (
         "https://www.olx.pl/nieruchomosci/{kind}/{deal}/{{city}}/"
-        "?search%5Bfilter_float_price%3Ato%5D={{max_price}}&search%5Bfilter_float_m%3Afrom%5D={{min_area}}"
+        "?search%5Bdist%5D={{radius}}"
+        "&search%5Bfilter_float_price%3Ato%5D={{max_price}}&search%5Bfilter_float_m%3Afrom%5D={{min_area}}"
     )
+    RADII = (0, 2, 5, 10, 15, 30, 50, 75, 100)
     URL_TEMPLATES = {
         (DealType.SALE, PropertyType.FLAT): _URL.format(kind="mieszkania", deal="sprzedaz"),
         (DealType.RENT, PropertyType.FLAT): _URL.format(kind="mieszkania", deal="wynajem"),

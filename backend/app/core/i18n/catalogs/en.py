@@ -2,7 +2,6 @@
 
 MESSAGES = {
     # --- errors ---------------------------------------------------------
-    "city.unsupported": "Unsupported city '{key}'. Choose one of: {choices}",
     "search.not_found": "Search not found",
     "search.limit": "The {plan} plan allows {n} search(es)",
     "search.budget_positive": "Budget and minimum area must be positive",
@@ -10,7 +9,7 @@ MESSAGES = {
     "search.price_range": "“Price from” is higher than “price up to”",
     "search.rooms_range": "Maximum rooms is below minimum rooms",
     "search.no_portal": "Pick at least one portal",
-    "search.portal_unsupported": "{sources} cannot search {property}s for {deal}",
+    "search.portal_unsupported": "{sources} has no {property} listings to {deal}",
     "search.interval_invalid": "Scan interval must be one of {choices} minutes",
     "search.interval_plan": "The {plan} plan checks at most every {minutes} minutes",
     "search.portal_plan": "{sources} is not included in the {plan} plan",
@@ -75,4 +74,6 @@ MESSAGES = {
     "channel.email_invalid": "That does not look like an email address",
     "channel.test_off": "Switch {channel} on first",
     "channel.test_failed": "Could not send to {channel}. Check the address and try again",
+    "search.place_invalid": "Pick a city, town or village in Poland",
+    "search.radius_invalid": "The distance around the place can be: {choices} km",
 }

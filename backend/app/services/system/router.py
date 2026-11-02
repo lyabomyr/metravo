@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from ...core.config import parse_web_config
 from ...core.container import Container
 from ..auth.dependencies import get_container
-from ..connectors.cities import CITIES
+from ..places.models import RADIUS_CHOICES
 from ..searches.models import SCAN_INTERVALS
 
 router = APIRouter(prefix="/api", tags=["system"])
@@ -33,5 +33,5 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "scan_intervals": list(SCAN_INTERVALS),
         "plan_min_intervals": {plan.code: plan.min_interval_minutes for plan in container.plans},
         "plan_sources": {plan.code: list(plan.sources) for plan in container.plans},
-        "cities": [{"key": city.key, "label": city.label} for city in CITIES],
+        "radius_choices": list(RADIUS_CHOICES),
     }

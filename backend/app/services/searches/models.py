@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from ...core.clock import parse_iso
 from ...core.i18n import translator
 from ..connectors.models import DealType, PropertyType, SearchQuery
+from ..places.models import Place
 
 #: How often a search may be scanned, in minutes. The plan sets the floor.
 SCAN_INTERVALS: tuple[int, ...] = (60, 180, 360, 720, 1440)
@@ -33,7 +34,7 @@ DEFAULT_REJECT_KEYWORDS: tuple[str, ...] = (
 class Search:
     id: str
     name: str
-    city: str
+    place: Place
     max_price: int
     min_area: float
     deal_type: DealType = DealType.SALE
@@ -49,6 +50,8 @@ class Search:
     required_keywords: list[str] = field(default_factory=list)
     reject_keywords: list[str] = field(default_factory=lambda: list(DEFAULT_REJECT_KEYWORDS))
     interval_minutes: int = DEFAULT_SCAN_INTERVAL
+    #: Kilometres around ``place`` (see ``places.models.RADIUS_CHOICES``).
+    radius_km: int = 0
     enabled: bool = True
     last_scanned_at: str | None = None
     created_at: str = ""
@@ -56,7 +59,8 @@ class Search:
     @property
     def query(self) -> SearchQuery:
         return SearchQuery(
-            city=self.city,
+            place=self.place,
+            radius_km=self.radius_km,
             deal_type=self.deal_type,
             property_type=self.property_type,
             max_price=self.max_price,

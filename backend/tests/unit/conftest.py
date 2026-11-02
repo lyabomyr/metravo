@@ -12,6 +12,7 @@ from app.core.clock import FixedClock
 from app.core.config import Settings
 from app.core.container import Container
 from app.main import create_app
+from app.services.places.known import known_place
 from app.services.searches.models import Search
 from app.services.telegram.client import RecordingTelegramClient
 
@@ -67,7 +68,7 @@ def make_search(**overrides) -> Search:
     values = dict(
         id="",
         name="Kraków 2 pokoje",
-        city="krakow",
+        place=known_place("krakow"),
         max_price=610000,
         min_area=39,
         sources=["otodom", "olx", "morizon"],

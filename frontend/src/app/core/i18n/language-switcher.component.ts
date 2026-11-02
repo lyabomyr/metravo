@@ -2,14 +2,16 @@ import { Component, inject } from '@angular/core';
 
 import { I18nService } from './i18n.service';
 import { LOCALES, Locale } from './locales';
+import { TranslatePipe } from './translate.pipe';
 
 /** A compact language picker. A signed-in user's profile follows the choice (see App). */
 @Component({
   selector: 'app-language-switcher',
+  imports: [TranslatePipe],
   template: `
     <select
       class="language"
-      aria-label="Language"
+      [attr.aria-label]="'nav.language' | t"
       (change)="choose($any($event.target).value)"
       data-cy="language"
     >

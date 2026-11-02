@@ -93,6 +93,7 @@ class Container:
             self.users,
             SessionTokenService(settings.jwt_secret, settings.jwt_ttl_hours, self.clock),
         )
+        self.places = self._places()
         self.connectors = ConnectorRegistry.build(
             page_fetcher or self._page_fetcher(),
             overrides=self._fetcher_overrides() if page_fetcher is None else None,
@@ -149,6 +150,12 @@ class Container:
         s = self.settings
         keep_alive = KeepAlive(f"{s.public_api_url}/api/health", s.keep_alive_minutes * 60) if s.is_production else None
         return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor)
+
+    def _places(self):
+        from ..services.places.directory import KnownPlaceDirectory, NominatimDirectory
+
+        # Live lookups only where portals are live too; elsewhere the built-in list, no network.
+        return KnownPlaceDirectory() if self.settings.page_fetcher == "fixtures" else NominatimDirectory()
 
     def _mailer(self):
         from ..services.email.mailer import RecordingMailer, SmtpMailer

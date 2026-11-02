@@ -3,11 +3,6 @@ import { firstValueFrom } from 'rxjs';
 
 import { BaseApiService } from '../api/base-api.service';
 
-export interface City {
-  key: string;
-  label: string;
-}
-
 export interface SourceCapability {
   deal_type: 'sale' | 'rent';
   property_type: 'flat' | 'house';
@@ -27,10 +22,11 @@ export interface PublicConfig {
   plan_min_intervals: Record<string, number>;
   /** The portals each plan includes. */
   plan_sources: Record<string, string[]>;
-  cities: City[];
+  /** Kilometres a search may reach around its place. */
+  radius_choices: number[];
 }
 
-/** What the backend says the frontend may offer: sign-in methods, cities, portals. */
+/** What the backend says the frontend may offer: sign-in methods, portals, schedules. */
 @Injectable({ providedIn: 'root' })
 export class PublicConfigService extends BaseApiService {
   protected readonly path = '/api/config';

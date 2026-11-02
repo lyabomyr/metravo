@@ -1,8 +1,10 @@
-import { DatePipe, KeyValuePipe } from '@angular/common';
+import { KeyValuePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
 import { User } from '../../core/auth/auth.models';
+import { WhenPipe } from '../../core/i18n/format.pipes';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
@@ -14,7 +16,7 @@ import { SystemHealthComponent } from './system-health.component';
 /** Service management: accounts and plans. Never shows anyone's searches or listings. */
 @Component({
   selector: 'app-admin-page',
-  imports: [DatePipe, KeyValuePipe, ErrorBannerComponent, PageHeaderComponent, SystemHealthComponent],
+  imports: [KeyValuePipe, ErrorBannerComponent, PageHeaderComponent, SystemHealthComponent, TranslatePipe, WhenPipe],
   templateUrl: './admin.page.html',
 })
 export class AdminPage extends BasePage implements OnInit {

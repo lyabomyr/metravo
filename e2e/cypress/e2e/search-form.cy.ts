@@ -7,7 +7,9 @@ describe('Search form', () => {
     cy.visit('/searches/new');
     cy.get('[data-cy=deal-sale]').should('be.checked');
     cy.get('[data-cy=property-flat]').should('be.checked');
-    cy.get('[data-cy=search-city]').should('have.value', 'krakow');
+    cy.get('[data-cy=place-name]').should('have.text', 'Kraków');
+    cy.get('[data-cy=search-radius]').should('have.value', '0');
+    cy.get('[data-cy=place-map]').should('be.visible');
     cy.get('[data-cy=search-interval]').find('option:selected').should('contain', 'Once a day');
     ['otodom', 'olx', 'morizon'].forEach((source) => cy.get(`[data-cy=source-${source}]`).should('be.checked'));
     cy.get('[data-cy=source-komornik]').should('not.be.checked');
@@ -64,9 +66,10 @@ describe('Search form', () => {
   it('FORM-6 edits and deletes a search', () => {
     cy.visit('/searches/new');
     cy.get('[data-cy=search-name]').clear().type('Katowice tanio');
-    cy.get('[data-cy=search-city]').select('katowice');
+    cy.get('[data-cy=place-query]').type('Katowice{enter}');
+    cy.contains('[data-cy=place-result]', 'Katowice').click();
     cy.get('[data-cy=search-save]').click();
-    cy.get('[data-cy=search-card]').should('have.length', 1).and('contain', 'Katowice tanio').and('contain', 'katowice');
+    cy.get('[data-cy=search-card]').should('have.length', 1).and('contain', 'Katowice tanio').and('contain', 'Katowice');
 
     cy.get('[data-cy=search-edit]').click();
     cy.get('[data-cy=search-name]').should('have.value', 'Katowice tanio').clear().type('Katowice duże');
@@ -104,6 +107,30 @@ describe('Search form', () => {
     cy.get('[data-cy=new-search]').click();
     cy.location('pathname').should('eq', '/searches/new');
     cy.get('[data-cy=search-save]').should('be.visible');
+  });
+
+  it('FORM-11 a village found by name, with a radius around it', () => {
+    cy.visit('/searches/new');
+    cy.get('[data-cy=place-query]').type('zab');
+    cy.get('[data-cy=place-find]').click();
+    cy.get('[data-cy=place-result]').should('have.length', 1).and('contain', 'Zabierzów').click();
+    cy.get('[data-cy=place-name]').should('have.text', 'Zabierzów');
+    cy.get('[data-cy=search-radius]').select('15');
+    cy.get('[data-cy=search-name]').clear().type('Pod Krakowem');
+    cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-place]').should('contain', 'Zabierzów').and('contain', '+15 km');
+    cy.api('GET', '/api/searches').its('body.0').should((search: { radius_km: number; place: { path: string } }) => {
+      expect(search.radius_km).to.eq(15);
+      expect(search.place.path).to.eq('malopolskie/krakowski/zabierzow/zabierzow');
+    });
+  });
+
+  it('FORM-12 a place picked on the map, and a name that matches nothing', () => {
+    cy.visit('/searches/new');
+    cy.get('[data-cy=place-query]').type('Atlantyda{enter}');
+    cy.get('[data-cy=place-none]').should('be.visible');
+    cy.get('[data-cy=place-map]').click(); // the map is centred on Kraków
+    cy.get('[data-cy=place-name]').should('have.text', 'Kraków');
   });
 
   it('FORM-8 bailiff auctions are Pro', () => {

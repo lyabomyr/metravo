@@ -14,7 +14,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from urllib.parse import quote
 
-from .cities import get_city
 from .fetchers import FetchError, PageFetcher
 from .models import DealType, Listing, PropertyType, SearchQuery
 
@@ -33,8 +32,12 @@ class BaseConnector(ABC):
     name: str
     #: One ``str.format`` template per (deal, property) the portal can search.
     #: A missing combination means "this portal does not offer it".
-    #: Placeholders: {city} {city_label} {region_slug} {region_name} {max_price} {min_area}
+    #: Placeholders: {city} (the locality slug) {city_label} {place_path} {region_slug}
+    #: {region_name} {radius} {max_price} {min_area}. A template without {radius}
+    #: searches the place itself.
     URL_TEMPLATES: dict[tuple[DealType, PropertyType], str]
+    #: The radii the portal offers, in km; a search's radius rounds up to one. Empty = any.
+    RADII: tuple[int, ...] = ()
 
     def __init__(self, fetcher: PageFetcher, pages: int = 1, delay_seconds: float = 0.0):
         self.fetcher = fetcher
@@ -54,15 +57,22 @@ class BaseConnector(ABC):
         template = self.URL_TEMPLATES.get((query.deal_type, query.property_type))
         if template is None:
             return None
-        city = get_city(query.city)
+        place = query.place
         return template.format(
-            city=city.key,
-            city_label=quote(city.label),
-            region_slug=city.region_slug,
-            region_name=quote(city.region_name),
+            city=place.slug,
+            city_label=quote(place.name),
+            place_path=place.path,
+            region_slug=place.region_slug,
+            region_name=quote(place.region_name),
+            radius=self._radius(query.radius_km),
             max_price="" if query.max_price is None else int(query.max_price),
             min_area="" if query.min_area is None else f"{query.min_area:g}",
         )
+
+    def _radius(self, km: int) -> int:
+        if not self.RADII:
+            return km
+        return min((radius for radius in self.RADII if radius >= km), default=max(self.RADII))
 
     def scan(self, url: str) -> ConnectorResult:
         """Walk up to ``pages`` result pages. Never raises — one broken portal
