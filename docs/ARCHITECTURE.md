@@ -24,8 +24,8 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
             ▲        ▲                        ▼
    Telegram │ Stripe │                One database (Turso)
                                      users · plans · subscriptions · telegram
-                                     searches · listings · price_changes
-                                       (each row carries its user_id)
+                                     searches · search_matches   (per user_id)
+                                     portal_listings · listing_prices (each offer once)
 
  ScanScheduler (every minute) ──► due searches ──► portals ─► database ─► FanOutNotifier ─► channels
                                 └─► HealthMonitor ─► memory / CPU / scan / portal alerts ─► admins' Telegram
@@ -63,11 +63,15 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   language, `Accept-Language` for API errors, the user's saved language for
   Telegram). The frontend has a dictionary per language and section under
   `core/i18n/locales/`, checked for completeness by the compiler.
-- **One database, rows per user.** Everything lives in one Turso database.
-  Searches, listings and price changes carry a `user_id`, and their
-  repositories extend `OwnedRepository`: they are opened for one user and
-  every query filters by it, so a service cannot forget the filter. Signing
-  up is one row insert: nothing to provision, nothing to fail.
+- **One database, each offer once.** Everything lives in one Turso database.
+  An offer is stored once in `portal_listings` (`ListingCatalog`), with one
+  shared price history in `listing_prices`, and is written only when it is
+  new, its price moved or a day has passed. `search_matches` says which
+  search matched it, for whom, and the price that user was last told; that
+  row is who gets notified. Searches and matches carry a `user_id` and their
+  repositories extend `OwnedRepository`: opened for one user, every query
+  filters by it, so a service cannot forget the filter. Signing up is one row
+  insert: nothing to provision, nothing to fail.
 
 ## Free stack
 
@@ -102,7 +106,7 @@ Each folder under `backend/app/services/` owns its tables, logic and routes.
 | `users` | `users` | — |
 | `export` | — (reads the caller's listings) | `GET /api/export/listings.csv` |
 | `searches` | `searches` (rows per user) | `/api/searches` CRUD |
-| `listings` | `listings`, `price_changes` (rows per user) | `GET /api/listings`, `GET /api/listings/price-changes` |
+| `listings` | `portal_listings`, `listing_prices` (each offer once), `search_matches` (per user) | `GET /api/listings`, `GET /api/listings/price-changes` |
 | `connectors` | one sub-folder per portal | — |
 | `scanning` | filter, fetch cache, scan run | `POST /api/scan/mine`, `/all` (admin), `/cron` |
 | `telegram` | `telegram_chats`, `telegram_link_tokens`, commands, `TelegramSender` | `POST /api/telegram/link`, `/chats`, `/webhook` |

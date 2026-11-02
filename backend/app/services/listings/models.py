@@ -7,6 +7,13 @@ from ..connectors.models import Listing
 
 
 @dataclass(frozen=True)
+class Match:
+    """A search matched an offer; ``price_seen`` is what the user was last told it costs."""
+
+    price_seen: int | None
+
+
+@dataclass(frozen=True)
 class StoredListing:
     search_id: str
     key: str

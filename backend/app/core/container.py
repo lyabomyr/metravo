@@ -47,7 +47,7 @@ class Container:
         from ..services.billing.service import BillingService
         from ..services.connectors.registry import ConnectorRegistry
         from ..services.export.service import ExportService
-        from ..services.listings.repository import ListingRepository
+        from ..services.listings.repository import ListingCatalog
         from ..services.listings.service import ListingService
         from ..services.monitoring.alerts import AdminAlerter
         from ..services.monitoring.log_buffer import RecentLogs
@@ -78,7 +78,8 @@ class Container:
         subscription_repo = SubscriptionRepository(self.control_db)
         for repo in (user_repo, telegram_repo, subscription_repo):
             repo.migrate()
-        for owned in (SearchRepository, ListingRepository):
+        # The catalog creates the match table too, and moves rows from older layouts.
+        for owned in (SearchRepository, ListingCatalog):
             owned.create_tables(self.control_db)
 
         self.users = UserService(user_repo, self.plans, settings.admin_emails, self.clock)

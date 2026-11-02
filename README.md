@@ -90,10 +90,13 @@ as soon as its sender is built, and the user's choice is kept until then (see
 | **OpenTofu** | infrastructure as code, state encrypted in the repo | free | `infra/terraform/` |
 
 **One database.** Accounts, plans, Telegram chats and channel choices sit next
-to everyone's searches, listings and price changes. Those three tables carry a
-`user_id`, and their repositories (`OwnedRepository`) are opened for one user
-and filter every query by it, so nobody sees anyone else's rows. Signing up is
-a row insert, so there is nothing to create that could fail.
+to everyone's searches. Each offer found on a portal is stored **once**
+(`portal_listings`, with one shared price history), however many users it
+matches; who it was matched for is a small row of ids (`search_matches`), and
+that row decides who gets told. Rows that belong to a user carry a `user_id`,
+and their repositories (`OwnedRepository`) are opened for one user and filter
+every query by it, so nobody sees anyone else's. Signing up is a row insert,
+so there is nothing to create that could fail.
 
 **Why the API scans by itself.** GitHub's scheduled runs on free runners are
 delayed by hours and spend minutes. The API instead runs a background

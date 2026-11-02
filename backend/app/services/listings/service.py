@@ -8,7 +8,7 @@ from ..connectors.models import Listing
 from ..searches.models import Search
 from ..users.models import User
 from .models import EventKind, ListingEvent, PriceChange, StoredListing
-from .repository import ListingRepository
+from .repository import ListingCatalog, ListingRepository
 
 MAX_PAGE_SIZE = 200
 
@@ -17,6 +17,7 @@ class ListingService(BaseService):
     def __init__(self, db: Database, clock: Clock):
         super().__init__()
         self._db = db
+        self._catalog = ListingCatalog(db)
         self._clock = clock
         self._city_names = city_names()
 
@@ -29,20 +30,31 @@ class ListingService(BaseService):
     def record(self, user_id: str, search: Search, listing: Listing) -> ListingEvent | None:
         """Store a matched listing; return an event if the user should hear about it."""
         repo = self._repo(user_id)
-        search_id = search.id
         now = self._clock.iso()
-        stored = repo.get(search_id, listing.key)
-        if stored is None:
-            fuzzy = listing.fuzzy_key(self._city_names)
-            if fuzzy and repo.has_twin(search_id, fuzzy, listing.source):
-                return None  # same flat, already announced from another portal
-            repo.insert(search_id, search.deal_type.value, listing, fuzzy, now)
+        fuzzy = listing.fuzzy_key(self._city_names)
+        match = repo.match(search.id, listing.key)
+        if match is None and fuzzy and repo.has_twin(search.id, fuzzy, listing.source):
+            return None  # same flat, already announced from another portal
+        self._remember(listing, search.deal_type.value, fuzzy, now)
+        if match is None:
+            repo.add(search.id, listing.key, listing.price, now)
             return ListingEvent(EventKind.NEW, listing)
-        repo.touch(search_id, listing.key, listing.price, now)
-        if stored.price is not None and listing.price is not None and stored.price != listing.price:
-            repo.add_price_change(search_id, listing.key, stored.price, listing.price, now)
-            return ListingEvent(EventKind.PRICE_CHANGE, listing, previous_price=stored.price)
+        if match.price_seen is not None and listing.price is not None and match.price_seen != listing.price:
+            repo.set_price_seen(search.id, listing.key, listing.price)
+            return ListingEvent(EventKind.PRICE_CHANGE, listing, previous_price=match.price_seen)
         return None
+
+    def _remember(self, listing: Listing, deal_type: str, fuzzy: str | None, now: str) -> None:
+        """Keep the one shared copy of the offer current, writing only when something changed."""
+        known = self._catalog.known(listing.key)
+        if known is None:
+            self._catalog.insert(listing, deal_type, fuzzy, now)
+            return
+        price, last_seen = known
+        if price is not None and listing.price is not None and price != listing.price:
+            self._catalog.add_price_change(listing.key, price, listing.price, now)
+        if price != listing.price or last_seen[:10] != now[:10]:  # "last seen" is kept to the day
+            self._catalog.seen(listing.key, listing.price, now)
 
     def _repo(self, user_id: str) -> ListingRepository:
         return ListingRepository(self._db, user_id)

@@ -24,10 +24,12 @@ class ExportService(BaseService):
             """SELECT s.name AS search, l.source, l.title, l.price, l.area, l.rooms,
                       CASE WHEN l.price IS NOT NULL AND l.area > 0 THEN CAST(ROUND(l.price / l.area) AS INTEGER) END
                           AS price_per_m2,
-                      l.location, l.url, l.first_seen_at, l.last_seen_at
-               FROM listings l LEFT JOIN searches s ON s.id = l.search_id
-               WHERE l.user_id = ?
-               ORDER BY l.first_seen_at DESC, l.key""",
+                      l.location, l.url, m.matched_at AS first_seen_at, l.last_seen_at
+               FROM search_matches m
+               JOIN portal_listings l ON l.key = m.key
+               LEFT JOIN searches s ON s.id = m.search_id
+               WHERE m.user_id = ?
+               ORDER BY m.matched_at DESC, m.key""",
             (user.id,),
         )
         buffer = io.StringIO()
