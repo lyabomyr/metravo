@@ -14,26 +14,23 @@ Total time is about 40 minutes. The order matters only where noted.
 
 ---
 
-## 1. Turso — the databases
+## 1. Turso — the database
 
-Turso hosts the control database and creates one database per user.
+Turso hosts the one database: accounts, plans, and every user's searches and
+listings. The API creates the tables itself on first start.
 
 ```bash
 brew install tursodatabase/tap/turso
 turso auth signup                          # sign in with GitHub
-turso db create metravo-control            # the control database
+turso db create metravo-control
 turso db show metravo-control --url        # → CONTROL_DB_URL   (libsql://metravo-control-<org>.turso.io)
 turso db tokens create metravo-control     # → CONTROL_DB_TOKEN
-turso auth api-tokens mint metravo         # → TURSO_API_TOKEN
-turso org list                             # → TURSO_ORG        (the slug in the first column)
 ```
 
 | GitHub Secret | Used for |
 |---|---|
-| `CONTROL_DB_URL` | where the API and the uptime Worker find the control database |
+| `CONTROL_DB_URL` | where the API and the uptime Worker find the database |
 | `CONTROL_DB_TOKEN` | access to it |
-| `TURSO_API_TOKEN` | lets the API **create a database for each new user** and issue credentials to it |
-| `TURSO_ORG` | the Turso organisation those databases are created in |
 
 ## 2. Firebase — sign-in
 
@@ -137,8 +134,9 @@ the API address (step "Find the API address").
 2. https://metravo.pages.dev → sign in with your email (the link comes from Firebase) and with Google.
 3. Follow the tour, save a search, then **Open Telegram → Start**.
 4. **Listings → Check now** → listings appear on the site and in Telegram.
-5. **Plan** shows Free (0 zł, current) and Pro (coming soon).
-6. **Admin → System** shows memory and CPU; Telegram gets alerts if something breaks.
+5. **Plan** shows Free ($0, current) and Pro ($10, coming soon).
+6. **My data → Download listings (.csv)** opens in Excel or Google Sheets.
+7. **Admin → System** shows memory and CPU; Telegram gets alerts if something breaks.
 
 ---
 
@@ -146,7 +144,7 @@ the API address (step "Find the API address").
 
 | Kind | Name | Comes from |
 |---|---|---|
-| Secret | `CONTROL_DB_URL`, `CONTROL_DB_TOKEN`, `TURSO_API_TOKEN`, `TURSO_ORG` | Turso CLI (1) |
+| Secret | `CONTROL_DB_URL`, `CONTROL_DB_TOKEN` | Turso CLI (1) |
 | Secret | `FIREBASE_PROJECT_ID`, `FIREBASE_WEB_CONFIG` | Firebase console (2) |
 | Secret | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | BotFather, `openssl` (3) |
 | Secret | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard (4) |
@@ -161,7 +159,7 @@ and `infra/terraform/` holds the infrastructure.
 
 ## Later: turning on payments
 
-1. https://dashboard.stripe.com → product "Metravo Pro", recurring 19 PLN/month → copy the price id.
+1. https://dashboard.stripe.com → product "Metravo Pro", recurring 10 USD/month → copy the price id.
 2. Developers → API keys → secret key. Developers → Webhooks → endpoint
    `https://metravo-api.onrender.com/api/billing/webhook` with events
    `checkout.session.completed`, `customer.subscription.updated`,

@@ -45,7 +45,6 @@ jobs:
       PAGE_FETCHER: fixtures
       FIXTURES_DIR: ${{ github.workspace }}/backend/tests/fixtures/pages
       CONTROL_DB_URL: sqlite:///${{ github.workspace }}/backend/data/control.db
-      TENANT_SQLITE_DIR: ${{ github.workspace }}/backend/data/tenants
       ADMIN_EMAILS: admin@metravo.test
       SCAN_DELAY_SECONDS: "0"
     steps:

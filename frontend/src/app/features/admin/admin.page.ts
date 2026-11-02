@@ -11,7 +11,7 @@ import { ScanApiService } from '../listings/scan-api.service';
 import { AdminApiService, Overview } from './admin-api.service';
 import { SystemHealthComponent } from './system-health.component';
 
-/** Service management. Reads the control database; never opens a user's own data. */
+/** Service management: accounts and plans. Never shows anyone's searches or listings. */
 @Component({
   selector: 'app-admin-page',
   imports: [DatePipe, KeyValuePipe, ErrorBannerComponent, PageHeaderComponent, SystemHealthComponent],

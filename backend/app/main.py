@@ -21,10 +21,9 @@ from .services.scanning.router import router as scan_router
 from .services.searches.router import router as searches_router
 from .services.system.router import router as system_router
 from .services.telegram.router import router as telegram_router
-from .services.tenants.router import router as database_router
 
 ROUTERS = (
-    system_router, auth_router, searches_router, listings_router, database_router,
+    system_router, auth_router, searches_router, listings_router,
     export_router, telegram_router, notifications_router, billing_router, scan_router, admin_router,
 )
 

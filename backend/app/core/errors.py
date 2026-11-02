@@ -41,9 +41,3 @@ class Forbidden(AppError):
 
 class NotFound(AppError):
     status_code = 404
-
-
-class Unavailable(AppError):
-    """Something we depend on failed; trying again later may work."""
-
-    status_code = 503

@@ -1,4 +1,4 @@
-<app-page-header title="Service management" subtitle="Accounts, plans and databases across Metravo.">
+<app-page-header title="Service management" subtitle="Accounts and plans across Metravo.">
   <button class="button" type="button" (click)="scanAll()" [disabled]="loading()" data-cy="scan-all">Run scan for everyone</button>
 </app-page-header>
 
@@ -19,7 +19,6 @@
 @if (overview(); as overview) {
   <div class="grid" style="margin-bottom: 16px">
     <div class="card"><div class="muted">Accounts</div><h1 data-cy="admin-users">{{ overview.users }}</h1></div>
-    <div class="card"><div class="muted">User databases</div><h1>{{ overview.tenant_databases }}</h1></div>
     <div class="card"><div class="muted">Telegram chats</div><h1>{{ overview.telegram_chats }}</h1></div>
     <div class="card">
       <div class="muted">By plan</div>

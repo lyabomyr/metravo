@@ -91,10 +91,10 @@
   <div class="pricing">
     @for (plan of plans(); track plan.code) {
       <app-plan-card [plan]="plan">
-        <p class="muted small">{{ (plan.price_pln ? 'landing.pricing.pro' : 'landing.pricing.free') | t }}</p>
-        @if (plan.price_pln && !plan.on_sale && plan.available_from) {
+        <p class="muted small">{{ (plan.price_usd ? 'landing.pricing.pro' : 'landing.pricing.free') | t }}</p>
+        @if (plan.price_usd && !plan.on_sale && plan.available_from) {
           <span class="badge badge--warning">{{ 'landing.pricing.soon' | t: { date: (plan.available_from | when: 'date') } }}</span>
-        } @else if (!plan.price_pln) {
+        } @else if (!plan.price_usd) {
           <button class="button button--primary button--block" type="button" (click)="toStart()">{{ 'landing.pricing.start' | t }}</button>
         }
       </app-plan-card>

@@ -11,7 +11,7 @@ export const INTRO: Section<typeof EN> = {
   'intro.s4.title': 'Ogłoszenia — wszystko, co znaleźliśmy',
   'intro.s4.text': 'Wszystkie oferty czekają też na stronie Ogłoszenia, najnowsze na górze. Kliknij „Sprawdź teraz”, aby zajrzeć od razu.',
   'intro.s5.title': 'Twoje dane są Twoje',
-  'intro.s5.text': 'Wszystko jest w Twojej własnej bazie danych. Pobierzesz ją w „Moje dane”.',
+  'intro.s5.text': 'Pobierz swoje ogłoszenia jako arkusz w „Moje dane” — porównuj, sortuj i rób wykresy.',
   'intro.start': 'Pokaż',
   'intro.finish': 'Zaczynamy',
   'intro.step': 'Krok {n} z {total}',

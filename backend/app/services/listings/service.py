@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from ...core.clock import Clock
+from ...core.database import Database
 from ...core.service import BaseService
 from ..connectors.cities import city_names
 from ..connectors.models import Listing
 from ..searches.models import Search
-from ..tenants.service import TenantService
 from ..users.models import User
 from .models import EventKind, ListingEvent, PriceChange, StoredListing
 from .repository import ListingRepository
@@ -14,9 +14,9 @@ MAX_PAGE_SIZE = 200
 
 
 class ListingService(BaseService):
-    def __init__(self, tenants: TenantService, clock: Clock):
+    def __init__(self, db: Database, clock: Clock):
         super().__init__()
-        self._tenants = tenants
+        self._db = db
         self._clock = clock
         self._city_names = city_names()
 
@@ -45,4 +45,4 @@ class ListingService(BaseService):
         return None
 
     def _repo(self, user_id: str) -> ListingRepository:
-        return ListingRepository(self._tenants.database_for(user_id))
+        return ListingRepository(self._db, user_id)

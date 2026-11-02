@@ -13,7 +13,7 @@
       } @else if (!isOnSale(plan)) {
         <span badge class="badge badge--warning" data-cy="coming-soon">{{ 'billing.comingSoon' | t }}</span>
       }
-      @if (session.user()?.plan !== plan.code && plan.price_pln) {
+      @if (session.user()?.plan !== plan.code && plan.price_usd) {
         @if (isOnSale(plan)) {
           <button class="button button--primary button--block" type="button" (click)="upgrade(plan)" [disabled]="loading()" data-cy="upgrade">
             {{ 'billing.upgrade' | t: { plan: plan.name } }}

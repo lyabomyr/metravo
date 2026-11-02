@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 from ...core.errors import Invalid
 from ...core.service import BaseService
-from ..tenants.service import TenantService
 from ..users.models import User
 from ..users.service import UserService
 from .providers.base import IdentityProvider
@@ -23,13 +22,11 @@ class AuthService(BaseService):
         self,
         providers: list[IdentityProvider],
         users: UserService,
-        tenants: TenantService,
         tokens: SessionTokenService,
     ):
         super().__init__()
         self._providers = {provider.name: provider for provider in providers}
         self._users = users
-        self._tenants = tenants
         self._tokens = tokens
 
     @property
@@ -43,8 +40,6 @@ class AuthService(BaseService):
         )
         identity = provider.verify(credential)
         user, is_new = self._users.sign_in(identity.email)
-        # Every account gets its own database the moment it exists.
-        self._tenants.ensure(user)
         return Session(token=self._tokens.issue(user.id), user=user, is_new=is_new)
 
     def user_from_token(self, token: str) -> User:

@@ -6,12 +6,11 @@ from app.services.auth.providers.firebase_provider import FirebaseIdentityProvid
 from tests.unit.conftest import ADMIN_EMAIL
 
 
-def test_first_sign_in_creates_account_and_own_database(container):
+def test_first_sign_in_creates_the_account(container):
     session = container.auth.sign_in("dev", "Anna@Example.com")
     assert session.is_new
     assert session.user.email == "anna@example.com"
     assert session.user.plan == "free"
-    assert container.tenants.get(session.user.id).db_name == f"u-{session.user.id}"
 
 
 def test_second_sign_in_reuses_the_account(container):
@@ -19,7 +18,7 @@ def test_second_sign_in_reuses_the_account(container):
     second = container.auth.sign_in("dev", "anna@example.com")
     assert not second.is_new
     assert second.user.id == first.user.id
-    assert container.tenants.count() == 1
+    assert len(container.users.all()) == 1
 
 
 def test_session_token_round_trip(container):

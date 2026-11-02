@@ -8,7 +8,6 @@ from ..listings.models import EventKind, ListingEvent
 from ..listings.service import ListingService
 from ..searches.models import Search
 from ..searches.service import SearchService
-from ..tenants.service import TenantService
 from ..users.models import User
 from ..users.service import UserService
 from .fetch_cache import FetchCache
@@ -22,7 +21,6 @@ class ScanService(BaseService):
 
     def __init__(
         self,
-        tenants: TenantService,
         users: UserService,
         searches: SearchService,
         listings: ListingService,
@@ -30,7 +28,6 @@ class ScanService(BaseService):
         notifier: ListingNotifier,
     ):
         super().__init__()
-        self._tenants = tenants
         self._users = users
         self._searches = searches
         self._listings = listings
@@ -47,10 +44,10 @@ class ScanService(BaseService):
     def _run(self, only_user_id: str | None) -> ScanReport:
         report = ScanReport()
         cache = FetchCache()
-        for tenant in self._tenants.all():
-            if only_user_id and tenant.user_id != only_user_id:
+        for user_id in self._searches.owners():
+            if only_user_id and user_id != only_user_id:
                 continue
-            user = self._users.get(tenant.user_id)
+            user = self._users.get(user_id)
             for search in self._searches.due(user):
                 self._scan_search(user, search, cache, report)
         report.fetches = cache.fetches

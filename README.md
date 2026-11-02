@@ -2,8 +2,8 @@
 
 Metravo watches the Polish property portals — Otodom, OLX, Morizon and bailiff
 auctions — and sends every new flat or house that matches your search to
-Telegram. Each user signs in with their email, gets **their own database**, and
-can download it at any time.
+Telegram. Each user signs in with their email, sees only their own searches and
+listings, and can download the listings as CSV for their own analysis.
 
 It runs entirely on **free tiers**, with no bank card anywhere, and every
 secret is kept **in GitHub only**.
@@ -33,8 +33,8 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
           Cloudflare Worker (cron 5 min) ─┤        │         └────────────────┘
           checks site + API, alerts admin │        ▼
                          Firebase Auth ◄──┘   Turso (libSQL)
-                       (email link, Google)   ├─ metravo-control — accounts, plans, chats, channels
-                                              └─ u-<id> — one database per user: searches, listings
+                       (email link, Google)   metravo-control — one database: accounts, plans,
+                                              chats, channels, and searches + listings per user_id
                                                       ▲
                      Otodom · OLX · Morizon · Komornik ┘ fetched once per scan for all users
 ```
@@ -43,7 +43,7 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
 
 1. Lands on the website, reads what it does, enters an email. Firebase emails a
    sign-in link (or they use Google). On first sign-in the API creates the
-   account **and a database of their own** in Turso.
+   account.
 2. A short tour explains the app. They save a search: buy or rent, flat or
    house, city, budget, area, rooms, price per m², year built, words that must
    appear, portals, and **how often to check** (once a day by default).
@@ -57,13 +57,13 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
 
 | | Free | Pro (on sale from `PRO_AVAILABLE_FROM`) |
 |---|---|---|
-| Price | 0 zł | 19 zł / month |
+| Price | $0 | $10 / month |
 | Saved searches | 1 | 5 |
 | Checked | once a day | up to every hour |
 | Portals | otodom, olx, morizon | + bailiff auctions (komornik) |
 | Delivered to | Telegram | Telegram + email, WhatsApp, Viber, Signal (tick to duplicate) |
 | Price-drop alerts | — | yes |
-| Your database | download | download + direct credentials |
+| Listings as CSV | download | download |
 
 Payments are off for now (`BILLING_PROVIDER=none`), so Pro is shown as
 "coming soon". The extra channels can be ticked today; each starts delivering
@@ -80,15 +80,16 @@ as soon as its sender is built, and the user's choice is kept until then (see
 | **Cloudflare Pages** | serves the website | unlimited | `infra/terraform/cloudflare.tf` |
 | **Cloudflare Workers** | uptime watcher, every 5 min | 100 000 requests/day, cron and KV included | `infra/terraform/monitoring.tf`, `infra/worker/uptime.js` |
 | **Render** | runs the API, the scan scheduler and the health monitor | 750 h/month (enough for 24/7) | `render.yaml` |
-| **Turso** | the control database + one database per user | free plan | created by CLI; users' databases by the app |
+| **Turso** | the one database: accounts, plans, and everyone's searches and listings | free plan | created once by CLI |
 | **Firebase Auth** | email-link and Google sign-in | free | Firebase console |
 | **Telegram** | the bot that delivers listings and alerts | free | webhook set by the deploy |
 | **OpenTofu** | infrastructure as code, state encrypted in the repo | free | `infra/terraform/` |
 
-**Two kinds of database.** The *control* database is ours: who exists, which
-plan, which database belongs to whom, Telegram chats, channel choices. Each
-*user* database holds only that user's searches, listings and price changes,
-so we can hand out credentials to it without exposing anyone else.
+**One database.** Accounts, plans, Telegram chats and channel choices sit next
+to everyone's searches, listings and price changes. Those three tables carry a
+`user_id`, and their repositories (`OwnedRepository`) are opened for one user
+and filter every query by it, so nobody sees anyone else's rows. Signing up is
+a row insert, so there is nothing to create that could fail.
 
 **Why the API scans by itself.** GitHub's scheduled runs on free runners are
 delayed by hours and spend minutes. The API instead runs a background
@@ -119,7 +120,7 @@ Sign in with any email; no password is needed. The local backend uses stand-ins:
 - saved portal pages instead of live scraping;
 - a test payment page instead of Stripe;
 - a log instead of Telegram;
-- SQLite files in `backend/data/` instead of Turso.
+- a SQLite file in `backend/data/` instead of Turso.
 
 `admin@metravo.test` also sees the Admin page.
 
@@ -199,7 +200,7 @@ Opening the Worker's URL shows its last check.
 ```
 backend/                 FastAPI — one folder per service in app/services/
   app/core/              config, database, errors, i18n, base classes, DI container
-  app/services/          auth · users · tenants · searches · listings · connectors · scanning
+  app/services/          auth · users · searches · listings · connectors · scanning
                          notifications · telegram · billing · monitoring · export · admin · system
   tests/unit/            unit tests, mirroring the services
 frontend/                Angular — app/core (base classes, i18n, UI) + app/features (one per area)

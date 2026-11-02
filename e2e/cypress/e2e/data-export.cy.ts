@@ -1,27 +1,34 @@
 import { uniqueEmail } from '../support/commands';
 
-describe('Data export is available on every plan', () => {
-  beforeEach(() => {
+const SEARCH = { name: 'Export test', city: 'krakow', max_price: 610000, min_area: 39, sources: ['otodom', 'morizon'] };
+
+describe('Listings export as CSV, on every plan', () => {
+  it('DATA-1 the page offers a CSV with a header and one row per match', () => {
     cy.signIn(uniqueEmail('export'));
-    cy.api('POST', '/api/searches', {
-      name: 'Export test', city: 'krakow', max_price: 610000, min_area: 39, sources: ['otodom', 'morizon'],
-    });
+    cy.api('POST', '/api/searches', SEARCH);
     cy.api('POST', '/api/scan/mine');
+
+    cy.visit('/database');
+    cy.get('[data-cy=download-csv]').should('be.enabled');
+    cy.api('GET', '/api/export/listings.csv').then((response) => {
+      expect(response.headers['content-disposition']).to.contain('metravo-listings.csv');
+      const lines = String(response.body).trim().split(/\r?\n/);
+      expect(lines[0]).to.eq('search,source,title,price,area,rooms,price_per_m2,location,url,first_seen_at,last_seen_at');
+      expect(lines).to.have.length(4); // header + 3 matches from otodom and morizon
+      expect(lines[1]).to.match(/^Export test,/);
+    });
   });
 
-  it('DATA-1 serves a real SQLite file and a CSV of listings', () => {
-    cy.visit('/database');
-    cy.get('[data-cy=db-name]').should('contain', 'u-');
-    cy.get('[data-cy=download-db]').should('be.enabled');
+  it('DATA-2 another user gets none of those rows', () => {
+    cy.signIn(uniqueEmail('export-a'));
+    cy.api('POST', '/api/searches', SEARCH);
+    cy.api('POST', '/api/scan/mine');
 
-    cy.api('GET', '/api/export/database.sqlite').then((response) => {
-      expect(response.headers['content-disposition']).to.contain('metravo.sqlite');
-      expect(String(response.body).startsWith('SQLite format 3')).to.equal(true);
-    });
+    cy.signIn(uniqueEmail('export-b'));
+    cy.api('GET', '/api/searches').its('body').should('have.length', 0);
+    cy.api('GET', '/api/listings').its('body').should('have.length', 0);
     cy.api('GET', '/api/export/listings.csv').then((response) => {
-      const lines = String(response.body).trim().split('\n');
-      expect(lines[0]).to.contain('price');
-      expect(lines).to.have.length(4); // header + 3 matches from otodom and morizon
+      expect(String(response.body).trim().split(/\r?\n/)).to.have.length(1); // the header alone
     });
   });
 });

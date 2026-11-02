@@ -34,13 +34,13 @@ matches **101, 104, 302, mzn201**.
 | LND-3 | Click “Sign in” in the bar, or the final call to action | The page scrolls to the sign-in form and focuses the email field |
 | LND-4 | Pick Polski, Українська, Русский in the language picker | The headline changes language; the choice survives a reload |
 | LND-5 | Open `/` while signed in | Redirected to `/listings` |
-| LND-6 | Pricing on the landing page | Free is 0 zł with “Start free”; Pro is 19 zł and lists the extra channels |
+| LND-6 | Pricing on the landing page | Free is $0 with “Start free”; Pro is $10 and lists the extra channels |
 
 ## Sign-in and session — `auth.cy.ts`
 
 | Id | Case | Expected |
 |---|---|---|
-| AUTH-1 | New email on the landing form | Account and own database are created; goes to `/welcome` |
+| AUTH-1 | New email on the landing form | A Free account is created; goes to `/welcome` |
 | AUTH-2 | Same email again | Goes to `/listings` |
 | AUTH-3 | Address without a domain | Error banner, stays on the landing page |
 | AUTH-4 | Sign out | Back on the landing page; `/listings` now redirects to `/` |
@@ -107,12 +107,13 @@ matches **101, 104, 302, mzn201**.
 | ALR-4 | Email on Pro | Address defaults to the account email |
 | ALR-5 | Old `/telegram` link | Redirects to `/alerts` |
 
-## Plan, data, admin — `billing-and-own-database.cy.ts`, `data-export.cy.ts`, `admin.cy.ts`
+## Plan, data, admin — `billing.cy.ts`, `data-export.cy.ts`, `admin.cy.ts`
 
 | Id | Case | Expected |
 |---|---|---|
-| PLAN-1 | Free → test checkout → Pro → credentials → cancel → Free | Badge and access follow the plan |
-| DATA-1 | Downloads | A real SQLite file and a CSV with header + matches |
+| PLAN-1 | Free → test checkout ($10) → Pro → cancel → Free | Badge follows the plan |
+| DATA-1 | “My data” → CSV | A CSV with a header and one row per match, named after the search |
+| DATA-2 | Another user's export, searches and listings | Empty: everyone shares one database, nobody sees anyone else's rows |
 | ADM-1 | Regular user opens `/admin` | Redirected; no Admin tab |
 | ADM-2 | Admin changes a user's plan | The table shows the new plan |
 | ADM-3 | Admin opens System | Memory, CPU, last scan, active alerts and recent warnings are shown |

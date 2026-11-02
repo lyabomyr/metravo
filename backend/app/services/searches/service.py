@@ -3,11 +3,11 @@ from __future__ import annotations
 from dataclasses import replace
 
 from ...core.clock import Clock, new_id
+from ...core.database import Database
 from ...core.errors import Invalid, LimitReached, NotFound
 from ...core.service import BaseService
 from ..connectors.cities import get_city
 from ..connectors.registry import ConnectorRegistry
-from ..tenants.service import TenantService
 from ..users.models import User
 from ..users.service import UserService
 from .models import SCAN_INTERVALS, Search
@@ -15,9 +15,9 @@ from .repository import SearchRepository
 
 
 class SearchService(BaseService):
-    def __init__(self, tenants: TenantService, users: UserService, connectors: ConnectorRegistry, clock: Clock):
+    def __init__(self, db: Database, users: UserService, connectors: ConnectorRegistry, clock: Clock):
         super().__init__()
-        self._tenants = tenants
+        self._db = db
         self._connectors = connectors
         self._users = users
         self._clock = clock
@@ -66,6 +66,9 @@ class SearchService(BaseService):
             if search.is_due(now, max(search.interval_minutes, floor))
         ]
 
+    def owners(self) -> list[str]:
+        return SearchRepository.owners(self._db)
+
     def mark_scanned(self, user: User, search_id: str) -> None:
         self._repo(user.id).mark_scanned(search_id, self._clock.iso())
 
@@ -101,4 +104,4 @@ class SearchService(BaseService):
             raise LimitReached("search.portal_plan", sources=", ".join(locked), plan=plan.name)
 
     def _repo(self, user_id: str) -> SearchRepository:
-        return SearchRepository(self._tenants.database_for(user_id))
+        return SearchRepository(self._db, user_id)

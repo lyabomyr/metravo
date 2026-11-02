@@ -27,12 +27,16 @@ class BaseRepository:
         return cls.SCHEMA
 
     def migrate(self) -> None:
-        for statement in self.SCHEMA:
-            self.db.execute(statement)
-        for table, column, definition in self.ADDED_COLUMNS:
-            existing = {row["name"] for row in self.db.query(f"PRAGMA table_info({table})")}
+        self.create_tables(self.db)
+
+    @classmethod
+    def create_tables(cls, db: Database) -> None:
+        for statement in cls.SCHEMA:
+            db.execute(statement)
+        for table, column, definition in cls.ADDED_COLUMNS:
+            existing = {row["name"] for row in db.query(f"PRAGMA table_info({table})")}
             if column not in existing:
-                self.db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+                db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     def _one(self, sql: str, params: Params = ()) -> Row | None:
         return self.db.query_one(sql, params)
@@ -42,3 +46,15 @@ class BaseRepository:
 
     def _exec(self, sql: str, params: Params = ()) -> int:
         return self.db.execute(sql, params)
+
+
+class OwnedRepository(BaseRepository):
+    """Rows that belong to one user in a table every user shares.
+
+    Opened for a single ``user_id`` and every query filters by it, so a
+    service cannot read someone else's rows by forgetting a WHERE clause.
+    """
+
+    def __init__(self, db: Database, user_id: str):
+        super().__init__(db)
+        self.user_id = user_id

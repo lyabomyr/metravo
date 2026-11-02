@@ -16,13 +16,13 @@ interface Feature {
   imports: [TranslatePipe],
   template: `
     @let item = plan();
-    <article class="card stack plan" [class.plan--featured]="item.price_pln > 0" [attr.data-cy]="'plan-' + item.code">
+    <article class="card stack plan" [class.plan--featured]="item.price_usd > 0" [attr.data-cy]="'plan-' + item.code">
       <div class="row row--between">
         <h2>{{ item.name }}</h2>
         <ng-content select="[badge]" />
       </div>
       <div>
-        <span class="plan__price">{{ item.price_pln }} zł</span>
+        <span class="plan__price">\${{ item.price_usd }}</span>
         <span class="muted"> {{ 'common.perMonth' | t }}</span>
       </div>
       <ul class="plan__features">
@@ -46,7 +46,6 @@ export class PlanCardComponent {
       { key: 'plan.telegram', included: true },
       { key: 'plan.channels', included: plan.channels.length > 1 },
       { key: 'plan.priceAlerts', included: plan.price_alerts },
-      { key: 'plan.database', included: plan.database_credentials },
       { key: 'plan.export', included: true },
     ];
     return features;

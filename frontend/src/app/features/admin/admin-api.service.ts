@@ -7,7 +7,6 @@ import { User } from '../../core/auth/auth.models';
 export interface Overview {
   users: number;
   users_by_plan: Record<string, number>;
-  tenant_databases: number;
   telegram_chats: number;
 }
 

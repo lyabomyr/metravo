@@ -55,12 +55,12 @@ router → service → repository → Database
 |---|---|---|
 | `Database` | `core/database.py` | `execute`, `query`, `query_one`; `SqliteDatabase` and `TursoDatabase` implement it |
 | `BaseRepository` | `core/repository.py` | `SCHEMA` auto-migration, `_one`, `_all`, `_exec` helpers |
+| `OwnedRepository` | `core/repository.py` | a table shared by all users, opened for one `user_id`; every query filters by it |
 | `BaseService` | `core/service.py` | logger, `require()` guard that raises a typed error |
 | `BaseConnector` | `services/connectors/base.py` | URL building per deal/property type, paging, de-duplication inside a scan; a connector declares `URL_TEMPLATES` and implements `parse()` |
 | `BaseCommand` | `services/telegram/commands/base.py` | one Telegram command = one class |
 | `PaymentProvider` | `services/billing/providers/base.py` | checkout, portal, webhook parsing |
 | `IdentityProvider` | `services/auth/providers/base.py` | turn a credential into a verified email |
-| `TenantProvisioner` | `services/tenants/provisioners/base.py` | create a user's own database and issue credentials |
 | `BaseApiService` | `frontend/src/app/core/api/base-api.service.ts` | typed HTTP with one base URL |
 | `BasePage` | `frontend/src/app/core/ui/base-page.ts` | `loading` / `error` signals and `run()` for any request |
 
@@ -69,7 +69,7 @@ router → service → repository → Database
 - Python: `snake_case` functions, `PascalCase` classes, modules named after the
   one class they hold (`otodom/connector.py` → `OtodomConnector`).
 - TypeScript: Angular style guide — `kebab-case.ts` files, `PascalCase` classes.
-- Booleans read as questions: `is_due`, `has_credentials`.
+- Booleans read as questions: `is_due`, `is_on_sale`.
 - No abbreviations except the industry ones (`url`, `db`, `id`, `api`).
 
 ## Errors
@@ -101,9 +101,7 @@ One exception handler maps them. Never return error dicts by hand.
 
 - All configuration comes from environment variables, read once in
   `core/config.py`. `.env.example` lists every variable with a comment.
-- Secrets never go into the repo, logs or API responses — the only exception
-  is the database-credentials endpoint, which returns the caller's *own*
-  credentials on purpose.
+- Secrets never go into the repo, logs or API responses.
 
 ## Cost rule
 

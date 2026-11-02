@@ -38,10 +38,10 @@ def test_search_scan_listings_export(client):
     listings = client.get("/api/listings", headers=headers).json()
     assert {item["key"] for item in listings} == {"otodom:101", "otodom:104", "morizon:mzn201"}
 
-    export = client.get("/api/export/database.sqlite", headers=headers)
+    export = client.get("/api/export/listings.csv", headers=headers)
     assert export.status_code == 200
-    assert export.content.startswith(b"SQLite format 3")
-    assert "attachment" in export.headers["content-disposition"]
+    assert export.text.startswith("search,source,title,price")
+    assert 'filename="metravo-listings.csv"' in export.headers["content-disposition"]
 
 
 def test_rental_search_over_http(client):
@@ -54,17 +54,12 @@ def test_rental_search_over_http(client):
     assert listings and {item["deal_type"] for item in listings} == {"rent"}
 
 
-def test_database_credentials_unlock_after_upgrade(client):
+def test_paying_upgrades_the_plan(client):
     headers = auth(client)
-    assert client.post("/api/database/credentials", json={"read_only": True}, headers=headers).status_code == 402
-
     checkout_url = client.post("/api/billing/checkout", json={"plan": "pro"}, headers=headers).json()["url"]
     session_id = parse_qs(urlparse(checkout_url).query)["session"][0]
     client.post("/api/billing/webhook", content=json.dumps({"type": "checkout.completed", "session_id": session_id}))
-
     assert client.get("/api/auth/me", headers=headers).json()["plan"] == "pro"
-    credentials = client.post("/api/database/credentials", json={"read_only": True}, headers=headers)
-    assert credentials.status_code == 200 and credentials.json()["read_only"] is True
 
 
 def test_telegram_webhook_requires_the_secret(client):
@@ -76,7 +71,7 @@ def test_telegram_webhook_requires_the_secret(client):
 def test_admin_area_is_for_admins_only(client):
     assert client.get("/api/admin/overview", headers=auth(client)).status_code == 403
     overview = client.get("/api/admin/overview", headers=auth(client, ADMIN_EMAIL)).json()
-    assert overview["users"] == 2 and overview["tenant_databases"] == 2
+    assert overview["users"] == 2
 
 
 def test_cron_endpoint_checks_its_secret(client):

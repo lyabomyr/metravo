@@ -6,12 +6,11 @@ import { BaseApiService } from '../../core/api/base-api.service';
 export interface Plan {
   code: string;
   name: string;
-  price_pln: number;
+  price_usd: number;
   max_searches: number;
   min_interval_minutes: number;
   sources: string[];
   price_alerts: boolean;
-  database_credentials: boolean;
   channels: string[];
   /** ISO date; before it the plan is shown as "coming soon". */
   available_from: string | null;

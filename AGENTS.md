@@ -7,8 +7,8 @@ guide; this file is how to *work* here.
 
 ## The product in two lines
 
-A multi-tenant flat/house scanner: each user signs in by email, gets their own
-Turso database, saves searches, and receives new listings in Telegram. It runs
+A multi-user flat/house scanner: each user signs in by email, saves searches,
+and receives new listings in Telegram. Everything lives in one Turso database. It runs
 entirely on free tiers, with every secret held in GitHub Secrets.
 
 ## Non-negotiables
@@ -53,11 +53,12 @@ too long.
   `frontend/src/app/features/<service>/`. A service owns its tables and routes.
 - Dependencies point one way: `router → service → repository → Database`.
   Wire objects only in `core/container.py`.
-- Control DB (ours: users, plans, links) vs tenant DB (the user's: searches,
-  listings). Put data in the database of whoever owns it.
+- One database. Data a user owns (searches, listings) gets a `user_id`
+  column and an `OwnedRepository`; data about the service (users, plans,
+  links) gets a plain `BaseRepository`.
 - Prefer a new implementation of an existing interface over a new code path:
-  `PaymentProvider`, `IdentityProvider`, `TenantProvisioner`, `PageFetcher`,
-  `BaseConnector`, `BaseCommand`.
+  `PaymentProvider`, `IdentityProvider`, `PageFetcher`, `BaseConnector`,
+  `BaseCommand`.
 - Infrastructure that a free tier lets us manage as code goes in
   `infra/terraform` (OpenTofu); what it does not (Render free) goes in
   `render.yaml`. Explain any exception in `infra/terraform/README.md`.
@@ -110,11 +111,12 @@ Straight from *The Pragmatic Programmer*:
 - Look at UI changes in a browser at desktop width and at phone width (≤ 390 px).
 
 ### Security reviewer — before every commit
-- User input reaches SQL only as parameters. Tenant data is read only through
-  `TenantService.database_for(user_id)` of the signed-in user.
+- User input reaches SQL only as parameters. A table that holds rows of many
+  users has a `user_id` column and an `OwnedRepository` opened for the
+  signed-in user; never query it without that filter. A test proves one user
+  cannot read another's rows (`tests/unit/searches/test_isolation.py`).
 - Webhooks (Telegram, Stripe) verify their secret or signature.
-- Admin routes depend on `admin_user`. The credentials endpoint returns only
-  the caller's own database.
+- Admin routes depend on `admin_user`.
 
 ### Operator — after merging
 - Deploy = merge to `main`; watch `ci` then `deploy` in Actions.

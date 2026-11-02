@@ -24,7 +24,6 @@ def settings(tmp_path) -> Settings:
     return Settings(
         env="dev",
         control_db_url=f"sqlite:///{tmp_path}/control.db",
-        tenant_sqlite_dir=str(tmp_path / "tenants"),
         page_fetcher="fixtures",
         fixtures_dir=str(FIXTURES),
         scan_delay_seconds=0,

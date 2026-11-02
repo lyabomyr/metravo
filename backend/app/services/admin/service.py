@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 from ...core.service import BaseService
 from ..telegram.link_service import TelegramLinkService
-from ..tenants.service import TenantService
 from ..users.models import User
 from ..users.service import UserService
 
@@ -13,17 +12,15 @@ from ..users.service import UserService
 class Overview:
     users: int
     users_by_plan: dict[str, int]
-    tenant_databases: int
     telegram_chats: int
 
 
 class AdminService(BaseService):
-    """Service management. Reads the control database only — never a user's own data."""
+    """Service management: accounts and plans. Never reads anyone's searches or listings."""
 
-    def __init__(self, users: UserService, tenants: TenantService, telegram: TelegramLinkService):
+    def __init__(self, users: UserService, telegram: TelegramLinkService):
         super().__init__()
         self._users = users
-        self._tenants = tenants
         self._telegram = telegram
 
     def overview(self) -> Overview:
@@ -31,7 +28,6 @@ class AdminService(BaseService):
         return Overview(
             users=sum(by_plan.values()),
             users_by_plan=by_plan,
-            tenant_databases=self._tenants.count(),
             telegram_chats=self._telegram.count_chats(),
         )
 

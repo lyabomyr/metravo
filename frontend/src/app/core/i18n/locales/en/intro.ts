@@ -9,7 +9,7 @@ export const INTRO = {
   'intro.s4.title': 'Listings — everything we found',
   'intro.s4.text': 'All matches also wait on the Listings page, newest first. Press “Check now” to look right away.',
   'intro.s5.title': 'Your data stays yours',
-  'intro.s5.text': 'Everything is stored in your own database. Download it any time from “My data”.',
+  'intro.s5.text': 'Download your listings as a spreadsheet any time from “My data” — to compare, sort and chart them.',
   'intro.start': 'Show me',
   'intro.finish': 'Let’s go',
   'intro.step': 'Step {n} of {total}',

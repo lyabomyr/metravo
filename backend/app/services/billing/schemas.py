@@ -12,12 +12,11 @@ from .plans import Plan
 class PlanOut(BaseModel):
     code: str
     name: str
-    price_pln: int
+    price_usd: int
     max_searches: int
     min_interval_minutes: int
     sources: list[str]
     price_alerts: bool
-    database_credentials: bool
     channels: list[str]
     available_from: date | None
     on_sale: bool

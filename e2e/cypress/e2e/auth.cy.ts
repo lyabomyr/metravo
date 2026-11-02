@@ -6,7 +6,7 @@ describe('Sign-in and session', () => {
     cy.get('[data-cy=email]').type(uniqueEmail('new'));
     cy.get('[data-cy=sign-in]').click();
     cy.location('pathname').should('eq', '/welcome');
-    cy.api('GET', '/api/database').its('body.db_name').should('match', /^u-/); // their own database exists
+    cy.api('GET', '/api/auth/me').its('body.plan').should('eq', 'free');
   });
 
   it('AUTH-2 a known email goes to the listings', () => {

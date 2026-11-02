@@ -9,17 +9,12 @@ from ..users.models import User
 router = APIRouter(prefix="/api/export", tags=["export"])
 
 
-def _download(content: bytes | str, filename: str, media_type: str) -> Response:
+def _download(content: str, filename: str, media_type: str) -> Response:
     return Response(
         content=content,
         media_type=media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
-
-
-@router.get("/database.sqlite")
-def database(user: User = Depends(current_user), container: Container = Depends(get_container)) -> Response:
-    return _download(container.export.sqlite_file(user), "metravo.sqlite", "application/vnd.sqlite3")
 
 
 @router.get("/listings.csv")

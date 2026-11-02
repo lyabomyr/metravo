@@ -15,13 +15,12 @@ PRO = "pro"
 class Plan:
     code: str
     name: str
-    price_pln: int
+    price_usd: int
     max_searches: int
     #: The most often a search on this plan may be scanned.
     min_interval_minutes: int
     sources: tuple[str, ...]
     price_alerts: bool
-    database_credentials: bool
     #: Where listings can be sent besides the website (see notifications/channels.py).
     channels: tuple[str, ...] = ("telegram",)
     #: Before this day the plan is shown but cannot be bought. ``None`` = on sale.
@@ -52,22 +51,20 @@ class PlanCatalog:
             Plan(
                 code=FREE,
                 name="Free",
-                price_pln=0,
+                price_usd=0,
                 max_searches=1,
                 min_interval_minutes=1440,  # once a day
                 sources=("otodom", "olx", "morizon"),
                 price_alerts=False,
-                database_credentials=False,
             ),
             Plan(
                 code=PRO,
                 name="Pro",
-                price_pln=19,
+                price_usd=10,
                 max_searches=5,
                 min_interval_minutes=60,  # once an hour
                 sources=("otodom", "olx", "morizon", "komornik"),
                 price_alerts=True,
-                database_credentials=True,
                 channels=("telegram", "email", "whatsapp", "viber", "signal"),
                 available_from=pro_available_from,
             ),
@@ -80,4 +77,4 @@ class PlanCatalog:
         return plan
 
     def __iter__(self):
-        return iter(sorted(self._plans.values(), key=lambda p: p.price_pln))
+        return iter(sorted(self._plans.values(), key=lambda p: p.price_usd))

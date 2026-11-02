@@ -16,7 +16,6 @@ services:
     envVars:
       - { key: PYTHON_VERSION, value: "3.12.7" }
       - { key: APP_ENV, value: prod }
-      - { key: TENANT_PROVISIONER, value: turso }
       - { key: AUTH_PROVIDERS, value: firebase }
       - { key: BILLING_PROVIDER, value: none }   # stripe, when Pro goes on sale
       - { key: PRO_AVAILABLE_FROM, value: "2026-11-15" } # Pro shows as "coming soon" until then

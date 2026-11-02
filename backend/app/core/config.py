@@ -49,16 +49,9 @@ def parse_web_config(text: str) -> dict[str, str] | None:
 class Settings:
     env: str = "dev"  # dev | e2e | prod
 
-    # Service-management database: users, tenants, subscriptions, telegram links.
+    # The one database: accounts, plans, Telegram links, and every user's searches and listings.
     control_db_url: str = "sqlite:///./data/control.db"
     control_db_token: str = ""
-
-    # Where each user's own database lives.
-    tenant_provisioner: str = "sqlite"  # sqlite | turso
-    tenant_sqlite_dir: str = "./data/tenants"
-    turso_api_token: str = ""
-    turso_org: str = ""
-    turso_group: str = "default"
 
     # Auth
     jwt_secret: str = DEV_JWT_SECRET
@@ -118,11 +111,6 @@ class Settings:
             env=get("APP_ENV", defaults.env),
             control_db_url=get("CONTROL_DB_URL", defaults.control_db_url),
             control_db_token=get("CONTROL_DB_TOKEN", ""),
-            tenant_provisioner=get("TENANT_PROVISIONER", defaults.tenant_provisioner),
-            tenant_sqlite_dir=get("TENANT_SQLITE_DIR", defaults.tenant_sqlite_dir),
-            turso_api_token=get("TURSO_API_TOKEN", ""),
-            turso_org=get("TURSO_ORG", ""),
-            turso_group=get("TURSO_GROUP", defaults.turso_group),
             jwt_secret=get("JWT_SECRET", defaults.jwt_secret),
             jwt_ttl_hours=int(get("JWT_TTL_HOURS", str(defaults.jwt_ttl_hours))),
             auth_providers=_csv(get("AUTH_PROVIDERS", ",".join(defaults.auth_providers))),
@@ -172,8 +160,6 @@ class Settings:
             problems.append(str(error))
         if "firebase" in self.auth_providers and not self.firebase_project_id:
             problems.append("FIREBASE_PROJECT_ID is required for the firebase auth provider")
-        if self.tenant_provisioner == "turso" and not (self.turso_api_token and self.turso_org):
-            problems.append("TURSO_API_TOKEN and TURSO_ORG are required for TENANT_PROVISIONER=turso")
         if self.billing_provider == "stripe" and not (
             self.stripe_secret_key and self.stripe_webhook_secret and self.stripe_price_pro
         ):

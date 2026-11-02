@@ -40,8 +40,6 @@ class Container:
         from ..services.telegram.link_service import TelegramLinkService
         from ..services.telegram.notifier import TelegramSender
         from ..services.telegram.repository import TelegramRepository
-        from ..services.tenants.repository import TenantRepository
-        from ..services.tenants.service import TenantService
         from ..services.users.repository import UserRepository
         from ..services.users.service import UserService
 
@@ -49,23 +47,17 @@ class Container:
         self.clock = clock or Clock()
         self.plans = PlanCatalog.default(pro_available_from=settings.pro_available_from)
 
-        # Service-management (control) database — separate from every user's own database.
+        # One database for everything; rows of searches and listings carry their user_id.
         self.control_db = open_database(settings.control_db_url, settings.control_db_token)
         user_repo = UserRepository(self.control_db)
-        tenant_repo = TenantRepository(self.control_db)
         telegram_repo = TelegramRepository(self.control_db)
         subscription_repo = SubscriptionRepository(self.control_db)
-        for repo in (user_repo, tenant_repo, telegram_repo, subscription_repo):
+        for repo in (user_repo, telegram_repo, subscription_repo):
             repo.migrate()
+        for owned in (SearchRepository, ListingRepository):
+            owned.create_tables(self.control_db)
 
         self.users = UserService(user_repo, self.plans, settings.admin_emails, self.clock)
-        self.tenants = TenantService(
-            tenant_repo,
-            self._tenant_provisioner(),
-            schema_owners=[SearchRepository, ListingRepository],
-            plans=self.plans,
-            clock=self.clock,
-        )
         identity_providers = {
             "dev": lambda: DevIdentityProvider(),
             "firebase": lambda: FirebaseIdentityProvider(settings.firebase_project_id),
@@ -73,7 +65,6 @@ class Container:
         self.auth = AuthService(
             [identity_providers[name]() for name in settings.auth_providers],
             self.users,
-            self.tenants,
             SessionTokenService(settings.jwt_secret, settings.jwt_ttl_hours, self.clock),
         )
         self.connectors = ConnectorRegistry.build(
@@ -82,9 +73,9 @@ class Container:
             pages=settings.scan_pages,
             delay_seconds=settings.scan_delay_seconds,
         )
-        self.searches = SearchService(self.tenants, self.users, self.connectors, self.clock)
-        self.listings = ListingService(self.tenants, self.clock)
-        self.export = ExportService(self.tenants)
+        self.searches = SearchService(self.control_db, self.users, self.connectors, self.clock)
+        self.listings = ListingService(self.control_db, self.clock)
+        self.export = ExportService(self.control_db)
         self.billing = BillingService(self._payment_provider(), subscription_repo, self.users, self.plans, self.clock)
 
         self.telegram_client = telegram_client or self._telegram_client()
@@ -96,14 +87,13 @@ class Container:
         self.notifications = NotificationService(notification_repo, self.users, self.clock)
         senders = [TelegramSender(self.telegram_client, self.telegram_links, ListingMessageFormatter(settings.frontend_url))]
         self.scanner = ScanService(
-            self.tenants,
             self.users,
             self.searches,
             self.listings,
             self.connectors,
             FanOutNotifier(self.notifications, senders),
         )
-        self.admin = AdminService(self.users, self.tenants, self.telegram_links)
+        self.admin = AdminService(self.users, self.telegram_links)
         self.recent_logs = RecentLogs()
         self.monitor = HealthMonitor(
             ResourceProbe(settings.memory_limit_mb, settings.cpu_cores),
@@ -112,16 +102,6 @@ class Container:
         self.scheduler = self._scheduler()
 
     # --- strategy selection ---------------------------------------------
-
-    def _tenant_provisioner(self):
-        if self.settings.tenant_provisioner == "turso":
-            from ..services.tenants.provisioners.turso_provisioner import TursoTenantProvisioner
-
-            s = self.settings
-            return TursoTenantProvisioner(s.turso_api_token, s.turso_org, s.turso_group)
-        from ..services.tenants.provisioners.sqlite_provisioner import SqliteTenantProvisioner
-
-        return SqliteTenantProvisioner(self.settings.tenant_sqlite_dir)
 
     def _payment_provider(self):
         s = self.settings
