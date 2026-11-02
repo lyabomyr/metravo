@@ -35,6 +35,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Find the API address
+        id: api_url
+        if: env.RENDER_API_KEY != ''
+        run: python3 .github/scripts/deploy.py render-url
+
       - uses: opentofu/setup-opentofu@v1
         if: env.CLOUDFLARE_API_TOKEN != '' && env.TF_VAR_state_passphrase != ''
         with: { tofu_version: 1.13.1, tofu_wrapper: false }
@@ -45,6 +50,11 @@ jobs:
         working-directory: infra/terraform
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_api_url: ${{ vars.API_URL || steps.api_url.outputs.url || 'https://metravo-api.onrender.com' }}
+          TF_VAR_admin_emails: ${{ vars.ADMIN_EMAILS || secrets.ADMIN_EMAILS }}
+          TF_VAR_telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TF_VAR_control_db_url: ${{ secrets.CONTROL_DB_URL }}
+          TF_VAR_control_db_token: ${{ secrets.CONTROL_DB_TOKEN }}
         run: |
           ../../.github/scripts/tfstate.sh pull
           tofu init -input=false

@@ -8,9 +8,17 @@ from pydantic import BaseModel
 from ...core.container import Container
 from ..auth.dependencies import admin_user, get_container
 from ..auth.schemas import UserOut
+from ..monitoring.schemas import SystemOut
 from ..users.models import User
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+@router.get("/system", response_model=SystemOut)
+def system(_: User = Depends(admin_user), container: Container = Depends(get_container)) -> SystemOut:
+    """Memory, CPU, the last scan, active alerts and recent warnings of this instance."""
+    container.monitor.check()
+    return SystemOut.of(container.monitor.status, container.recent_logs.entries())
 
 
 class PlanChange(BaseModel):

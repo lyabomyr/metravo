@@ -18,12 +18,13 @@ class PlanOut(BaseModel):
     sources: list[str]
     price_alerts: bool
     database_credentials: bool
+    channels: list[str]
     available_from: date | None
     on_sale: bool
 
     @classmethod
     def of(cls, plan: Plan, today: date) -> PlanOut:
-        return cls(**{**asdict(plan), "sources": list(plan.sources), "on_sale": plan.is_on_sale(today)})
+        return cls(**{**asdict(plan), "sources": list(plan.sources), "channels": list(plan.channels), "on_sale": plan.is_on_sale(today)})
 
 
 class SubscriptionOut(BaseModel):

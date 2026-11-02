@@ -71,9 +71,9 @@ def test_scan_interval_must_be_offered_and_allowed_by_the_plan(container, sign_i
     user = sign_in()
     with pytest.raises(Invalid):
         container.searches.create(user, make_search(interval_minutes=7))
-    with pytest.raises(LimitReached, match="every 360 minutes"):
-        container.searches.create(user, make_search(interval_minutes=15))
-    assert container.searches.create(user, make_search(interval_minutes=360)).interval_minutes == 360
+    with pytest.raises(LimitReached, match="every 1440 minutes"):
+        container.searches.create(user, make_search(interval_minutes=60))
+    assert container.searches.create(user, make_search(interval_minutes=1440)).interval_minutes == 1440
 
 
 def test_new_search_is_scanned_daily_by_default(container, sign_in):

@@ -8,6 +8,7 @@ import time
 
 import requests
 
+from ..monitoring.monitor import HealthMonitor
 from .service import ScanService
 
 log = logging.getLogger(__name__)
@@ -32,16 +33,24 @@ class KeepAlive:
 
 
 class ScanScheduler:
-    """Every tick, scan whatever is due. Each search decides how often it is due.
+    """Every tick, scan whatever is due, then check the instance's health.
 
-    Runs in one background thread. A tick never overlaps the previous one, and
-    an error in one tick is logged and does not stop the next.
+    Each search decides how often it is due. Runs in one background thread. A
+    tick never overlaps the previous one, and an error in one tick is logged
+    and does not stop the next.
     """
 
-    def __init__(self, scanner: ScanService, tick_seconds: int, keep_alive: KeepAlive | None = None):
+    def __init__(
+        self,
+        scanner: ScanService,
+        tick_seconds: int,
+        keep_alive: KeepAlive | None = None,
+        monitor: HealthMonitor | None = None,
+    ):
         self._scanner = scanner
         self._tick_seconds = tick_seconds
         self._keep_alive = keep_alive
+        self._monitor = monitor
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -50,11 +59,23 @@ class ScanScheduler:
             self._keep_alive.ping_if_due(time.monotonic())
         try:
             report = self._scanner.run()
-        except Exception:  # noqa: BLE001 — the loop must survive anything one run throws
+        except Exception as error:  # noqa: BLE001 — the loop must survive anything one run throws
             log.exception("scheduled scan failed")
-            return
-        if report.searches_scanned:
-            log.info("scheduled scan: %s", report)
+            if self._monitor:
+                self._monitor.record_scan_failure(error)
+        else:
+            if report.searches_scanned:
+                log.info("scheduled scan: %s", report)
+            if self._monitor:
+                self._monitor.record_scan(report)
+        if self._monitor:
+            self._check_health()
+
+    def _check_health(self) -> None:
+        try:
+            self._monitor.check()
+        except Exception:  # noqa: BLE001 — a broken probe must not stop scanning
+            log.exception("health check failed")
 
     def start(self) -> None:
         if self._thread and self._thread.is_alive():

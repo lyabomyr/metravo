@@ -40,7 +40,7 @@ _BY_KEY = {city.key: city for city in CITIES}
 def get_city(key: str) -> City:
     city = _BY_KEY.get((key or "").strip().lower())
     if city is None:
-        raise Invalid(f"Unsupported city '{key}'. Choose one of: {', '.join(_BY_KEY)}")
+        raise Invalid("city.unsupported", key=key, choices=", ".join(_BY_KEY))
     return city
 
 

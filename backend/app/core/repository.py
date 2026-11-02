@@ -14,6 +14,10 @@ class BaseRepository:
     """
 
     SCHEMA: tuple[str, ...] = ()
+    #: Columns added after a table first shipped: (table, column, definition).
+    #: ``CREATE TABLE IF NOT EXISTS`` leaves existing tables alone, so these are
+    #: added with ``ALTER TABLE`` wherever they are missing.
+    ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = ()
 
     def __init__(self, db: Database):
         self.db = db
@@ -25,6 +29,10 @@ class BaseRepository:
     def migrate(self) -> None:
         for statement in self.SCHEMA:
             self.db.execute(statement)
+        for table, column, definition in self.ADDED_COLUMNS:
+            existing = {row["name"] for row in self.db.query(f"PRAGMA table_info({table})")}
+            if column not in existing:
+                self.db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     def _one(self, sql: str, params: Params = ()) -> Row | None:
         return self.db.query_one(sql, params)

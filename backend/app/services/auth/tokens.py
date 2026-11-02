@@ -32,5 +32,5 @@ class SessionTokenService:
         try:
             claims = jwt.decode(token, self._secret, algorithms=[ALGORITHM])
         except jwt.PyJWTError as exc:
-            raise Unauthorized("Session expired or invalid — sign in again") from exc
+            raise Unauthorized("auth.session_expired") from exc
         return claims["sub"]

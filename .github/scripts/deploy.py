@@ -4,7 +4,8 @@ GitHub Secrets are the one place settings live. This script copies them to
 the hosts at deploy time and finds out the hosts' public addresses, so nobody
 types a URL or a secret into Render or Cloudflare by hand.
 
-    python3 .github/scripts/deploy.py render   # push settings to Render, deploy → the API URL
+    python3 .github/scripts/deploy.py render-url   # only find the API's URL
+    python3 .github/scripts/deploy.py render       # push settings to Render, deploy → the API URL
 
 It prints the URL and writes ``url=<…>`` to $GITHUB_OUTPUT. The website's
 Cloudflare Pages project is declared in infra/terraform.
@@ -42,13 +43,24 @@ def call(method: str, url: str, token: str, body: dict | None = None) -> dict | 
         return json.loads(response.read() or b"{}")
 
 
-def render() -> str:
-    token = os.environ["RENDER_API_KEY"]
-    api = "https://api.render.com/v1"
-    found = call("GET", f"{api}/services?name={RENDER_SERVICE}&limit=1", token)
+RENDER_API = "https://api.render.com/v1"
+
+
+def render_service(token: str) -> dict:
+    found = call("GET", f"{RENDER_API}/services?name={RENDER_SERVICE}&limit=1", token)
     if not found:
         sys.exit(f"No Render service named {RENDER_SERVICE}. Create it once from render.yaml (Render → New → Blueprint).")
-    service = found[0]["service"]
+    return found[0]["service"]
+
+
+def render_url() -> str:
+    return render_service(os.environ["RENDER_API_KEY"])["serviceDetails"]["url"]
+
+
+def render() -> str:
+    token = os.environ["RENDER_API_KEY"]
+    api = RENDER_API
+    service = render_service(token)
     for key in RENDER_SETTINGS:
         value = os.environ.get(key, "")
         if value:
@@ -59,7 +71,7 @@ def render() -> str:
     return service["serviceDetails"]["url"]
 
 
-COMMANDS = {"render": render}
+COMMANDS = {"render-url": render_url, "render": render}
 
 
 def main() -> None:

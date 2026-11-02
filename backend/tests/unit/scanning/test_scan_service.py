@@ -46,9 +46,10 @@ def test_search_is_scanned_once_a_day_by_default(container, sign_in, clock):
 
 def test_search_follows_its_own_interval(container, sign_in, clock):
     user = sign_in()
-    container.searches.create(user, make_search(interval_minutes=360))
+    container.users.set_plan(user.id, PRO)
+    container.searches.create(container.users.get(user.id), make_search(interval_minutes=180))
     container.scanner.run()
-    clock.advance(minutes=359)
+    clock.advance(minutes=179)
     assert container.scanner.run().searches_scanned == 0
     clock.advance(minutes=1)
     assert container.scanner.run().searches_scanned == 1
@@ -57,12 +58,12 @@ def test_search_follows_its_own_interval(container, sign_in, clock):
 def test_plan_floor_applies_after_a_downgrade(container, sign_in, clock):
     user = sign_in()
     container.users.set_plan(user.id, PRO)
-    container.searches.create(container.users.get(user.id), make_search(interval_minutes=15))
+    container.searches.create(container.users.get(user.id), make_search(interval_minutes=60))
     container.scanner.run()
     container.users.set_plan(user.id, "free")
-    clock.advance(minutes=15)
-    assert container.scanner.run().searches_scanned == 0  # Free scans at most every 6 h
-    clock.advance(hours=6)
+    clock.advance(minutes=60)
+    assert container.scanner.run().searches_scanned == 0  # Free checks once a day
+    clock.advance(hours=23)
     assert container.scanner.run().searches_scanned == 1
 
 
@@ -70,7 +71,7 @@ def test_price_change_is_reported_to_pro_users(container, sign_in, telegram, clo
     user = sign_in()
     container.users.set_plan(user.id, PRO)
     link_telegram(container, user)
-    search = container.searches.create(container.users.get(user.id), make_search(sources=["otodom"], interval_minutes=15))
+    search = container.searches.create(container.users.get(user.id), make_search(sources=["otodom"], interval_minutes=60))
     container.scanner.run()
 
     class CheaperOtodom(PageFetcher):
@@ -79,7 +80,7 @@ def test_price_change_is_reported_to_pro_users(container, sign_in, telegram, clo
             return html.replace('"value": 520000', '"value": 499000')
 
     container.connectors.get("otodom").fetcher = CheaperOtodom()
-    clock.advance(minutes=20)
+    clock.advance(minutes=60)
     report = container.scanner.run()
 
     assert report.price_changes == 1
@@ -117,4 +118,4 @@ def test_rental_search_reads_rental_pages_and_skips_auctions(container, sign_in,
     assert {item.key for item in container.listings.latest(user)} == {"otodom:501", "otodom:502", "morizon:mzn900"}
     assert report.fetches == 2
     assert all(item.deal_type == "rent" for item in container.listings.latest(user))
-    assert "2 400 zł/mies." in telegram.outbox[-1].text
+    assert "2 400 zł/month" in telegram.outbox[-1].text

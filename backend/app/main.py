@@ -16,6 +16,7 @@ from .services.auth.router import router as auth_router
 from .services.billing.router import router as billing_router
 from .services.export.router import router as export_router
 from .services.listings.router import router as listings_router
+from .services.notifications.router import router as notifications_router
 from .services.scanning.router import router as scan_router
 from .services.searches.router import router as searches_router
 from .services.system.router import router as system_router
@@ -24,7 +25,7 @@ from .services.tenants.router import router as database_router
 
 ROUTERS = (
     system_router, auth_router, searches_router, listings_router, database_router,
-    export_router, telegram_router, billing_router, scan_router, admin_router,
+    export_router, telegram_router, notifications_router, billing_router, scan_router, admin_router,
 )
 
 
@@ -33,6 +34,7 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     settings = settings or (container.settings if container else Settings.from_env())
     settings.validate()
     container = container or Container(settings)
+    logging.getLogger().addHandler(container.recent_logs)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:

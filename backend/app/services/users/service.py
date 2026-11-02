@@ -4,6 +4,7 @@ from dataclasses import replace
 
 from ...core.clock import Clock, new_id
 from ...core.errors import Invalid, NotFound
+from ...core.i18n import translator
 from ...core.service import BaseService
 from ..billing.plans import FREE, Plan, PlanCatalog
 from .models import User
@@ -35,11 +36,21 @@ class UserService(BaseService):
         return self._decorate(self._repo.by_id(user_id)), True
 
     def get(self, user_id: str) -> User:
-        user = self.require(self._repo.by_id(user_id), NotFound("User not found"))
+        user = self.require(self._repo.by_id(user_id), NotFound("user.not_found"))
         return self._decorate(user)
+
+    def by_email(self, email: str) -> User | None:
+        user = self._repo.by_email(email.strip().lower())
+        return self._decorate(user) if user else None
 
     def plan_of(self, user: User) -> Plan:
         return self._plans.get(user.plan)
+
+    def set_locale(self, user: User, locale: str) -> User:
+        if not translator.supports(locale):
+            raise Invalid("user.locale_unsupported")
+        self._repo.set_locale(user.id, locale)
+        return replace(user, locale=locale)
 
     def set_plan(self, user_id: str, plan_code: str) -> None:
         self._plans.get(plan_code)  # validates the code
@@ -58,5 +69,5 @@ class UserService(BaseService):
     def _normalise(email: str) -> str:
         email = (email or "").strip().lower()
         if "@" not in email or "." not in email.split("@")[-1]:
-            raise Invalid("A valid email address is required")
+            raise Invalid("user.email_invalid")
         return email

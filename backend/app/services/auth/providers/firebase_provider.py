@@ -32,5 +32,5 @@ class FirebaseIdentityProvider(IdentityProvider):
         except jwt.PyJWTError as exc:
             raise Unauthorized(f"Invalid Firebase token: {exc}") from exc
         if not claims.get("email") or not claims.get("email_verified"):
-            raise Unauthorized("Firebase account has no verified email")
+            raise Unauthorized("auth.no_verified_email")
         return Identity(email=claims["email"], provider=self.name)

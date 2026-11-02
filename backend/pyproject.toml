@@ -13,3 +13,6 @@ ignore = [
     "B027",   # optional no-op hooks on ABCs are intentional
     "UP038",  # isinstance(x, (A, B)) is clearer and faster than A | B
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"app/core/i18n/catalogs/*.py" = ["E501"]  # one sentence per line reads better than a wrapped one

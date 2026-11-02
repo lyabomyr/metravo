@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from ...core.errors import AppError
+from ...core.i18n import translator
 from .client import TelegramClient
 from .commands.base import BaseCommand, CommandContext
 from .link_service import TelegramLinkService
@@ -29,21 +30,24 @@ class CommandDispatcher:
         chat_id = str(chat["id"])
         name, _, argument = text[1:].partition(" ")
         name = name.split("@")[0].lower()  # "/status@metravo_bot" in groups
-        reply = self._run(name, argument.strip(), chat_id, chat.get("title") or chat.get("username") or "")
+        title = chat.get("title") or chat.get("username") or ""
+        app_language = (message.get("from") or {}).get("language_code")
+        reply = self._run(name, argument.strip(), chat_id, title, app_language)
         self._client.send_message(chat_id, reply)
         return reply
 
-    def _run(self, name: str, argument: str, chat_id: str, chat_title: str) -> str:
+    def _run(self, name: str, argument: str, chat_id: str, chat_title: str, app_language: str | None) -> str:
+        user = self._links.owner_of(chat_id)
+        locale = user.locale if user else translator.negotiate(app_language)
         command = self._commands.get(name)
         if command is None:
-            return "I don't know that command. /help lists what I can do."
-        user = self._links.owner_of(chat_id)
+            return translator.t(locale, "tg.unknown")
         if command.requires_account and user is None:
-            return f'This chat is not connected yet. Press “Connect Telegram” on <a href="{self._website}">the website</a>.'
+            return translator.t(locale, "tg.not_connected", url=self._website)
         try:
-            return command.run(CommandContext(chat_id=chat_id, chat_title=chat_title, argument=argument, user=user))
+            return command.run(CommandContext(chat_id=chat_id, chat_title=chat_title, argument=argument, user=user, locale=locale))
         except AppError as error:
-            return f"⚠️ {error.message}"
+            return f"⚠️ {error.text(locale)}"
         except Exception:
             log.exception("command /%s failed", name)
-            return "⚠️ Something went wrong. Please try again."
+            return translator.t(locale, "tg.failed")

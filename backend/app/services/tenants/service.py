@@ -58,7 +58,7 @@ class TenantService(BaseService):
         return tenant
 
     def get(self, user_id: str) -> Tenant:
-        return self.require(self._repo.by_user(user_id), NotFound("This account has no database yet"))
+        return self.require(self._repo.by_user(user_id), NotFound("tenant.no_database"))
 
     def database_for(self, user_id: str) -> Database:
         """Open (and migrate, once per process) the user's database."""
@@ -72,7 +72,7 @@ class TenantService(BaseService):
 
     def credentials(self, user: User, read_only: bool) -> DatabaseCredentials:
         if not self._plans.get(user.plan).database_credentials:
-            raise LimitReached("Direct database access is part of the Pro plan")
+            raise LimitReached("tenant.credentials_pro")
         return self._provisioner.issue_credentials(self.get(user.id), read_only=read_only)
 
     def schema(self) -> list[str]:

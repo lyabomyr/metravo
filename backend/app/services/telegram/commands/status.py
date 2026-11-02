@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from html import escape
 
-from ...searches.models import describe_interval
+from ...searches.models import Search, describe_interval
 from ...searches.service import SearchService
 from ...users.service import UserService
+from ..formatter import zloty
 from ..link_service import TelegramLinkService
 from .base import BaseCommand, CommandContext
 
 
 class StatusCommand(BaseCommand):
     name = "status"
-    description = "your plan, searches and whether this chat is paused"
 
     def __init__(self, users: UserService, searches: SearchService, links: TelegramLinkService):
         self._users = users
@@ -23,13 +23,17 @@ class StatusCommand(BaseCommand):
         chat = self._links.chat(context.chat_id)
         searches = self._searches.list(context.user)
         lines = [
-            f"Account: <b>{escape(context.user.email)}</b> · plan <b>{plan.name}</b>",
-            f"This chat is {'⏸ paused' if chat.paused else '▶️ active'}",
+            context.t("tg.status.account", email=escape(context.user.email), plan=plan.name),
+            context.t("tg.status.paused" if chat.paused else "tg.status.active"),
             "",
         ]
-        lines += [
-            f"{'🟢' if s.enabled else '⚪️'} {escape(s.name)} — {s.deal_type.value} {s.property_type.value}, "
-            f"{s.city}, ≤ {s.max_price:,} zł, ≥ {s.min_area:g} m², {describe_interval(s.interval_minutes)}".replace(",", " ")
-            for s in searches
-        ] or ["No searches yet — add one on the website."]
+        lines += [self._line(search, context) for search in searches] or [context.t("tg.status.none")]
         return "\n".join(lines)
+
+    @staticmethod
+    def _line(search: Search, context: CommandContext) -> str:
+        what = f"{context.t('deal.' + search.deal_type.value)} · {context.t('property.' + search.property_type.value)}"
+        return (
+            f"{'🟢' if search.enabled else '⚪️'} {escape(search.name)} — {what}, {search.city}, "
+            f"≤ {zloty(search.max_price)} zł, ≥ {search.min_area:g} m², {describe_interval(search.interval_minutes, context.locale)}"
+        )

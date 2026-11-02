@@ -32,6 +32,8 @@ jobs:
       - run: npm ci
       - run: npx ng test --watch=false
       - run: npx ng build
+      - name: Uptime worker logic
+        run: node --test ../infra/worker/uptime.test.mjs
       - uses: actions/upload-artifact@v4
         with: { name: web-dist, path: frontend/dist/metravo-web/browser }
 

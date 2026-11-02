@@ -97,6 +97,9 @@ class Settings:
     # Free hosts sleep when idle; a scheduler that sleeps never fires. Pinging
     # our own public URL counts as traffic and keeps the process awake.
     keep_alive_minutes: int = 10
+    # Monitoring: limits of the host when its container does not report them (0 = read from the cgroup).
+    memory_limit_mb: int = 0
+    cpu_cores: float = 0
 
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> Settings:
@@ -145,6 +148,8 @@ class Settings:
             scheduler_enabled=get("SCHEDULER_ENABLED", "false").lower() in ("1", "true", "yes", "on"),
             scheduler_tick_seconds=int(get("SCHEDULER_TICK_SECONDS", str(defaults.scheduler_tick_seconds))),
             keep_alive_minutes=int(get("KEEP_ALIVE_MINUTES", str(defaults.keep_alive_minutes))),
+            memory_limit_mb=int(get("MEMORY_LIMIT_MB", "0")),
+            cpu_cores=float(get("CPU_CORES", "0")),
         )
 
     @property

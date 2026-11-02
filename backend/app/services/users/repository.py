@@ -14,9 +14,11 @@ class UserRepository(BaseRepository):
             email         TEXT NOT NULL UNIQUE,
             plan          TEXT NOT NULL DEFAULT 'free',
             created_at    TEXT NOT NULL,
-            last_login_at TEXT
+            last_login_at TEXT,
+            locale        TEXT NOT NULL DEFAULT 'en'
         )""",
     )
+    ADDED_COLUMNS = (("users", "locale", "TEXT NOT NULL DEFAULT 'en'"),)
 
     def by_id(self, user_id: str) -> User | None:
         return self._to_user(self._one("SELECT * FROM users WHERE id = ?", (user_id,)))
@@ -33,6 +35,9 @@ class UserRepository(BaseRepository):
     def touch_login(self, user_id: str, now: str) -> None:
         self._exec("UPDATE users SET last_login_at = ? WHERE id = ?", (now, user_id))
 
+    def set_locale(self, user_id: str, locale: str) -> None:
+        self._exec("UPDATE users SET locale = ? WHERE id = ?", (locale, user_id))
+
     def set_plan(self, user_id: str, plan: str) -> None:
         self._exec("UPDATE users SET plan = ? WHERE id = ?", (plan, user_id))
 
@@ -47,4 +52,4 @@ class UserRepository(BaseRepository):
     def _to_user(row: Row | None) -> User | None:
         if row is None:
             return None
-        return User(id=row["id"], email=row["email"], plan=row["plan"], created_at=row["created_at"])
+        return User(id=row["id"], email=row["email"], plan=row["plan"], created_at=row["created_at"], locale=row["locale"])

@@ -26,13 +26,13 @@ class SearchService(BaseService):
         return self._repo(user.id).all()
 
     def get(self, user: User, search_id: str) -> Search:
-        return self.require(self._repo(user.id).by_id(search_id), NotFound("Search not found"))
+        return self.require(self._repo(user.id).by_id(search_id), NotFound("search.not_found"))
 
     def create(self, user: User, draft: Search) -> Search:
         repo = self._repo(user.id)
         plan = self._users.plan_of(user)
         if repo.count() >= plan.max_searches:
-            raise LimitReached(f"The {plan.name} plan allows {plan.max_searches} search(es)")
+            raise LimitReached("search.limit", plan=plan.name, n=plan.max_searches)
         search = replace(draft, id=new_id(), created_at=self._clock.iso(), last_scanned_at=None)
         self._validate(user, search)
         repo.save(search)
@@ -48,7 +48,7 @@ class SearchService(BaseService):
 
     def delete(self, user: User, search_id: str) -> None:
         if not self._repo(user.id).delete(search_id):
-            raise NotFound("Search not found")
+            raise NotFound("search.not_found")
 
     def set_enabled_all(self, user: User, enabled: bool) -> None:
         self._repo(user.id).set_enabled_all(enabled)
@@ -72,30 +72,33 @@ class SearchService(BaseService):
     def _validate(self, user: User, search: Search) -> None:
         get_city(search.city)
         if search.max_price <= 0 or search.min_area <= 0:
-            raise Invalid("Budget and minimum area must be positive")
+            raise Invalid("search.budget_positive")
         if search.max_area is not None and search.max_area < search.min_area:
-            raise Invalid("Maximum area is below minimum area")
+            raise Invalid("search.area_range")
         if search.min_price is not None and search.min_price > search.max_price:
-            raise Invalid("Minimum price is above the budget")
+            raise Invalid("search.price_range")
         if search.min_rooms and search.max_rooms and search.max_rooms < search.min_rooms:
-            raise Invalid("Maximum rooms is below minimum rooms")
+            raise Invalid("search.rooms_range")
         if not search.sources:
-            raise Invalid("Pick at least one portal")
+            raise Invalid("search.no_portal")
         unsupported = [
             source for source in search.sources
             if (connector := self._connectors.get(source)) is None
             or not connector.supports(search.deal_type, search.property_type)
         ]
         if unsupported:
-            raise Invalid(f"{', '.join(unsupported)} cannot search {search.property_type.value}s for {search.deal_type.value}")
+            raise Invalid(
+                "search.portal_unsupported",
+                sources=", ".join(unsupported), property=search.property_type.value, deal=search.deal_type.value,
+            )
         if search.interval_minutes not in SCAN_INTERVALS:
-            raise Invalid(f"Scan interval must be one of {', '.join(map(str, SCAN_INTERVALS))} minutes")
+            raise Invalid("search.interval_invalid", choices=", ".join(map(str, SCAN_INTERVALS)))
         plan = self._users.plan_of(user)
         if not plan.allows_interval(search.interval_minutes):
-            raise LimitReached(f"The {plan.name} plan scans at most every {plan.min_interval_minutes} minutes")
+            raise LimitReached("search.interval_plan", plan=plan.name, minutes=plan.min_interval_minutes)
         locked = [source for source in search.sources if not plan.allows_source(source)]
         if locked:
-            raise LimitReached(f"{', '.join(locked)} is not included in the {plan.name} plan")
+            raise LimitReached("search.portal_plan", sources=", ".join(locked), plan=plan.name)
 
     def _repo(self, user_id: str) -> SearchRepository:
         return SearchRepository(self._tenants.database_for(user_id))

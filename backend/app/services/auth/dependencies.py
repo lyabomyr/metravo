@@ -19,11 +19,11 @@ def current_user(
 ) -> User:
     scheme, _, token = authorization.partition(" ")
     if scheme.lower() != "bearer" or not token:
-        raise Unauthorized("Sign in first")
+        raise Unauthorized("auth.sign_in_first")
     return container.auth.user_from_token(token)
 
 
 def admin_user(user: User = Depends(current_user)) -> User:
     if not user.is_admin:
-        raise Forbidden("Admins only")
+        raise Forbidden("auth.admins_only")
     return user

@@ -26,12 +26,19 @@ class Container:
         from ..services.export.service import ExportService
         from ..services.listings.repository import ListingRepository
         from ..services.listings.service import ListingService
+        from ..services.monitoring.alerts import AdminAlerter
+        from ..services.monitoring.log_buffer import RecentLogs
+        from ..services.monitoring.monitor import HealthMonitor
+        from ..services.monitoring.probe import ResourceProbe
+        from ..services.notifications.notifier import FanOutNotifier
+        from ..services.notifications.repository import NotificationRepository
+        from ..services.notifications.service import NotificationService
         from ..services.scanning.service import ScanService
         from ..services.searches.repository import SearchRepository
         from ..services.searches.service import SearchService
         from ..services.telegram.formatter import ListingMessageFormatter
         from ..services.telegram.link_service import TelegramLinkService
-        from ..services.telegram.notifier import TelegramNotifier
+        from ..services.telegram.notifier import TelegramSender
         from ..services.telegram.repository import TelegramRepository
         from ..services.tenants.repository import TenantRepository
         from ..services.tenants.service import TenantService
@@ -84,15 +91,24 @@ class Container:
         self.telegram_links = TelegramLinkService(telegram_repo, self.users, settings.telegram_bot_username, self.clock)
         self.telegram_dispatcher = self._telegram_dispatcher()
 
+        notification_repo = NotificationRepository(self.control_db)
+        notification_repo.migrate()
+        self.notifications = NotificationService(notification_repo, self.users, self.clock)
+        senders = [TelegramSender(self.telegram_client, self.telegram_links, ListingMessageFormatter(settings.frontend_url))]
         self.scanner = ScanService(
             self.tenants,
             self.users,
             self.searches,
             self.listings,
             self.connectors,
-            TelegramNotifier(self.telegram_client, self.telegram_links, ListingMessageFormatter(settings.frontend_url)),
+            FanOutNotifier(self.notifications, senders),
         )
         self.admin = AdminService(self.users, self.tenants, self.telegram_links)
+        self.recent_logs = RecentLogs()
+        self.monitor = HealthMonitor(
+            ResourceProbe(settings.memory_limit_mb, settings.cpu_cores),
+            AdminAlerter(self.users, self.telegram_links, self.telegram_client, settings.admin_emails),
+        )
         self.scheduler = self._scheduler()
 
     # --- strategy selection ---------------------------------------------
@@ -126,7 +142,7 @@ class Container:
 
         s = self.settings
         keep_alive = KeepAlive(f"{s.public_api_url}/api/health", s.keep_alive_minutes * 60) if s.is_production else None
-        return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive)
+        return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor)
 
     def _telegram_client(self):
         from ..services.telegram.client import HttpTelegramClient, RecordingTelegramClient

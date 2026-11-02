@@ -8,12 +8,17 @@ from fastapi.responses import JSONResponse
 
 from .config import Settings
 from .errors import AppError
+from .i18n import translator
 
 
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
-    async def handle_app_error(_: Request, error: AppError) -> JSONResponse:
-        return JSONResponse(status_code=error.status_code, content={"detail": error.message, "code": type(error).__name__})
+    async def handle_app_error(request: Request, error: AppError) -> JSONResponse:
+        locale = translator.negotiate(request.headers.get("accept-language"))
+        return JSONResponse(
+            status_code=error.status_code,
+            content={"detail": error.text(locale), "code": type(error).__name__, "key": error.key},
+        )
 
 
 def install_cors(app: FastAPI, settings: Settings) -> None:

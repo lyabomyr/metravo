@@ -22,11 +22,16 @@ class Plan:
     sources: tuple[str, ...]
     price_alerts: bool
     database_credentials: bool
+    #: Where listings can be sent besides the website (see notifications/channels.py).
+    channels: tuple[str, ...] = ("telegram",)
     #: Before this day the plan is shown but cannot be bought. ``None`` = on sale.
     available_from: date | None = None
 
     def allows_source(self, source: str) -> bool:
         return source in self.sources
+
+    def allows_channel(self, channel: str) -> bool:
+        return channel in self.channels
 
     def allows_interval(self, minutes: int) -> bool:
         return minutes >= self.min_interval_minutes
@@ -49,7 +54,7 @@ class PlanCatalog:
                 name="Free",
                 price_pln=0,
                 max_searches=1,
-                min_interval_minutes=360,
+                min_interval_minutes=1440,  # once a day
                 sources=("otodom", "olx", "morizon"),
                 price_alerts=False,
                 database_credentials=False,
@@ -59,10 +64,11 @@ class PlanCatalog:
                 name="Pro",
                 price_pln=19,
                 max_searches=5,
-                min_interval_minutes=15,
+                min_interval_minutes=60,  # once an hour
                 sources=("otodom", "olx", "morizon", "komornik"),
                 price_alerts=True,
                 database_credentials=True,
+                channels=("telegram", "email", "whatsapp", "viber", "signal"),
                 available_from=pro_available_from,
             ),
         ))

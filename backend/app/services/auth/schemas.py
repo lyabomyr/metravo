@@ -16,10 +16,15 @@ class UserOut(BaseModel):
     plan: str
     is_admin: bool
     created_at: str
+    locale: str
 
     @classmethod
     def of(cls, user: User) -> UserOut:
-        return cls(id=user.id, email=user.email, plan=user.plan, is_admin=user.is_admin, created_at=user.created_at)
+        return cls(id=user.id, email=user.email, plan=user.plan, is_admin=user.is_admin, created_at=user.created_at, locale=user.locale)
+
+
+class LocaleChange(BaseModel):
+    locale: str
 
 
 class SessionOut(BaseModel):

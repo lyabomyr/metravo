@@ -14,3 +14,32 @@ variable "site_name" {
   type        = string
   default     = "metravo"
 }
+
+variable "api_url" {
+  description = "Public address of the API, watched by the uptime Worker."
+  type        = string
+}
+
+variable "admin_emails" {
+  description = "Comma-separated; their linked Telegram chats get the alerts. GitHub Variable ADMIN_EMAILS."
+  type        = string
+  default     = ""
+}
+
+variable "telegram_bot_token" {
+  description = "GitHub Secret TELEGRAM_BOT_TOKEN — the uptime Worker sends alerts with it."
+  type        = string
+  sensitive   = true
+}
+
+variable "control_db_url" {
+  description = "GitHub Secret CONTROL_DB_URL — the Worker reads the admins' chat ids from it."
+  type        = string
+  sensitive   = true
+}
+
+variable "control_db_token" {
+  description = "GitHub Secret CONTROL_DB_TOKEN."
+  type        = string
+  sensitive   = true
+}

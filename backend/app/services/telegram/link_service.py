@@ -42,11 +42,11 @@ class TelegramLinkService(BaseService):
         )
 
     def consume(self, token: str, chat_id: str, title: str) -> User:
-        link = self.require(self._repo.token(token), Invalid("This link is not valid. Create a new one on the website."))
+        link = self.require(self._repo.token(token), Invalid("telegram.link_invalid"))
         if link.used_at or parse_iso(link.expires_at) < self._clock.now():
-            raise Invalid("This link has expired. Create a new one on the website.")
+            raise Invalid("telegram.link_expired")
         if not self._repo.use_token(token, self._clock.iso()):
-            raise Invalid("This link was already used.")
+            raise Invalid("telegram.link_used")
         self._repo.link_chat(chat_id, link.user_id, title, self._clock.iso())
         return self._users.get(link.user_id)
 
@@ -69,7 +69,7 @@ class TelegramLinkService(BaseService):
     def unlink(self, user: User, chat_id: str) -> None:
         chat = self._repo.chat(chat_id)
         if chat is None or chat.user_id != user.id:
-            raise NotFound("Chat not found")
+            raise NotFound("telegram.chat_not_found")
         self._repo.unlink_chat(chat_id)
 
     def unlink_from_telegram(self, chat_id: str) -> None:

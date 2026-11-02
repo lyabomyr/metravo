@@ -20,5 +20,7 @@ services:
       - { key: AUTH_PROVIDERS, value: firebase }
       - { key: BILLING_PROVIDER, value: none }   # stripe, when Pro goes on sale
       - { key: PRO_AVAILABLE_FROM, value: "2026-11-15" } # Pro shows as "coming soon" until then
+      - { key: MEMORY_LIMIT_MB, value: "512" }   # Render free: 512 MB, 0.1 CPU — the monitor alerts at 80 %
+      - { key: CPU_CORES, value: "0.1" }
       - { key: SCHEDULER_ENABLED, value: "true" } # the API scans on its own, no cron
       - { key: JWT_SECRET, generateValue: true }  # made by Render once, never leaves it

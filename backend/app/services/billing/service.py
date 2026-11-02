@@ -39,16 +39,16 @@ class BillingService(BaseService):
     def checkout_url(self, user: User, plan_code: str) -> str:
         plan = self._plans.get(plan_code)
         if plan.code == FREE:
-            raise Invalid("The free plan needs no checkout")
+            raise Invalid("billing.free_no_checkout")
         if user.plan == plan.code:
-            raise Invalid(f"You are already on {plan.name}")
+            raise Invalid("billing.already_on", plan=plan.name)
         if not plan.is_on_sale(self._clock.now().date()):
-            raise Invalid(f"{plan.name} opens on {plan.available_from:%d %B %Y}")
+            raise Invalid("billing.opens_on", plan=plan.name, date=plan.available_from.isoformat())
         existing = self._repo.by_user(user.id)
         return self._provider.create_checkout(user, plan, existing.customer_id if existing else None)
 
     def portal_url(self, user: User) -> str:
-        sub = self.require(self._repo.by_user(user.id), NotFound("No subscription to manage"))
+        sub = self.require(self._repo.by_user(user.id), NotFound("billing.no_subscription"))
         return self._provider.create_portal(sub.customer_id)
 
     def handle_webhook(self, payload: bytes, headers: Mapping[str, str]) -> None:

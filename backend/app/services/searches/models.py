@@ -4,20 +4,21 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from ...core.clock import parse_iso
+from ...core.i18n import translator
 from ..connectors.models import DealType, PropertyType, SearchQuery
 
 #: How often a search may be scanned, in minutes. The plan sets the floor.
-SCAN_INTERVALS: tuple[int, ...] = (15, 30, 60, 180, 360, 720, 1440)
+SCAN_INTERVALS: tuple[int, ...] = (60, 180, 360, 720, 1440)
 DEFAULT_SCAN_INTERVAL = 1440  # once a day
 
 
-def describe_interval(minutes: int) -> str:
-    """15 → "every 15 min", 180 → "every 3 h", 1440 → "daily"."""
+def describe_interval(minutes: int, locale: str = "en") -> str:
+    """60 → "hourly", 180 → "every 3 h", 1440 → "daily" — in the given language."""
     if minutes >= 1440:
-        return "daily" if minutes == 1440 else f"every {minutes // 1440} days"
-    if minutes >= 60:
-        return "hourly" if minutes == 60 else f"every {minutes // 60} h"
-    return f"every {minutes} min"
+        return translator.t(locale, "interval.daily")
+    if minutes == 60:
+        return translator.t(locale, "interval.hourly")
+    return translator.t(locale, "interval.hours", n=minutes // 60)
 
 
 # Listings that are not a whole, normal flat. Prefix-matched, so "udział"

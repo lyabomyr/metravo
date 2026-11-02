@@ -18,10 +18,10 @@ class NoPaymentsProvider(PaymentProvider):
     name = "none"
 
     def create_checkout(self, user: User, plan: Plan, customer_id: str | None) -> str:
-        raise Invalid("Payments are not open yet")
+        raise Invalid("billing.not_open")
 
     def create_portal(self, customer_id: str) -> str:
-        raise Invalid("Payments are not open yet")
+        raise Invalid("billing.not_open")
 
     def parse_webhook(self, payload: bytes, headers: Mapping[str, str]) -> BillingEvent | None:
         return None
