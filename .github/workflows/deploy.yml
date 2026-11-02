@@ -47,6 +47,9 @@ jobs:
       - name: Infrastructure (OpenTofu)
         id: pages
         if: env.CLOUDFLARE_API_TOKEN != '' && env.TF_VAR_state_passphrase != ''
+        # The app still ships if infrastructure fails (the site and API already
+        # exist); the last step turns the run red so the failure is not missed.
+        continue-on-error: true
         working-directory: infra/terraform
         env:
           TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -105,3 +108,9 @@ jobs:
             -d "url=${API_URL}/api/telegram/webhook" \
             -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
             -d 'allowed_updates=["message","my_chat_member"]'
+
+      - name: Infrastructure failed — see the "Infrastructure (OpenTofu)" step
+        if: steps.pages.outcome == 'failure'
+        run: |
+          echo "::error::OpenTofu could not apply infra/terraform. The app was deployed; the infrastructure change was not."
+          exit 1
