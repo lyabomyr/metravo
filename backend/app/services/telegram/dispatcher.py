@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 
 from ...core.errors import AppError
 from ...core.i18n import translator
+from ..users.models import User
 from .client import TelegramClient
 from .commands.base import BaseCommand, CommandContext
 from .link_service import TelegramLinkService
@@ -14,11 +16,19 @@ log = logging.getLogger(__name__)
 class CommandDispatcher:
     """Turns a Telegram update into a command call and sends the reply."""
 
-    def __init__(self, commands: list[BaseCommand], links: TelegramLinkService, client: TelegramClient, website_url: str):
+    def __init__(
+        self,
+        commands: list[BaseCommand],
+        links: TelegramLinkService,
+        client: TelegramClient,
+        website_url: str,
+        on_connected: Callable[[User], None] = lambda user: None,
+    ):
         self._commands = {command.name: command for command in commands}
         self._links = links
         self._client = client
         self._website = website_url
+        self._on_connected = on_connected
 
     def handle(self, update: dict) -> str | None:
         """Process one update. Returns the reply text (handy for tests)."""
@@ -32,8 +42,11 @@ class CommandDispatcher:
         name = name.split("@")[0].lower()  # "/status@metravo_bot" in groups
         title = chat.get("title") or chat.get("username") or ""
         app_language = (message.get("from") or {}).get("language_code")
+        was_linked = self._links.owner_of(chat_id) is not None
         reply = self._run(name, argument.strip(), chat_id, title, app_language)
         self._client.send_message(chat_id, reply)
+        if not was_linked and (user := self._links.owner_of(chat_id)):
+            self._on_connected(user)  # after the greeting, so it arrives first
         return reply
 
     def _run(self, name: str, argument: str, chat_id: str, chat_title: str, app_language: str | None) -> str:

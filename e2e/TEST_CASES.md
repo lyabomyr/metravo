@@ -41,7 +41,7 @@ matches **101, 104, 302, mzn201**.
 | Id | Case | Expected |
 |---|---|---|
 | AUTH-1 | New email on the landing form | A Free account is created; goes to `/welcome` |
-| AUTH-2 | Same email again | Goes to `/listings` |
+| AUTH-2 | Same email again, setup finished (search + Telegram) | Goes to `/listings` |
 | AUTH-3 | Address without a domain | Error banner, stays on the landing page |
 | AUTH-4 | Sign out | Back on the landing page; `/listings` now redirects to `/` |
 | AUTH-5 | Stored session token is invalid | The app forgets it and shows the landing page |
@@ -51,7 +51,8 @@ matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| ONB-1 | Save the default search, open the Telegram deep link, press Start | “All set”; Check now finds 4 listings |
+| ONB-1 | Save the default search, open the Telegram deep link, press Start | “All set”; the scan starts by itself: 4 listings are on the page without pressing anything, and Telegram gets them |
+| ONB-2 | Sign in to an account that has a search but no Telegram | Back on `/welcome`: step 1 shown as done, step 2 (Telegram) is what is left |
 | TOUR-1 | First sign-in | The tour opens at step 1 of 5 |
 | TOUR-2 | Next / Back through all steps, then “Let’s go” | Titles change per step; closing hides it and it does not come back after a reload |
 | TOUR-3 | Help (“?”) in the top bar | Opens the tour again |
@@ -62,10 +63,10 @@ matches **101, 104, 302, mzn201**.
 | Id | Case | Expected |
 |---|---|---|
 | FORM-1 | New search defaults | Buy, Flat, Kraków, once a day, otodom + olx + morizon on |
-| FORM-2 | Switch to Rent | Budget becomes 4 000 zł/month; komornik is disabled |
+| FORM-2 | Switch to Rent | “Rent up to” becomes 4 000 zł/month; komornik is disabled |
 | FORM-3 | Check rate on Free | Only “Once a day” can be picked; faster ones say Pro and are disabled |
 | FORM-4 | Check rate on Pro | “Every hour” can be saved and shows on the card |
-| FORM-5 | Invalid combinations: max area < min area, min price > budget, rooms to < rooms from, no portal | A translated error banner each time, nothing saved |
+| FORM-5 | Invalid combinations: max area < min area, price from > price up to, rooms to < rooms from, no portal | A translated error banner each time, nothing saved |
 | FORM-6 | Edit a search, then delete it | The card shows the change; after confirming, it is gone |
 | FORM-7 | Second search on Free | “allows 1 search” with an upgrade link |
 | FORM-8 | komornik on Free | Pro badge on the portal; saving is refused with the portal named |
@@ -74,8 +75,8 @@ matches **101, 104, 302, mzn201**.
 
 | Id | Filter | Expected listings |
 |---|---|---|
-| FLT-1 | none (defaults) | 101, 104, 302, mzn201 — never 102 (budget), 103 (TBS), 301 (area), mzn200 (duplicate) |
-| FLT-2 | Budget 520 000 | 101, 302 |
+| FLT-1 | none (defaults) | 101, 104, 302, mzn201 — never 102 (price), 103 (TBS), 301 (area), mzn200 (duplicate) |
+| FLT-2 | Price up to 520 000 | 101, 302 |
 | FLT-3 | Min price 550 000 | 104, mzn201 |
 | FLT-4 | Min area 50 | 104, mzn201 |
 | FLT-5 | Max area 45 | 101, 302 |
@@ -106,6 +107,7 @@ matches **101, 104, 302, mzn201**.
 | ALR-3 | WhatsApp on Pro | Switch on, enter a phone, saved; reload keeps it |
 | ALR-4 | Email on Pro | Address defaults to the account email |
 | ALR-5 | Old `/telegram` link | Redirects to `/alerts` |
+| ALR-6 | Signed in without Telegram | Every page shows “Alerts are not connected” with a button to setup; gone once a chat is connected |
 
 ## Plan, data, admin — `billing.cy.ts`, `data-export.cy.ts`, `admin.cy.ts`
 

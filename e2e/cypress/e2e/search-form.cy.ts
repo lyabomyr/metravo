@@ -13,7 +13,7 @@ describe('Search form', () => {
     cy.get('[data-cy=source-komornik]').should('not.be.checked');
   });
 
-  it('FORM-2 renting switches to a monthly budget and drops auctions', () => {
+  it('FORM-2 renting switches to a monthly price range and drops auctions', () => {
     cy.visit('/searches/new');
     chooseSegment('deal-rent');
     cy.get('[data-cy=search-max-price]').should('have.value', '4000');
@@ -41,7 +41,7 @@ describe('Search form', () => {
   it('FORM-5 refuses impossible searches with a clear message', () => {
     const cases: [string, string, string][] = [
       ['search-max-area', '30', 'Maximum area is below minimum area'],
-      ['search-min-price', '700000', 'Minimum price is above the budget'],
+      ['search-min-price', '700000', '“Price from” is higher than “price up to”'],
     ];
     cases.forEach(([field, value, message]) => {
       cy.visit('/searches/new');

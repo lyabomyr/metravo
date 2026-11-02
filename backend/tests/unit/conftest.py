@@ -44,7 +44,8 @@ def telegram() -> RecordingTelegramClient:
 
 @pytest.fixture
 def container(settings, clock, telegram) -> Container:
-    return Container(settings, clock=clock, telegram_client=telegram)
+    # Background work runs inline, so a test sees its effect when the call returns.
+    return Container(settings, clock=clock, telegram_client=telegram, background=lambda task, *args: task(*args))
 
 
 @pytest.fixture

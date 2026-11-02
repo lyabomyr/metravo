@@ -27,6 +27,8 @@ declare global {
       api(method: string, path: string, body?: object, failOnStatusCode?: boolean): Chainable<Response<any>>;
       /** Play Telegram: the user pressed Start on a deep link. */
       telegramStart(deepLink: string, chatId: number): Chainable<Response<any>>;
+      /** Save the default search and connect a Telegram chat — what the setup page does. */
+      finishSetup(): Chainable<Response<any>>;
       /** Buy Pro through the test payment provider, as the checkout page would. */
       upgradeToPro(): Chainable<Response<any>>;
     }
@@ -60,6 +62,11 @@ Cypress.Commands.add('telegramStart', (deepLink: string, chatId: number) => {
     headers: { 'X-Telegram-Bot-Api-Secret-Token': Cypress.env('telegramSecret') },
     body: { update_id: chatId, message: { text: `/start ${token}`, chat: { id: chatId, title: 'e2e chat' } } },
   });
+});
+
+Cypress.Commands.add('finishSetup', () => {
+  cy.api('POST', '/api/searches', DEFAULT_SEARCH);
+  return cy.api('POST', '/api/telegram/link').then(({ body }) => cy.telegramStart(body.private_url, Date.now() % 1e9));
 });
 
 Cypress.Commands.add('upgradeToPro', () =>

@@ -47,5 +47,8 @@
   <app-intro-tour />
 }
 <main [class.container]="session.user()" [class.page]="!session.user()">
+  @if (session.user()) {
+    <app-connect-reminder />
+  }
   <router-outlet />
 </main>

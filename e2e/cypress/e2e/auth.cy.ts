@@ -9,9 +9,10 @@ describe('Sign-in and session', () => {
     cy.api('GET', '/api/auth/me').its('body.plan').should('eq', 'free');
   });
 
-  it('AUTH-2 a known email goes to the listings', () => {
+  it('AUTH-2 a user who finished setup goes to the listings', () => {
     const email = uniqueEmail('known');
     cy.signIn(email);
+    cy.finishSetup();
     cy.clearLocalStorage('metravo.token');
     visitAsReturning('/');
     cy.get('[data-cy=email]').type(email);

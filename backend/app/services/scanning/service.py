@@ -15,6 +15,9 @@ from .listing_filter import ListingFilter
 from .models import ScanReport
 from .notifier import ListingNotifier
 
+#: How many already-found listings a newly connected channel receives per search.
+FIRST_DELIVERY = 15
+
 
 class ScanService(BaseService):
     """One scan run across every user whose searches are due."""
@@ -40,6 +43,27 @@ class ScanService(BaseService):
     def run(self, only_user_id: str | None = None) -> ScanReport:
         with self._lock:
             return self._run(only_user_id)
+
+    def deliver_now(self, user: User) -> int:
+        """A channel was just connected: start at once instead of waiting for the schedule.
+
+        Listings found before the user connected were stored but announced to
+        nobody, so they are sent now; a search never checked is scanned now.
+        """
+        with self._lock:
+            sent = 0
+            cache, report = FetchCache(), ScanReport()
+            for search in self._searches.list(user):
+                if not search.enabled:
+                    continue
+                if search.last_scanned_at is None:
+                    self._scan_search(user, search, cache, report)
+                    continue
+                found = self._listings.latest(user, search.id, limit=FIRST_DELIVERY)
+                if found:
+                    events = [ListingEvent(EventKind.NEW, stored.as_listing()) for stored in found]
+                    sent += self._notifier.notify(user, search, events)
+            return sent + report.messages_sent
 
     def _run(self, only_user_id: str | None) -> ScanReport:
         report = ScanReport()

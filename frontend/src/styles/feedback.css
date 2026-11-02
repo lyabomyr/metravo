@@ -9,6 +9,7 @@
 .banner--error { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
 .banner--success { background: color-mix(in srgb, var(--success) 14%, transparent); color: color-mix(in srgb, var(--success) 70%, var(--text)); }
 .banner--info { background: color-mix(in srgb, var(--primary) 10%, transparent); color: var(--text); }
+.banner--warning { background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--text); flex-wrap: wrap; gap: 10px; }
 .banner a { font-weight: 600; }
 
 .badge {

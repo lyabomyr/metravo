@@ -6,7 +6,7 @@ MESSAGES = {
     "search.limit": "План {plan} позволяет поисков: {n}",
     "search.budget_positive": "Бюджет и минимальная площадь должны быть больше нуля",
     "search.area_range": "Максимальная площадь меньше минимальной",
-    "search.price_range": "Минимальная цена больше бюджета",
+    "search.price_range": "«Цена от» больше, чем «цена до»",
     "search.rooms_range": "Максимум комнат меньше минимума",
     "search.no_portal": "Выберите хотя бы один портал",
     "search.portal_unsupported": "{sources}: нет объявлений типа {property} / {deal}",

@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../core/ui/page-header.component';
 import { TelegramConnectComponent } from '../telegram/telegram-connect.component';
 import { TelegramChat } from '../telegram/telegram.model';
 import { TelegramApiService } from '../telegram/telegram-api.service';
+import { TelegramStatusService } from '../telegram/telegram-status.service';
 import { ChannelSettingsComponent } from './channel-settings.component';
 
 /** Where listings go: Telegram chats, plus the extra Pro channels. */
@@ -48,6 +49,7 @@ import { ChannelSettingsComponent } from './channel-settings.component';
 })
 export class AlertsPage extends BasePage implements OnInit {
   private readonly api = inject(TelegramApiService);
+  private readonly status = inject(TelegramStatusService);
   protected readonly chats = signal<TelegramChat[]>([]);
 
   ngOnInit(): void {
@@ -59,6 +61,9 @@ export class AlertsPage extends BasePage implements OnInit {
   }
 
   private load(): void {
-    this.run(this.api.chats(), (chats) => this.chats.set(chats));
+    this.run(this.api.chats(), (chats) => {
+      this.chats.set(chats);
+      this.status.update(chats);
+    });
   }
 }

@@ -5,6 +5,7 @@ import { switchMap, timer } from 'rxjs';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TelegramChat, TelegramLink } from './telegram.model';
 import { TelegramApiService } from './telegram-api.service';
+import { TelegramStatusService } from './telegram-status.service';
 
 /** How often to check whether the user has pressed Start in Telegram. */
 const POLL_MS = 3000;
@@ -37,6 +38,7 @@ export class TelegramConnectComponent implements OnInit {
   readonly connected = output<TelegramChat[]>();
 
   private readonly api = inject(TelegramApiService);
+  private readonly status = inject(TelegramStatusService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly link = signal<TelegramLink | null>(null);
 
@@ -48,7 +50,9 @@ export class TelegramConnectComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((chats) => {
-        if (chats.length) this.connected.emit(chats);
+        if (!chats.length) return;
+        this.status.update(chats);
+        this.connected.emit(chats);
       });
   }
 }

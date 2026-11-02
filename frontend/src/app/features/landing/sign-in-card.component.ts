@@ -80,6 +80,6 @@ export class SignInCardComponent extends BasePage {
   }
 
   private continue(session: Session): void {
-    this.router.navigateByUrl(session.is_new ? '/welcome' : '/listings');
+    this.router.navigateByUrl('/welcome');
   }
 }

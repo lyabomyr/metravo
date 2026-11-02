@@ -55,3 +55,34 @@ def test_status_lists_searches(container, sign_in):
 def test_unknown_command_and_plain_text(container):
     assert "don't know" in container.telegram_dispatcher.handle(update("/foo"))
     assert container.telegram_dispatcher.handle(update("hello")) is None
+
+
+def test_connecting_sends_what_was_already_found(container, sign_in, telegram):
+    # Searched on the website first, connected Telegram afterwards: those
+    # listings were never announced, so they come as soon as Start is pressed.
+    user = sign_in()
+    container.searches.create(user, make_search())
+    container.scanner.run()
+    assert telegram.outbox == []
+
+    container.telegram_dispatcher.handle(update(f"/start {container.telegram_links.create_link(user).token}"))
+
+    texts = [message.text for message in telegram.outbox]
+    assert "Connected to" in texts[0]
+    assert any("otodom.pl" in text for text in texts[1:])
+
+
+def test_connecting_scans_a_search_that_was_never_checked(container, sign_in, telegram):
+    user = sign_in()
+    search = container.searches.create(user, make_search())
+
+    container.telegram_dispatcher.handle(update(f"/start {container.telegram_links.create_link(user).token}"))
+
+    assert container.searches.get(user, search.id).last_scanned_at is not None
+    assert len(telegram.outbox) > 1
+
+
+def test_connecting_with_nothing_saved_sends_only_the_greeting(container, sign_in, telegram):
+    user = sign_in()
+    container.telegram_dispatcher.handle(update(f"/start {container.telegram_links.create_link(user).token}"))
+    assert len(telegram.outbox) == 1

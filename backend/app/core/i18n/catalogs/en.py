@@ -7,7 +7,7 @@ MESSAGES = {
     "search.limit": "The {plan} plan allows {n} search(es)",
     "search.budget_positive": "Budget and minimum area must be positive",
     "search.area_range": "Maximum area is below minimum area",
-    "search.price_range": "Minimum price is above the budget",
+    "search.price_range": "“Price from” is higher than “price up to”",
     "search.rooms_range": "Maximum rooms is below minimum rooms",
     "search.no_portal": "Pick at least one portal",
     "search.portal_unsupported": "{sources} cannot search {property}s for {deal}",

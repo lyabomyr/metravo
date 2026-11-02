@@ -2,7 +2,7 @@
 
 ## The product in one paragraph
 
-A person signs in with their email, saves one or more searches — buy or rent, flat or house, city, budget, area, rooms, price
+A person signs in with their email, saves one or more searches — buy or rent, flat or house, city, price from–to, area, rooms, price
 per m², words that must appear, portals, how often to check (daily by
 default) — and connects Telegram in two clicks. A scanner reads Otodom, OLX,
 Morizon and bailiff auctions, keeps what matches each search, and sends new
@@ -122,7 +122,15 @@ first sign-in → we return our own JWT.
 so “Open Telegram” is a plain `t.me/<bot>?start=<token>` link (click 1).
 The user taps **Start** (click 2); the webhook receives `/start <token>`,
 links the chat, and the page — polling every 3 s — notices on its own.
-Tokens expire after 30 minutes and work once.
+Tokens expire after 30 minutes and work once. Right after the greeting, in
+the background so the webhook answers at once, `ScanService.deliver_now`
+sends the listings found before the chat existed (nobody had been told about
+them) and scans any search that was never checked.
+
+**Setup is resumable.** Every sign-in lands on `/welcome`, which skips the
+steps already done and moves on to the listings when nothing is left, so an
+account created in a sign-in that failed halfway is still taken through
+setup.
 
 **A scan.** For every user who has a search, take the searches whose own interval has
 elapsed (never faster than the plan allows). For each portal, build the URL from the search and fetch it

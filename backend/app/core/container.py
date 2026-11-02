@@ -6,13 +6,36 @@ implementation (SQLite → Turso, Fake → Stripe) is a change here and nowhere 
 
 from __future__ import annotations
 
+import logging
+import threading
+from collections.abc import Callable
+
 from .clock import Clock
 from .config import Settings
 from .database import open_database
 
 
+def in_thread(task: Callable, *args) -> None:
+    """Fire and forget, so a webhook can answer Telegram at once."""
+
+    def guarded() -> None:
+        try:
+            task(*args)
+        except Exception:
+            logging.getLogger("app.background").exception("background task %s failed", task.__name__)
+
+    threading.Thread(target=guarded, daemon=True).start()
+
+
 class Container:
-    def __init__(self, settings: Settings, clock: Clock | None = None, telegram_client=None, page_fetcher=None):
+    def __init__(
+        self,
+        settings: Settings,
+        clock: Clock | None = None,
+        telegram_client=None,
+        page_fetcher=None,
+        background: Callable[..., None] = in_thread,
+    ):
         # Imports are local so ``core`` never depends on ``services`` at import time.
         from ..services.admin.service import AdminService
         from ..services.auth.providers.dev_provider import DevIdentityProvider
@@ -45,6 +68,7 @@ class Container:
 
         self.settings = settings
         self.clock = clock or Clock()
+        self.background = background
         self.plans = PlanCatalog.default(pro_available_from=settings.pro_available_from)
 
         # One database for everything; rows of searches and listings carry their user_id.
@@ -148,7 +172,14 @@ class Container:
             DisconnectCommand(self.telegram_links),
         ]
         commands.append(HelpCommand(commands, website))
-        return CommandDispatcher(commands, self.telegram_links, self.telegram_client, website)
+        return CommandDispatcher(
+            commands,
+            self.telegram_links,
+            self.telegram_client,
+            website,
+            # self.scanner is built after the dispatcher, so it is looked up on use.
+            on_connected=lambda user: self.background(self.scanner.deliver_now, user),
+        )
 
     def _page_fetcher(self):
         from ..services.connectors.fetchers import FixturePageFetcher, HttpPageFetcher

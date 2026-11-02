@@ -7,10 +7,13 @@ import { LanguageSwitcherComponent } from './core/i18n/language-switcher.compone
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { IntroTourComponent } from './features/intro/intro-tour.component';
 import { IntroService } from './features/intro/intro.service';
+import { ConnectReminderComponent } from './features/telegram/connect-reminder.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, IntroTourComponent, LanguageSwitcherComponent, TranslatePipe],
+  imports: [
+    RouterOutlet, RouterLink, RouterLinkActive, ConnectReminderComponent, IntroTourComponent, LanguageSwitcherComponent, TranslatePipe,
+  ],
   templateUrl: './app.html',
 })
 export class App {

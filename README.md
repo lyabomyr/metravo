@@ -45,9 +45,13 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
    sign-in link (or they use Google). On first sign-in the API creates the
    account.
 2. A short tour explains the app. They save a search: buy or rent, flat or
-   house, city, budget, area, rooms, price per m², year built, words that must
-   appear, portals, and **how often to check** (once a day by default).
-3. They connect Telegram in **two clicks**: "Open Telegram", then "Start".
+   house, city, price from–to, area, rooms, price per m², year built, words
+   that must appear, portals, and **how often to check** (once a day by default).
+3. They connect Telegram in **two clicks**: "Open Telegram", then "Start". The
+   moment the chat is linked, the bot sends what was already found and scans
+   any search not checked yet. Every sign-in returns to the setup page until
+   both steps are done, and every page shows a reminder while no messenger is
+   connected.
 4. Inside the API a scheduler runs every minute. It scans the searches that are
    due, drops duplicates and anything outside the filters, and sends what is
    new. The website, Telegram and error messages are in English, Polish,

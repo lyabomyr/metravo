@@ -28,7 +28,7 @@ function searchFor(fields: Record<string, string>, options: { only?: string[]; e
 describe('Every filter changes what arrives', () => {
   beforeEach(() => cy.signIn(uniqueEmail('filter')));
 
-  it('FLT-1 defaults: within budget and size, no TBS, no duplicates', () => {
+  it('FLT-1 defaults: within price and size, no TBS, no duplicates', () => {
     searchFor({});
     expectListings(DEFAULT_MATCHES);
     cy.contains('Penthouse').should('not.exist');
@@ -37,7 +37,7 @@ describe('Every filter changes what arrives', () => {
     cy.contains(WIELICKA_MORIZON).should('not.exist');
   });
 
-  it('FLT-2 budget', () => {
+  it('FLT-2 price up to', () => {
     searchFor({ 'search-max-price': '520000' });
     expectListings([DLUGA, BRONOWICE]);
   });

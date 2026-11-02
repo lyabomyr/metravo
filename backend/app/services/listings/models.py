@@ -22,6 +22,13 @@ class StoredListing:
     first_seen_at: str
     last_seen_at: str
 
+    def as_listing(self) -> Listing:
+        source, _, external_id = self.key.partition(":")
+        return Listing(
+            source=source, external_id=external_id, url=self.url, title=self.title, price=self.price,
+            area=self.area, rooms=self.rooms, location=self.location, image_url=self.image_url,
+        )
+
 
 @dataclass(frozen=True)
 class PriceChange:

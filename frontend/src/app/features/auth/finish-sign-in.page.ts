@@ -38,7 +38,7 @@ export class FinishSignInPage extends BasePage implements OnInit {
   protected finish(email?: string): void {
     this.run(from(this.firebase.finishEmailLink(location.href, email)), (idToken) =>
       this.run(this.session.signIn('firebase', idToken), (session) =>
-        this.router.navigateByUrl(session.is_new ? '/welcome' : '/listings'),
+        this.router.navigateByUrl('/welcome'),
       ),
     );
   }

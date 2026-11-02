@@ -6,7 +6,7 @@ MESSAGES = {
     "search.limit": "Plan {plan} pozwala na {n} wyszukiwanie/a",
     "search.budget_positive": "Budżet i minimalna powierzchnia muszą być dodatnie",
     "search.area_range": "Maksymalna powierzchnia jest mniejsza niż minimalna",
-    "search.price_range": "Cena minimalna jest wyższa niż budżet",
+    "search.price_range": "„Cena od” jest wyższa niż „cena do”",
     "search.rooms_range": "Maksymalna liczba pokoi jest mniejsza niż minimalna",
     "search.no_portal": "Wybierz co najmniej jeden portal",
     "search.portal_unsupported": "{sources}: brak ogłoszeń typu {property} / {deal}",

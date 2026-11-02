@@ -3,10 +3,10 @@ import { chooseSegment, uniqueEmail } from '../support/commands';
 describe('Renting, not buying', () => {
   beforeEach(() => cy.signIn(uniqueEmail('rent')));
 
-  it('LST-4 finds rentals under a monthly budget, with required keywords', () => {
+  it('LST-4 finds rentals up to a monthly rent, with required keywords', () => {
     cy.visit('/searches/new');
     chooseSegment('deal-rent');
-    cy.get('[data-cy=search-max-price]').should('have.value', '4000'); // budget switched to a monthly one
+    cy.get('[data-cy=search-max-price]').should('have.value', '4000'); // "rent up to" switched to a monthly amount
     cy.get('[data-cy=source-komornik]').should('be.disabled'); // auctions are never rentals
     cy.get('[data-cy=search-name]').clear().type('Wynajem z balkonem');
     cy.get('[data-cy=search-min-area]').clear().type('25');

@@ -43,12 +43,12 @@
     <h3 class="section-title">{{ 'form.price' | t }}</h3>
     <div class="list">
       <label class="list__row">
-        <span>{{ (form.controls.deal_type.value === 'rent' ? 'form.maxRent' : 'form.budget') | t }}</span>
-        <input type="number" inputmode="numeric" formControlName="max_price" data-cy="search-max-price" />
+        <span>{{ (form.controls.deal_type.value === 'rent' ? 'form.rentFrom' : 'form.priceFrom') | t }}</span>
+        <input type="number" inputmode="numeric" formControlName="min_price" [placeholder]="'common.any' | t" data-cy="search-min-price" />
       </label>
       <label class="list__row">
-        <span>{{ 'form.minPrice' | t }}</span>
-        <input type="number" inputmode="numeric" formControlName="min_price" [placeholder]="'common.any' | t" data-cy="search-min-price" />
+        <span>{{ (form.controls.deal_type.value === 'rent' ? 'form.rentTo' : 'form.priceTo') | t }}</span>
+        <input type="number" inputmode="numeric" formControlName="max_price" data-cy="search-max-price" />
       </label>
       <label class="list__row">
         <span>{{ 'form.maxPerM2' | t }}</span>

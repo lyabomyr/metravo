@@ -18,6 +18,18 @@ describe('Alerts', () => {
     cy.get('[data-cy=no-chats]').should('be.visible');
   });
 
+  it('ALR-6 every page reminds you until Telegram is connected', () => {
+    cy.visit('/listings');
+    cy.get('[data-cy=connect-reminder]').should('be.visible').find('[data-cy=connect-reminder-action]').click();
+    cy.location('pathname').should('eq', '/welcome');
+    cy.get('[data-cy=connect-reminder]').should('not.exist'); // the setup page is the reminder
+
+    cy.api('POST', '/api/telegram/link').then(({ body }) => cy.telegramStart(body.private_url, Date.now() % 1e9));
+    cy.visit('/searches');
+    cy.get('[data-cy=nav-searches]').should('be.visible');
+    cy.get('[data-cy=connect-reminder]').should('not.exist');
+  });
+
   it('ALR-2 extra channels are Pro on the Free plan', () => {
     cy.visit('/alerts');
     ['email', 'whatsapp', 'viber', 'signal'].forEach((code) => {
