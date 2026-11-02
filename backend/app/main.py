@@ -40,6 +40,8 @@ def create_app(settings: Settings | None = None, container: Container | None = N
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         if settings.scheduler_enabled:
             container.scheduler.start()
+        if settings.telegram_bot_token:
+            container.background(container.bot_profile.publish)  # menu and descriptions, in every language
         yield
         container.scheduler.stop()
 

@@ -63,6 +63,7 @@ class Container:
         from ..services.telegram.formatter import ListingMessageFormatter
         from ..services.telegram.link_service import TelegramLinkService
         from ..services.telegram.notifier import TelegramSender
+        from ..services.telegram.profile import BotProfile
         from ..services.telegram.repository import TelegramRepository
         from ..services.users.repository import UserRepository
         from ..services.users.service import UserService
@@ -108,6 +109,7 @@ class Container:
         self.telegram_client = telegram_client or self._telegram_client()
         self.telegram_links = TelegramLinkService(telegram_repo, self.users, settings.telegram_bot_username, self.clock)
         self.telegram_dispatcher = self._telegram_dispatcher()
+        self.bot_profile = BotProfile(self.telegram_client, self.telegram_commands)
 
         formatter = ListingMessageFormatter(settings.frontend_url)
         senders = [TelegramSender(self.telegram_client, self.telegram_links, formatter)]
@@ -194,6 +196,7 @@ class Container:
             DisconnectCommand(self.telegram_links),
         ]
         commands.append(HelpCommand(commands, website))
+        self.telegram_commands = commands
         return CommandDispatcher(
             commands,
             self.telegram_links,

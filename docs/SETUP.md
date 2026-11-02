@@ -61,6 +61,11 @@ The bot delivers listings to users and alerts to admins.
    username ending in `bot` (e.g. `metravo_pl_bot`). BotFather replies with the token.
 2. Create a webhook secret: `openssl rand -hex 32`.
 
+Nothing else in BotFather: the API publishes the bot's command menu, its
+"What can this bot do?" text and profile line in English, Polish,
+Ukrainian and Russian every time it starts, and the deploy points the
+webhook at the API.
+
 | GitHub Secret | Used for |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | sending messages |

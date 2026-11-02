@@ -79,4 +79,6 @@ MESSAGES = {
     "tg.start.first_batch": "📬 Coming up: the {n} newest listings for your searches in one go. After that, only new ones, as they appear.",
     "places.unavailable": "Place search is not available right now. Try again in a minute, or pick a big city.",
     "plan.free_week_over": "Your free week is over, so checks and alerts are paused. Switch to Pro to carry on.",
+    "tg.about.description": "I watch Otodom, OLX, Morizon and bailiff auctions and send you every new flat or house that fits your search, a minute after it appears.\n\nSet up your search at metravo.pages.dev, then press Start here to get listings in this chat.",
+    "tg.about.short": "New flats and houses in Poland that fit your search, a minute after they appear.",
 }

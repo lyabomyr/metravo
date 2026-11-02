@@ -170,6 +170,8 @@ push ──► ci.yml
           3. copy GitHub Secrets to Render, start the API deploy
           4. build the site with the API address, publish it to Pages
           5. point the Telegram bot's webhook at the API
+          6. check production end to end (.github/scripts/smoke.py): site, API,
+             CORS, private endpoints, the bot's webhook and command menu
 ```
 
 Code that fails CI never reaches production, which is why `render.yaml` has
@@ -241,7 +243,8 @@ AGENTS.md                rules for AI agents working here
 | Google sign-in fails on a phone | The page was opened inside an app (Instagram, Messenger, …): Google refuses those browsers. Open it in Safari or Chrome — the page says so and offers “Copy link” |
 | Sign-in link does nothing | Firebase → Authentication → Settings → Authorized domains must contain `metravo.pages.dev` |
 | Render deploy fails right after start | Render → Logs → "Invalid configuration: …" names the missing or broken secret |
-| Bot is silent | The latest deploy's step "Point the Telegram bot" must say `Webhook was set` |
+| Bot is silent | The latest deploy's step "Check production end to end" names the problem (webhook elsewhere, delivery errors, no command menu) |
+| A deploy is red at "Check production end to end" | The line with ✗ says what does not work; the app is deployed, so fix that and run deploy again |
 | "Infrastructure (OpenTofu)" was skipped | `TF_STATE_PASSPHRASE` or `CLOUDFLARE_API_TOKEN` is missing |
 | No admin alerts | Your email must be in `ADMIN_EMAILS` **and** your account must have Telegram connected |
 | OLX finds nothing | OLX blocks some server IPs (403); the other portals are unaffected and you get an alert after 3 failures |

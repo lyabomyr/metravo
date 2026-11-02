@@ -112,6 +112,13 @@ jobs:
             -d "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
             -d 'allowed_updates=["message","my_chat_member"]'
 
+      - name: Check production end to end
+        if: vars.API_URL != '' || steps.api.outputs.url != ''
+        env:
+          API_URL: ${{ vars.API_URL || steps.api.outputs.url }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL || steps.pages.outputs.url || 'https://metravo.pages.dev' }}
+        run: python3 .github/scripts/smoke.py
+
       - name: Infrastructure failed — see the "Infrastructure (OpenTofu)" step
         if: steps.pages.outcome == 'failure'
         run: |

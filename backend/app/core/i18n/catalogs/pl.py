@@ -76,4 +76,6 @@ MESSAGES = {
     "tg.start.first_batch": "📬 Za chwilę: {n} najnowszych ogłoszeń dla Twoich wyszukiwań naraz. Potem już tylko nowe, gdy się pojawią.",
     "places.unavailable": "Wyszukiwanie miejscowości jest teraz niedostępne. Spróbuj za minutę albo wybierz duże miasto.",
     "plan.free_week_over": "Twój darmowy tydzień się skończył, więc sprawdzanie i powiadomienia są wstrzymane. Przejdź na Pro, aby kontynuować.",
+    "tg.about.description": "Obserwuję Otodom, OLX, Morizon i licytacje komornicze i wysyłam Ci każde nowe mieszkanie lub dom pasujące do Twojego wyszukiwania minutę po publikacji.\n\nUstaw wyszukiwanie na metravo.pages.dev, a potem naciśnij tu Start, aby dostawać ogłoszenia w tym czacie.",
+    "tg.about.short": "Nowe mieszkania i domy w Polsce pasujące do Twojego wyszukiwania, minutę po publikacji.",
 }

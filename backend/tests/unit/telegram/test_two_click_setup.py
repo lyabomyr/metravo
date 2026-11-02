@@ -97,3 +97,14 @@ def test_disconnect_in_telegram_unlinks_the_chat(container, sign_in, telegram):
     sent_before = len(telegram.outbox)
     container.scanner.run()
     assert len(telegram.outbox) == sent_before  # nothing goes to a disconnected chat
+
+
+def test_the_bot_describes_itself_and_its_commands_in_every_language(container, telegram):
+    container.bot_profile.publish()
+
+    english = telegram.profiles[None]  # Telegram's default, shown to every other language
+    assert [name for name, _ in english.commands] == ["start", "status", "pause", "resume", "disconnect", "help"]
+    assert "flat" in english.description.lower() and len(english.short_description) <= 120
+    assert set(telegram.profiles) == {None, "pl", "uk", "ru"}
+    assert telegram.profiles["uk"].commands[0][1] != english.commands[0][1]  # translated, not copied
+    assert all(len(profile.description) <= 512 for profile in telegram.profiles.values())
