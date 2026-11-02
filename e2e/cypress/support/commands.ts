@@ -75,6 +75,12 @@ export const expectListings = (expected: string[]) =>
     expect([...titles].map((title) => title.textContent!.trim()).sort()).to.deep.equal([...expected].sort());
   });
 
+/** Pick a segment (Buy/Rent, Flat/House) by its visible label, as a user does, and wait until it is selected. */
+export const chooseSegment = (dataCy: string) => {
+  cy.get(`[data-cy=${dataCy}]`).parent('label').click();
+  cy.get(`[data-cy=${dataCy}]`).should('be.checked');
+};
+
 /** Open the app at `path` with the tour already seen, as a returning user would. */
 export const visitAsReturning = (path: string) =>
   cy.visit(path, { onBeforeLoad: (win) => win.localStorage.setItem('metravo.introSeen', '1') });

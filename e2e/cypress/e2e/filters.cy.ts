@@ -1,4 +1,4 @@
-import { DEFAULT_MATCHES, expectListings, uniqueEmail } from '../support/commands';
+import { DEFAULT_MATCHES, chooseSegment, expectListings, uniqueEmail } from '../support/commands';
 
 const WIELICKA_OTODOM = '3 pokoje Wielicka';
 const WIELICKA_MORIZON = 'Wielicka 3 pokoje';
@@ -9,7 +9,10 @@ const NOWA_HUTA = 'Duże mieszkanie Nowa Huta';
 /** Fill the form like a user, save, then press “Check now”. */
 function searchFor(fields: Record<string, string>, options: { only?: string[]; extra?: string[]; rent?: boolean } = {}) {
   cy.visit('/searches/new');
-  if (options.rent) cy.get('[data-cy=deal-rent]').check({ force: true });
+  if (options.rent) {
+    chooseSegment('deal-rent');
+    cy.get('[data-cy=search-max-price]').should('have.value', '4000'); // the form has switched to renting
+  }
   for (const [field, value] of Object.entries(fields)) cy.get(`[data-cy=${field}]`).clear().type(value);
   if (options.only) {
     ['otodom', 'olx', 'morizon'].filter((source) => !options.only!.includes(source)).forEach((source) => cy.get(`[data-cy=source-${source}]`).uncheck());

@@ -1,4 +1,4 @@
-import { uniqueEmail } from '../support/commands';
+import { chooseSegment, uniqueEmail } from '../support/commands';
 
 describe('Search form', () => {
   beforeEach(() => cy.signIn(uniqueEmail('form')));
@@ -15,10 +15,10 @@ describe('Search form', () => {
 
   it('FORM-2 renting switches to a monthly budget and drops auctions', () => {
     cy.visit('/searches/new');
-    cy.get('[data-cy=deal-rent]').check({ force: true });
+    chooseSegment('deal-rent');
     cy.get('[data-cy=search-max-price]').should('have.value', '4000');
     cy.get('[data-cy=source-komornik]').should('be.disabled');
-    cy.get('[data-cy=deal-sale]').check({ force: true });
+    chooseSegment('deal-sale');
     cy.get('[data-cy=search-max-price]').should('have.value', '600000');
     cy.get('[data-cy=source-komornik]').should('be.enabled');
   });
