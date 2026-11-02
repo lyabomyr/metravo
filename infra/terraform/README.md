@@ -6,6 +6,7 @@ What can be described as code on the free tiers lives here. It is applied by
 | Piece | Managed by | Why |
 |---|---|---|
 | Cloudflare Pages project (the website) | **here** — `cloudflare.tf` | |
+| Uptime watcher: Worker, 5-minute cron, KV for its state | **here** — `monitoring.tf`, code in `../worker/uptime.js` | |
 | API on Render | `render.yaml` (Render Blueprint) | Render's API refuses to create free-tier services, and the Terraform provider cannot update them ([issue #80](https://github.com/render-oss/terraform-provider-render/issues/80)). The Blueprint is Render's own infrastructure-as-code. |
 | API settings (secrets) on Render | `.github/scripts/deploy.py` | copied from GitHub Secrets on every deploy |
 | Turso control database | created once with the `turso` CLI | no maintained provider; users' databases are created by the app itself |
@@ -16,7 +17,9 @@ What can be described as code on the free tiers lives here. It is applied by
 
 The state file is encrypted (AES-GCM, key from GitHub Secret
 `TF_STATE_PASSPHRASE`) and kept on the orphan branch `infra-state` of this
-repository — free, no extra account, and unreadable without the key. The
+repository — free, no extra account, and unreadable without the key. It
+must be encrypted: it holds the uptime Worker's secret bindings (bot token,
+control database token). The
 deploy job is serialised (`concurrency: deploy`), so two runs never write it
 at once.
 

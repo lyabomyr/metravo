@@ -1,3 +1,5 @@
+import type { TranslationKey } from '../../core/i18n/locales/en';
+
 export type DealType = 'sale' | 'rent';
 export type PropertyType = 'flat' | 'house';
 
@@ -49,9 +51,6 @@ export const DEFAULT_SEARCH: SearchDraft = {
   enabled: true,
 };
 
-/** 15 → "Every 15 min", 180 → "Every 3 h", 1440 → "Daily". */
-export function describeInterval(minutes: number): string {
-  if (minutes >= 1440) return minutes === 1440 ? 'Daily' : `Every ${minutes / 1440} days`;
-  if (minutes >= 60) return minutes === 60 ? 'Hourly' : `Every ${minutes / 60} h`;
-  return `Every ${minutes} min`;
-}
+/** How each choice reads in the UI. */
+export const DEAL_LABEL: Record<DealType, TranslationKey> = { sale: 'deal.sale', rent: 'deal.rent' };
+export const PROPERTY_LABEL: Record<PropertyType, TranslationKey> = { flat: 'property.flat', house: 'property.house' };

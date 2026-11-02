@@ -4,12 +4,13 @@ import { adminGuard, signedInGuard, signedOutGuard } from './core/auth/guards';
 
 /** Every page is lazy-loaded, so the first screen only downloads itself. */
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'listings' },
   {
-    path: 'login',
+    path: '',
+    pathMatch: 'full',
     canActivate: [signedOutGuard],
-    loadComponent: () => import('./features/auth/login.page').then((m) => m.LoginPage),
+    loadComponent: () => import('./features/landing/landing.page').then((m) => m.LandingPage),
   },
+  { path: 'login', redirectTo: '' },
   { path: 'auth/finish', loadComponent: () => import('./features/auth/finish-sign-in.page').then((m) => m.FinishSignInPage) },
   {
     path: '',
@@ -20,7 +21,8 @@ export const routes: Routes = [
       { path: 'searches', loadComponent: () => import('./features/searches/searches.page').then((m) => m.SearchesPage) },
       { path: 'searches/new', loadComponent: () => import('./features/searches/search-edit.page').then((m) => m.SearchEditPage) },
       { path: 'searches/:id', loadComponent: () => import('./features/searches/search-edit.page').then((m) => m.SearchEditPage) },
-      { path: 'telegram', loadComponent: () => import('./features/telegram/telegram.page').then((m) => m.TelegramPage) },
+      { path: 'alerts', loadComponent: () => import('./features/alerts/alerts.page').then((m) => m.AlertsPage) },
+      { path: 'telegram', redirectTo: 'alerts' },
       { path: 'database', loadComponent: () => import('./features/database/database.page').then((m) => m.DatabasePage) },
       { path: 'billing', loadComponent: () => import('./features/billing/billing.page').then((m) => m.BillingPage) },
       {
@@ -38,5 +40,5 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: 'listings' },
+  { path: '**', redirectTo: '' },
 ];

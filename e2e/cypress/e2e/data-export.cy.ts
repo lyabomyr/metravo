@@ -9,7 +9,7 @@ describe('Data export is available on every plan', () => {
     cy.api('POST', '/api/scan/mine');
   });
 
-  it('serves a real SQLite file and a CSV of listings', () => {
+  it('DATA-1 serves a real SQLite file and a CSV of listings', () => {
     cy.visit('/database');
     cy.get('[data-cy=db-name]').should('contain', 'u-');
     cy.get('[data-cy=download-db]').should('be.enabled');

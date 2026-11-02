@@ -1,0 +1,66 @@
+/* ---------- controls ---------- */
+
+.button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px 20px; border-radius: 99px; border: 0;
+  background: var(--fill); color: var(--primary); font: inherit; font-size: 16px; font-weight: 600;
+  cursor: pointer; text-decoration: none; user-select: none;
+  transition: transform 0.25s var(--spring), opacity 0.2s, background 0.2s;
+}
+.button:hover { opacity: 0.88; }
+.button:active { transform: scale(0.96); }
+.button--primary { background: var(--primary); color: var(--primary-text); box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent); }
+.button--danger { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.button--block { width: 100%; }
+.button--small { padding: 7px 14px; font-size: 14px; }
+.button:disabled { opacity: 0.45; cursor: default; transform: none; box-shadow: none; }
+.link { background: none; border: 0; color: var(--primary); cursor: pointer; font: inherit; padding: 0; }
+
+label { display: grid; gap: 6px; font-size: 15px; color: var(--muted); }
+input, select {
+  font: inherit; font-size: 17px; padding: 12px 14px; border-radius: 12px; border: 0;
+  background: var(--fill); color: var(--text); width: 100%;
+  transition: box-shadow 0.2s var(--ease);
+}
+input:focus, select:focus { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent); }
+input::placeholder { color: var(--muted); }
+
+/* iOS switch: <input type="checkbox" class="switch"> */
+.switch {
+  appearance: none; -webkit-appearance: none; flex: none; cursor: pointer;
+  width: 51px; height: 31px; padding: 0; border-radius: 99px; background: var(--fill); position: relative;
+  transition: background 0.25s var(--ease);
+}
+.switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%;
+  background: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
+  transition: transform 0.3s var(--spring);
+}
+.switch:checked { background: var(--success); }
+.switch:checked::after { transform: translateX(20px); }
+.switch:disabled { cursor: default; opacity: 0.5; }
+.switch:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent); }
+
+/* iOS segmented control: radios inside labels. */
+.segmented { display: inline-flex; padding: 2px; border-radius: 9px; background: var(--fill); gap: 2px; }
+.segmented label {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 76px; position: relative;
+  padding: 6px 14px; border-radius: 7px; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: background 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.25s var(--spring);
+}
+.segmented label:has(input:checked) { background: var(--surface); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04); font-weight: 600; }
+.segmented label:active { transform: scale(0.96); }
+.segmented input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+@media (prefers-color-scheme: dark) { .segmented label:has(input:checked) { background: #636366; } }
+
+.icon-button {
+  width: 30px; height: 30px; border-radius: 50%; border: 0; cursor: pointer; flex: none;
+  background: var(--fill); color: var(--primary); font: inherit; font-weight: 700; font-size: 15px;
+  transition: transform 0.25s var(--spring);
+}
+.icon-button:active { transform: scale(0.9); }
+
+/* The language picker: a quiet pill that still shows the native arrow. */
+.language {
+  width: auto; padding: 5px 8px; font-size: 13px; border-radius: 99px; background: var(--fill); color: var(--text); cursor: pointer;
+}

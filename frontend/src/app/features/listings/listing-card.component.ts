@@ -1,11 +1,12 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, input, signal } from '@angular/core';
 
+import { MoneyPipe, WhenPipe } from '../../core/i18n/format.pipes';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { Listing } from './listing.model';
 
 @Component({
   selector: 'app-listing-card',
-  imports: [DatePipe, DecimalPipe],
+  imports: [MoneyPipe, TranslatePipe, WhenPipe],
   template: `
     @let item = listing();
     <a class="card card--interactive listing" [href]="item.url" target="_blank" rel="noopener" data-cy="listing">
@@ -16,9 +17,9 @@ import { Listing } from './listing.model';
       }
       <div class="listing__body">
         <div class="listing__price">
-          {{ item.price !== null ? (item.price | number: '1.0-0') + ' zł' : 'Price on request' }}
+          {{ item.price !== null ? (item.price | money) : ('listings.priceOnRequest' | t) }}
           @if (item.price !== null && item.deal_type === 'rent') {
-            <span class="muted small">/ month</span>
+            <span class="muted small">{{ 'common.perMonth' | t }}</span>
           }
         </div>
         <div class="listing__meta">
@@ -26,17 +27,17 @@ import { Listing } from './listing.model';
             <span class="chip">{{ item.area }} m²</span>
           }
           @if (item.rooms) {
-            <span class="chip">{{ item.rooms }} rooms</span>
+            <span class="chip">{{ 'listings.rooms' | t: { n: item.rooms } }}</span>
           }
           @if (item.area && item.price && item.deal_type === 'sale') {
-            <span class="chip">{{ item.price / item.area | number: '1.0-0' }} zł/m²</span>
+            <span class="chip">{{ item.price / item.area | money }}/m²</span>
           }
         </div>
         <div class="listing__title">{{ item.title || 'Open listing' }}</div>
         <div class="listing__meta">{{ item.location }}</div>
         <div class="listing__meta">
           <span class="badge">{{ item.source }}</span>
-          <span>{{ item.first_seen_at | date: 'd MMM, HH:mm' }}</span>
+          <span>{{ item.first_seen_at | when }}</span>
         </div>
       </div>
     </a>

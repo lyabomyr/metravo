@@ -1,24 +1,24 @@
 <form class="stack" [formGroup]="form" (ngSubmit)="submit()">
   <div class="row">
-    <div class="segmented" role="radiogroup" aria-label="Deal">
-      <label><input type="radio" formControlName="deal_type" value="sale" data-cy="deal-sale" /> Buy</label>
-      <label><input type="radio" formControlName="deal_type" value="rent" data-cy="deal-rent" /> Rent</label>
+    <div class="segmented" role="radiogroup" [attr.aria-label]="'form.search' | t">
+      <label><input type="radio" formControlName="deal_type" value="sale" data-cy="deal-sale" /> {{ 'deal.sale' | t }}</label>
+      <label><input type="radio" formControlName="deal_type" value="rent" data-cy="deal-rent" /> {{ 'deal.rent' | t }}</label>
     </div>
-    <div class="segmented" role="radiogroup" aria-label="Property">
-      <label><input type="radio" formControlName="property_type" value="flat" data-cy="property-flat" /> Flat</label>
-      <label><input type="radio" formControlName="property_type" value="house" data-cy="property-house" /> House</label>
+    <div class="segmented" role="radiogroup">
+      <label><input type="radio" formControlName="property_type" value="flat" data-cy="property-flat" /> {{ 'property.flat' | t }}</label>
+      <label><input type="radio" formControlName="property_type" value="house" data-cy="property-house" /> {{ 'property.house' | t }}</label>
     </div>
   </div>
 
   <section>
-    <h3 class="section-title">Search</h3>
+    <h3 class="section-title">{{ 'form.search' | t }}</h3>
     <div class="list">
       <label class="list__row">
-        <span>Name</span>
+        <span>{{ 'form.name' | t }}</span>
         <input formControlName="name" data-cy="search-name" />
       </label>
       <label class="list__row">
-        <span>City</span>
+        <span>{{ 'form.city' | t }}</span>
         <select formControlName="city" data-cy="search-city">
           @for (city of config.cities; track city.key) {
             <option [value]="city.key">{{ city.label }}</option>
@@ -26,81 +26,84 @@
         </select>
       </label>
       <label class="list__row">
-        <span>Check for new</span>
+        <span>{{ 'form.frequency' | t }}</span>
         <select formControlName="interval_minutes" data-cy="search-interval">
           @for (minutes of config.scan_intervals; track minutes) {
             <option [ngValue]="minutes" [disabled]="minutes < planFloor()">
-              {{ describe(minutes) }}{{ minutes < planFloor() ? ' · Pro' : '' }}
+              {{ minutes | interval }}{{ minutes < planFloor() ? ' · Pro' : '' }}
             </option>
           }
         </select>
       </label>
     </div>
+    <p class="section-note">{{ 'form.frequencyHint' | t }}</p>
   </section>
 
   <section>
-    <h3 class="section-title">Price</h3>
+    <h3 class="section-title">{{ 'form.price' | t }}</h3>
     <div class="list">
       <label class="list__row">
-        <span>{{ form.controls.deal_type.value === 'rent' ? 'Max rent, zł / month' : 'Budget, zł' }}</span>
+        <span>{{ (form.controls.deal_type.value === 'rent' ? 'form.maxRent' : 'form.budget') | t }}</span>
         <input type="number" inputmode="numeric" formControlName="max_price" data-cy="search-max-price" />
       </label>
       <label class="list__row">
-        <span>Min price, zł</span>
-        <input type="number" inputmode="numeric" formControlName="min_price" placeholder="Any" />
+        <span>{{ 'form.minPrice' | t }}</span>
+        <input type="number" inputmode="numeric" formControlName="min_price" [placeholder]="'common.any' | t" data-cy="search-min-price" />
       </label>
       <label class="list__row">
-        <span>Max zł per m²</span>
-        <input type="number" inputmode="numeric" formControlName="max_price_per_m2" placeholder="Any" data-cy="search-max-per-m2" />
+        <span>{{ 'form.maxPerM2' | t }}</span>
+        <input type="number" inputmode="numeric" formControlName="max_price_per_m2" [placeholder]="'common.any' | t" data-cy="search-max-per-m2" />
       </label>
     </div>
   </section>
 
   <section>
-    <h3 class="section-title">Size</h3>
+    <h3 class="section-title">{{ 'form.size' | t }}</h3>
     <div class="list">
       <label class="list__row">
-        <span>Min area, m²</span>
+        <span>{{ 'form.minArea' | t }}</span>
         <input type="number" inputmode="decimal" formControlName="min_area" data-cy="search-min-area" />
       </label>
       <label class="list__row">
-        <span>Max area, m²</span>
-        <input type="number" inputmode="decimal" formControlName="max_area" placeholder="Any" />
+        <span>{{ 'form.maxArea' | t }}</span>
+        <input type="number" inputmode="decimal" formControlName="max_area" [placeholder]="'common.any' | t" data-cy="search-max-area" />
       </label>
       <label class="list__row">
-        <span>Rooms from</span>
-        <input type="number" inputmode="numeric" formControlName="min_rooms" placeholder="Any" data-cy="search-min-rooms" />
+        <span>{{ 'form.roomsFrom' | t }}</span>
+        <input type="number" inputmode="numeric" formControlName="min_rooms" [placeholder]="'common.any' | t" data-cy="search-min-rooms" />
       </label>
       <label class="list__row">
-        <span>Rooms up to</span>
-        <input type="number" inputmode="numeric" formControlName="max_rooms" placeholder="Any" />
+        <span>{{ 'form.roomsTo' | t }}</span>
+        <input type="number" inputmode="numeric" formControlName="max_rooms" [placeholder]="'common.any' | t" data-cy="search-max-rooms" />
       </label>
       <label class="list__row">
-        <span>Built after</span>
-        <input type="number" inputmode="numeric" formControlName="min_build_year" placeholder="Any" />
+        <span>{{ 'form.builtAfter' | t }}</span>
+        <input type="number" inputmode="numeric" formControlName="min_build_year" [placeholder]="'common.any' | t" data-cy="search-build-year" />
       </label>
     </div>
   </section>
 
   <section>
-    <h3 class="section-title">Must mention</h3>
+    <h3 class="section-title">{{ 'form.mustMention' | t }}</h3>
     <div class="list">
       <label class="list__row list__row--stacked">
         <input formControlName="required_keywords" placeholder="balkon, winda" data-cy="search-required" />
       </label>
     </div>
-    <p class="section-note">Comma-separated. Leave empty to accept any listing.</p>
+    <p class="section-note">{{ 'form.mustMentionHint' | t }}</p>
   </section>
 
   <section>
-    <h3 class="section-title">Portals</h3>
+    <h3 class="section-title">{{ 'form.portals' | t }}</h3>
     <div class="list">
       @for (source of config.sources; track source) {
         <label class="list__row" [class.list__row--disabled]="!supports(source)">
           <span>
             {{ source }}
             @if (!supports(source)) {
-              <span class="list__hint"> · not available for this search</span>
+              <span class="list__hint"> · {{ 'form.notAvailable' | t }}</span>
+            } @else if (!planAllows(source)) {
+              <span class="badge badge--pro">Pro</span>
             }
           </span>
           <input
@@ -117,6 +120,6 @@
   </section>
 
   <button class="button button--primary button--block" type="submit" [disabled]="busy() || form.invalid" data-cy="search-save">
-    {{ submitLabel() }}
+    {{ submitLabel() || ('common.save' | t) }}
   </button>
 </form>

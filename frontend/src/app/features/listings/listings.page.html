@@ -1,9 +1,9 @@
-<app-page-header title="Listings" subtitle="Everything your searches matched, newest first.">
+<app-page-header [title]="'listings.title' | t" [subtitle]="'listings.subtitle' | t">
   <button class="button button--primary" type="button" (click)="scanNow()" [disabled]="loading()" data-cy="scan-now">
     @if (loading()) {
-      <span class="spinner"></span> Checking…
+      <span class="spinner"></span> {{ 'listings.checking' | t }}
     } @else {
-      Check now
+      ↻ {{ 'listings.checkNow' | t }}
     }
   </button>
 </app-page-header>
@@ -13,22 +13,22 @@
 @if (lastScan(); as report) {
   <div class="banner banner--success" data-cy="scan-report">
     @if (report.searches_scanned) {
-      Checked {{ report.searches_scanned }} search(es): {{ report.new_listings }} new, {{ report.price_changes }} price change(s).
+      {{ 'listings.report' | t: { searches: report.searches_scanned, new: report.new_listings, changes: report.price_changes } }}
     } @else {
-      Nothing to check yet — your searches ran recently and will run again on their schedule.
+      {{ 'listings.nothingDue' | t }}
     }
   </div>
 }
 
 @if (priceChanges().length) {
   <section class="stack" style="margin-bottom: 20px">
-    <h3 class="section-title">Price changes</h3>
+    <h3 class="section-title">{{ 'listings.priceChanges' | t }}</h3>
     <div class="list">
       @for (change of priceChanges(); track change.key + change.changed_at) {
         <a class="list__row price-change" [href]="change.url" target="_blank" rel="noopener">
           <span>{{ change.title }}</span>
-          <span class="muted small"><s>{{ change.old_price | number: '1.0-0' }}</s></span>
-          <span class="price-change__drop">{{ change.new_price | number: '1.0-0' }} zł</span>
+          <span class="muted small"><s>{{ change.old_price | money }}</s></span>
+          <span class="price-change__drop">{{ change.new_price | money }}</span>
         </a>
       }
     </div>
@@ -42,7 +42,8 @@
     @if (!loading()) {
       <div class="empty" data-cy="no-listings">
         <div class="empty__icon">🏡</div>
-        <p>Nothing yet. Make sure you have a <a routerLink="/searches">search</a>, then press “Check now”.</p>
+        <p>{{ 'listings.empty' | t }}</p>
+        <a class="button" routerLink="/searches">{{ 'nav.searches' | t }}</a>
       </div>
     }
   }

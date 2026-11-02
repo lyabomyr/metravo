@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
@@ -11,9 +12,9 @@ import { SearchesApiService } from './searches-api.service';
 /** Creates a search at `/searches/new`, edits one at `/searches/:id`. */
 @Component({
   selector: 'app-search-edit-page',
-  imports: [ErrorBannerComponent, PageHeaderComponent, SearchFormComponent],
+  imports: [ErrorBannerComponent, PageHeaderComponent, SearchFormComponent, TranslatePipe],
   template: `
-    <app-page-header [title]="id() ? 'Edit search' : 'New search'" />
+    <app-page-header [title]="(id() ? 'searches.editTitle' : 'searches.newTitle') | t" />
     <app-error-banner [error]="error()" />
     <section class="card">
       <app-search-form [value]="draft()" [busy]="loading()" (saved)="save($event)" />

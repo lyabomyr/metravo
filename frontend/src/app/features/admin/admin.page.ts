@@ -9,11 +9,12 @@ import { PageHeaderComponent } from '../../core/ui/page-header.component';
 import { ScanReport } from '../listings/listing.model';
 import { ScanApiService } from '../listings/scan-api.service';
 import { AdminApiService, Overview } from './admin-api.service';
+import { SystemHealthComponent } from './system-health.component';
 
 /** Service management. Reads the control database; never opens a user's own data. */
 @Component({
   selector: 'app-admin-page',
-  imports: [DatePipe, KeyValuePipe, ErrorBannerComponent, PageHeaderComponent],
+  imports: [DatePipe, KeyValuePipe, ErrorBannerComponent, PageHeaderComponent, SystemHealthComponent],
   templateUrl: './admin.page.html',
 })
 export class AdminPage extends BasePage implements OnInit {

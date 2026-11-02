@@ -1,0 +1,170 @@
+# Setting up Metravo from zero
+
+This guide covers every account, every value, where each value comes from,
+where it goes and what it is for. Each account is created **once**. Every
+value is stored in **one place**:
+
+> GitHub → the repository → **Settings → Secrets and variables → Actions**
+> *Secrets* are hidden (tokens, keys). *Variables* are visible (your admin email).
+
+Nothing is typed into Render or Cloudflare by hand. The deploy workflow copies
+the secrets to Render and finds both public addresses by itself.
+
+Total time is about 40 minutes. The order matters only where noted.
+
+---
+
+## 1. Turso — the databases
+
+Turso hosts the control database and creates one database per user.
+
+```bash
+brew install tursodatabase/tap/turso
+turso auth signup                          # sign in with GitHub
+turso db create metravo-control            # the control database
+turso db show metravo-control --url        # → CONTROL_DB_URL   (libsql://metravo-control-<org>.turso.io)
+turso db tokens create metravo-control     # → CONTROL_DB_TOKEN
+turso auth api-tokens mint metravo         # → TURSO_API_TOKEN
+turso org list                             # → TURSO_ORG        (the slug in the first column)
+```
+
+| GitHub Secret | Used for |
+|---|---|
+| `CONTROL_DB_URL` | where the API and the uptime Worker find the control database |
+| `CONTROL_DB_TOKEN` | access to it |
+| `TURSO_API_TOKEN` | lets the API **create a database for each new user** and issue credentials to it |
+| `TURSO_ORG` | the Turso organisation those databases are created in |
+
+## 2. Firebase — sign-in
+
+Firebase verifies emails (sign-in link) and Google accounts. It never sees any data.
+
+1. https://console.firebase.google.com → **Create a project** → `metravo`; Analytics off.
+2. **Build → Authentication → Get started → Sign-in method**:
+   - **Email/Password** → enable **Email link (passwordless sign-in)** → Save.
+   - **Add new provider → Google** → Enable → choose a support email → Save.
+     *Without this, the Google button fails with `auth/operation-not-allowed`.*
+3. **Project settings (gear) → General → Your apps → `</>`** → register the app `metravo-web`.
+   Copy the `firebaseConfig` block. Pasting it whole is fine, including
+   `const firebaseConfig = …`: the backend reads both that form and JSON.
+4. **Authentication → Settings → Authorized domains → Add domain** → `metravo.pages.dev`
+   (or your own domain).
+
+| GitHub Secret | Used for |
+|---|---|
+| `FIREBASE_PROJECT_ID` | `projectId` from the config — the API checks every sign-in token was issued for this project |
+| `FIREBASE_WEB_CONFIG` | the whole config — the website shows the sign-in form with it (public by design, kept with the rest for one place) |
+
+## 3. Telegram — the bot
+
+The bot delivers listings to users and alerts to admins.
+
+1. In Telegram, open **@BotFather** → `/newbot` → a name (`Metravo`) and a
+   username ending in `bot` (e.g. `metravo_pl_bot`). BotFather replies with the token.
+2. Create a webhook secret: `openssl rand -hex 32`.
+
+| GitHub Secret | Used for |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | sending messages |
+| `TELEGRAM_BOT_USERNAME` | building the two-click link `t.me/<bot>?start=<code>` |
+| `TELEGRAM_WEBHOOK_SECRET` | Telegram sends it with every update; anything without it is rejected |
+
+## 4. Cloudflare — website and uptime watcher
+
+1. https://dash.cloudflare.com → sign up.
+2. **My Profile → API Tokens → Create Token** → template **Edit Cloudflare Workers** → Continue → Create.
+   The template also covers Pages and Workers KV.
+3. **Account ID**: on the account home page, right-hand column ("API" section).
+
+| GitHub Secret | Used for |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | OpenTofu creates the Pages project, the uptime Worker and its cron; `wrangler` uploads the site |
+| `CLOUDFLARE_ACCOUNT_ID` | which account |
+
+Do not create the Pages project by hand: the first deploy creates `metravo`
+through the Cloudflare API, and the site appears at `https://metravo.pages.dev`.
+
+## 5. The infrastructure state key
+
+OpenTofu records what it created in a state file. The file is encrypted with
+this key and kept on the branch `infra-state`.
+
+```bash
+openssl rand -hex 32
+```
+
+| GitHub Secret | Used for |
+|---|---|
+| `TF_STATE_PASSPHRASE` | encrypts the infrastructure state; without it the infrastructure step is skipped |
+
+## 6. Push the code
+
+```bash
+git push -u origin main
+```
+
+## 7. Render — the API (needs step 6)
+
+1. https://render.com → **Sign in with GitHub** → allow access to the `metravo` repository.
+2. **New → Blueprint** → pick `metravo` → **Apply**. This creates the service
+   `metravo-api` from `render.yaml`. The first start fails because no settings
+   exist yet; that is expected.
+3. **Account Settings → API Keys → Create API Key**.
+
+| GitHub Secret | Used for |
+|---|---|
+| `RENDER_API_KEY` | the deploy copies the secrets to Render, starts the deploy and reads the API address |
+
+`JWT_SECRET`, which signs user sessions, is generated by Render once and never
+leaves it.
+
+## 8. You as the admin (recommended)
+
+GitHub → **Variables → New variable**: `ADMIN_EMAILS` = your email (comma-separate several).
+
+That opens the Admin page for you, including **System**. After you connect
+Telegram on the website, it also sends the monitoring alerts to your chat.
+
+## 9. Deploy
+
+**Actions → deploy → Run workflow**. After this it runs by itself after every
+green CI on `main`. Its log shows the site address (step "Infrastructure") and
+the API address (step "Find the API address").
+
+## 10. Check it works
+
+1. https://metravo-api.onrender.com/api/health → `{"status":"ok"}`
+2. https://metravo.pages.dev → sign in with your email (the link comes from Firebase) and with Google.
+3. Follow the tour, save a search, then **Open Telegram → Start**.
+4. **Listings → Check now** → listings appear on the site and in Telegram.
+5. **Plan** shows Free (0 zł, current) and Pro (coming soon).
+6. **Admin → System** shows memory and CPU; Telegram gets alerts if something breaks.
+
+---
+
+## Everything in one table
+
+| Kind | Name | Comes from |
+|---|---|---|
+| Secret | `CONTROL_DB_URL`, `CONTROL_DB_TOKEN`, `TURSO_API_TOKEN`, `TURSO_ORG` | Turso CLI (1) |
+| Secret | `FIREBASE_PROJECT_ID`, `FIREBASE_WEB_CONFIG` | Firebase console (2) |
+| Secret | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | BotFather, `openssl` (3) |
+| Secret | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard (4) |
+| Secret | `TF_STATE_PASSPHRASE` | `openssl` (5) |
+| Secret | `RENDER_API_KEY` | Render account settings (7) |
+| Variable | `ADMIN_EMAILS` | you (8) |
+| Variable, optional | `API_URL`, `FRONTEND_URL` | only to override the discovered addresses, e.g. for your own domain |
+
+Settings that are not secret live in code: `render.yaml` holds the plan
+switches, the launch date of Pro and the instance limits used by the monitor,
+and `infra/terraform/` holds the infrastructure.
+
+## Later: turning on payments
+
+1. https://dashboard.stripe.com → product "Metravo Pro", recurring 19 PLN/month → copy the price id.
+2. Developers → API keys → secret key. Developers → Webhooks → endpoint
+   `https://metravo-api.onrender.com/api/billing/webhook` with events
+   `checkout.session.completed`, `customer.subscription.updated`,
+   `customer.subscription.deleted` → signing secret.
+3. GitHub Secrets: `STRIPE_PRICE_PRO`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+4. `render.yaml`: `BILLING_PROVIDER: stripe` → merge. The deploy already passes the three secrets.

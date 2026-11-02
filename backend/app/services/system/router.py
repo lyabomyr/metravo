@@ -32,5 +32,6 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "source_capabilities": container.connectors.capabilities(),
         "scan_intervals": list(SCAN_INTERVALS),
         "plan_min_intervals": {plan.code: plan.min_interval_minutes for plan in container.plans},
+        "plan_sources": {plan.code: list(plan.sources) for plan in container.plans},
         "cities": [{"key": city.key, "label": city.label} for city in CITIES],
     }

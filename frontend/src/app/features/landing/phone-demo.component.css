@@ -1,0 +1,28 @@
+.phone { margin: 0; display: grid; gap: 10px; justify-items: center; }
+.phone__screen {
+  width: min(320px, 100%); height: 440px; border-radius: 38px; overflow: hidden; position: relative;
+  background: linear-gradient(180deg, #c8dbe9, #e5d8c7); border: 10px solid #1c1c1e;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+@media (prefers-color-scheme: dark) { .phone__screen { background: linear-gradient(180deg, #1b2a38, #24201b); } }
+.phone__bar {
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px; font-size: 14px; line-height: 1.2;
+  background: var(--bar); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: var(--text);
+}
+.phone__avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); }
+.phone__status { color: var(--muted); font-size: 12px; }
+.phone__chat { padding: 14px 12px; display: grid; gap: 10px; align-content: start; }
+.bubble {
+  background: var(--surface); color: var(--text); border-radius: 16px 16px 16px 4px; padding: 10px 12px;
+  font-size: 12.5px; line-height: 1.45; display: grid; gap: 3px; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
+  opacity: 0; transform: translateY(16px) scale(0.96); transform-origin: bottom left;
+  animation: arrive 9s var(--spring) infinite; animation-delay: calc(var(--i) * 1.4s);
+}
+.bubble u { color: var(--primary); text-decoration: none; font-weight: 600; }
+.bubble i { color: var(--muted); }
+@keyframes arrive {
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  6%, 80% { opacity: 1; transform: none; }
+  92%, 100% { opacity: 0; transform: translateY(-8px); }
+}
+@media (prefers-reduced-motion: reduce) { .bubble { animation: none; opacity: 1; transform: none; } }

@@ -1,51 +1,46 @@
-<app-page-header title="My data" subtitle="Your searches and listings live in a database that belongs to your account only." />
+<app-page-header [title]="'data.title' | t" [subtitle]="'data.subtitle' | t" />
 
 <app-error-banner [error]="error()" />
 
 @if (info(); as info) {
   <section class="card stack" style="margin-bottom: 16px">
-    <h2>Your database</h2>
+    <h2>🗄️ {{ 'data.yours' | t }}</h2>
     <p class="muted" data-cy="db-name">
-      <code>{{ info.db_name }}</code> · {{ info.provider }} · created {{ info.created_at | date: 'mediumDate' }}
+      <code>{{ info.db_name }}</code> · {{ info.provider }} · {{ 'data.created' | t: { date: (info.created_at | when: 'date') } }}
     </p>
   </section>
 }
 
 <section class="card stack" style="margin-bottom: 16px">
-  <h2>Download</h2>
-  <p class="muted">Free on every plan. The SQLite file opens in any database tool.</p>
+  <h2>⬇️ {{ 'data.download' | t }}</h2>
+  <p class="muted">{{ 'data.downloadHint' | t }}</p>
   <div class="row">
-    <button class="button" type="button" (click)="downloadDatabase()" [disabled]="loading()" data-cy="download-db">
-      ⬇ Whole database (.sqlite)
-    </button>
-    <button class="button" type="button" (click)="downloadCsv()" [disabled]="loading()" data-cy="download-csv">
-      ⬇ Listings (.csv)
-    </button>
+    <button class="button" type="button" (click)="downloadDatabase()" [disabled]="loading()" data-cy="download-db">{{ 'data.sqlite' | t }}</button>
+    <button class="button" type="button" (click)="downloadCsv()" [disabled]="loading()" data-cy="download-csv">{{ 'data.csv' | t }}</button>
   </div>
 </section>
 
 <section class="card stack">
-  <h2>Direct access</h2>
+  <h2>🔑 {{ 'data.direct' | t }}</h2>
   @if (info()?.credentials_available) {
-    <p class="muted">Connect your own tools straight to your database. Each click issues a fresh token.</p>
+    <p class="muted">{{ 'data.directHint' | t }}</p>
     <div class="row">
-      <button class="button button--primary" type="button" (click)="showCredentials(true)" data-cy="credentials-read">
-        Read-only credentials
-      </button>
-      <button class="button" type="button" (click)="showCredentials(false)" data-cy="credentials-full">Full-access credentials</button>
+      <button class="button button--primary" type="button" (click)="showCredentials(true)" data-cy="credentials-read">{{ 'data.readOnly' | t }}</button>
+      <button class="button" type="button" (click)="showCredentials(false)" data-cy="credentials-full">{{ 'data.full' | t }}</button>
     </div>
     @if (credentials(); as credentials) {
       <div class="stack" data-cy="credentials">
         <label>URL <span class="secret">{{ credentials.url }}</span></label>
         @if (credentials.token) {
-          <label>Token ({{ credentials.read_only ? 'read-only' : 'full access' }}) <span class="secret">{{ credentials.token }}</span></label>
+          <label>
+            {{ 'data.token' | t }} ({{ (credentials.read_only ? 'data.readOnlyToken' : 'data.fullToken') | t }})
+            <span class="secret">{{ credentials.token }}</span>
+          </label>
         }
         <p class="muted">{{ credentials.how_to_connect }}</p>
       </div>
     }
   } @else {
-    <p class="muted" data-cy="credentials-locked">
-      Direct database access is part of Pro. <a routerLink="/billing">Upgrade →</a>
-    </p>
+    <p class="muted" data-cy="credentials-locked">{{ 'data.locked' | t }} <a routerLink="/billing">{{ 'common.upgrade' | t }}</a></p>
   }
 </section>

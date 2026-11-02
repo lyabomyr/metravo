@@ -4,45 +4,48 @@
       <span class="brand__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2.5 10.6a1 1 0 0 0 1.25 1.56L5 11.15V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-8.85l1.25 1.01a1 1 0 0 0 1.25-1.56z"/></svg>
       </span>
-      Metravo
+      <span class="brand__name">Metravo</span>
     </a>
 
     <nav class="tabs" aria-label="Main">
       <a routerLink="/listings" routerLinkActive="active" data-cy="nav-listings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
-        Listings
+        {{ 'nav.listings' | t }}
       </a>
       <a routerLink="/searches" routerLinkActive="active" data-cy="nav-searches">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        Searches
+        {{ 'nav.searches' | t }}
       </a>
-      <a routerLink="/telegram" routerLinkActive="active" data-cy="nav-telegram">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 4 3 11l6 2.5L19 7l-8 8 6.5 5z"/></svg>
-        Telegram
+      <a routerLink="/alerts" routerLinkActive="active" data-cy="nav-alerts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        {{ 'nav.alerts' | t }}
       </a>
       <a routerLink="/database" routerLinkActive="active" data-cy="nav-database">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
-        My data
+        {{ 'nav.data' | t }}
       </a>
       <a routerLink="/billing" routerLinkActive="active" data-cy="nav-billing">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>
-        Plan
+        {{ 'nav.plan' | t }}
       </a>
       @if (user.is_admin) {
         <a routerLink="/admin" routerLinkActive="active" data-cy="nav-admin">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
-          Admin
+          {{ 'nav.admin' | t }}
         </a>
       }
     </nav>
 
     <div class="account">
+      <app-language-switcher />
+      <button class="icon-button" type="button" (click)="intro.open()" [attr.aria-label]="'nav.help' | t" [title]="'nav.help' | t" data-cy="help">?</button>
       <span class="badge" [class.badge--pro]="user.plan === 'pro'" data-cy="plan-badge">{{ user.plan }}</span>
       <span class="muted account__email" data-cy="user-email">{{ user.email }}</span>
-      <button class="link" type="button" (click)="signOut()" data-cy="sign-out">Sign out</button>
+      <button class="link" type="button" (click)="signOut()" data-cy="sign-out">{{ 'nav.signOut' | t }}</button>
     </div>
   </header>
+  <app-intro-tour />
 }
-<main class="container">
+<main [class.container]="session.user()" [class.page]="!session.user()">
   <router-outlet />
 </main>

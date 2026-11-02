@@ -14,7 +14,12 @@ describe('toApiError', () => {
     expect(toApiError(error).message).toBe('field required');
   });
 
-  it('explains an unreachable server', () => {
-    expect(toApiError(new HttpErrorResponse({ status: 0 })).message).toContain('Cannot reach the server');
+  it('explains an unreachable server in the user language', () => {
+    expect(toApiError(new HttpErrorResponse({ status: 0 })).key).toBe('errors.network');
+  });
+
+  it('turns a disabled Firebase sign-in method into advice', () => {
+    const error = Object.assign(new Error('Firebase: Error (auth/operation-not-allowed).'), { code: 'auth/operation-not-allowed' });
+    expect(toApiError(error).key).toBe('errors.firebase.disabled');
   });
 });

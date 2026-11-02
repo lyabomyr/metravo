@@ -1,0 +1,131 @@
+<header class="lnav">
+  <a class="brand" href="/">
+    <span class="brand__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2.5 10.6a1 1 0 0 0 1.25 1.56L5 11.15V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-8.85l1.25 1.01a1 1 0 0 0 1.25-1.56z"/></svg>
+    </span>
+    Metravo
+  </a>
+  <nav class="lnav__links">
+    <a href="#how">{{ 'landing.nav.how' | t }}</a>
+    <a href="#cases">{{ 'landing.nav.cases' | t }}</a>
+    <a href="#pricing">{{ 'landing.nav.pricing' | t }}</a>
+    <a href="#faq">{{ 'landing.nav.faq' | t }}</a>
+  </nav>
+  <app-language-switcher />
+  <button class="button button--small button--primary" type="button" (click)="toStart()" data-cy="landing-sign-in">
+    {{ 'landing.nav.signIn' | t }}
+  </button>
+</header>
+
+<section class="hero">
+  <div class="hero__copy stack">
+    <span class="pill">{{ 'landing.hero.badge' | t }}</span>
+    <h1 class="hero__title" data-cy="hero-title">{{ 'landing.hero.title' | t }}</h1>
+    <p class="hero__lead">{{ 'landing.hero.subtitle' | t }}</p>
+    <ul class="hero__points">
+      <li>✓ {{ 'landing.hero.point1' | t }}</li>
+      <li>✓ {{ 'landing.hero.point2' | t }}</li>
+      <li>✓ {{ 'landing.hero.point3' | t }}</li>
+    </ul>
+    <app-sign-in-card />
+  </div>
+  <app-phone-demo />
+</section>
+
+<section class="lsection">
+  <h2 class="lsection__title">{{ 'landing.problem.title' | t }}</h2>
+  <div class="tiles">
+    @for (item of problems; track item.title) {
+      <article class="tile">
+        <span class="tile__icon">{{ item.icon }}</span>
+        <h3>{{ item.title | t }}</h3>
+        <p class="muted">{{ item.text | t }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="lsection" id="how">
+  <h2 class="lsection__title">{{ 'landing.how.title' | t }}</h2>
+  <ol class="steps-row">
+    @for (step of steps; track step.title; let n = $index) {
+      <li class="tile">
+        <span class="step__number">{{ n + 1 }}</span>
+        <h3>{{ step.icon }} {{ step.title | t }}</h3>
+        <p class="muted">{{ step.text | t }}</p>
+      </li>
+    }
+  </ol>
+</section>
+
+<section class="lsection" id="cases">
+  <h2 class="lsection__title">{{ 'landing.cases.title' | t }}</h2>
+  <div class="cases">
+    @for (item of cases; track item.title) {
+      <article class="case" data-cy="use-case">
+        <img [src]="item.image" alt="" loading="lazy" />
+        <div class="case__text">
+          <h3>{{ item.title | t }}</h3>
+          <p>{{ item.text | t }}</p>
+        </div>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="lsection">
+  <h2 class="lsection__title">{{ 'landing.features.title' | t }}</h2>
+  <div class="tiles tiles--three">
+    @for (item of features; track item.title) {
+      <article class="tile">
+        <span class="tile__icon">{{ item.icon }}</span>
+        <h3>{{ item.title | t }}</h3>
+        <p class="muted">{{ item.text | t }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="lsection" id="pricing">
+  <h2 class="lsection__title">{{ 'landing.pricing.title' | t }}</h2>
+  <div class="pricing">
+    @for (plan of plans(); track plan.code) {
+      <app-plan-card [plan]="plan">
+        <p class="muted small">{{ (plan.price_pln ? 'landing.pricing.pro' : 'landing.pricing.free') | t }}</p>
+        @if (plan.price_pln && !plan.on_sale && plan.available_from) {
+          <span class="badge badge--warning">{{ 'landing.pricing.soon' | t: { date: (plan.available_from | when: 'date') } }}</span>
+        } @else if (!plan.price_pln) {
+          <button class="button button--primary button--block" type="button" (click)="toStart()">{{ 'landing.pricing.start' | t }}</button>
+        }
+      </app-plan-card>
+    }
+  </div>
+</section>
+
+<section class="lsection" id="faq">
+  <h2 class="lsection__title">{{ 'landing.faq.title' | t }}</h2>
+  <div class="list faq">
+    @for (item of faq; track item.question) {
+      <details class="list__row faq__item">
+        <summary>{{ item.question | t }}</summary>
+        <p class="muted">{{ item.answer | t }}</p>
+      </details>
+    }
+  </div>
+</section>
+
+<section class="cta">
+  <h2>{{ 'landing.cta.title' | t }}</h2>
+  <button class="button button--primary" type="button" (click)="toStart()" data-cy="cta">{{ 'landing.cta.button' | t }}</button>
+</section>
+
+<footer class="lfooter small muted">
+  <span>© Metravo</span>
+  <span>
+    {{ 'landing.footer.photos' | t }}:
+    @for (credit of credits; track credit.source; let last = $last) {
+      <a [href]="credit.source" target="_blank" rel="noopener">{{ credit.author }}</a> ({{ credit.license }}){{ last ? '' : ', ' }}
+    }
+    — Wikimedia Commons
+  </span>
+</footer>

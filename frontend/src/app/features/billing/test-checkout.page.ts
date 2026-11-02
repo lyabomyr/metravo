@@ -1,6 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { BillingApiService } from './billing-api.service';
@@ -11,15 +12,15 @@ import { BillingApiService } from './billing-api.service';
  */
 @Component({
   selector: 'app-test-checkout-page',
-  imports: [ErrorBannerComponent],
+  imports: [ErrorBannerComponent, TranslatePipe],
   template: `
     <section class="card stack" style="max-width: 440px; margin: 48px auto">
-      <span class="badge">test mode</span>
-      <h1>Pay for {{ plan() }}</h1>
-      <p class="muted">No real money moves. In production this page is Stripe Checkout.</p>
+      <span class="badge">{{ 'billing.testMode' | t }}</span>
+      <h1>{{ 'billing.testPayTitle' | t: { plan: plan() ?? '' } }}</h1>
+      <p class="muted">{{ 'billing.testNoMoney' | t }}</p>
       <app-error-banner [error]="error()" />
-      <button class="button button--primary" type="button" (click)="pay()" [disabled]="loading()" data-cy="test-pay">Pay (test)</button>
-      <button class="link" type="button" (click)="cancel()">Cancel</button>
+      <button class="button button--primary" type="button" (click)="pay()" [disabled]="loading()" data-cy="test-pay">{{ 'billing.testPay' | t }}</button>
+      <button class="link" type="button" (click)="cancel()">{{ 'common.cancel' | t }}</button>
     </section>
   `,
 })

@@ -45,6 +45,8 @@ export class FirebaseAuthClient {
   private async load() {
     const [{ initializeApp, getApps }, sdk] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
     const app = getApps()[0] ?? initializeApp(this.publicConfig.value.firebase ?? {});
-    return { auth: sdk.getAuth(app), sdk };
+    const auth = sdk.getAuth(app);
+    auth.languageCode = document.documentElement.lang || 'en'; // sign-in emails in the user's language
+    return { auth, sdk };
   }
 }

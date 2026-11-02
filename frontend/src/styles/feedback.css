@@ -1,0 +1,30 @@
+/* ---------- feedback ---------- */
+
+.banner {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 12px 16px; border-radius: 14px; margin-bottom: var(--gap); font-size: 15px;
+  animation: pop 0.4s var(--spring) both;
+}
+@keyframes pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: none; } }
+.banner--error { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.banner--success { background: color-mix(in srgb, var(--success) 14%, transparent); color: color-mix(in srgb, var(--success) 70%, var(--text)); }
+.banner--info { background: color-mix(in srgb, var(--primary) 10%, transparent); color: var(--text); }
+.banner a { font-weight: 600; }
+
+.badge {
+  display: inline-flex; align-items: center; justify-self: start; align-self: center; gap: 4px;
+  font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px;
+  background: var(--fill); color: var(--muted); text-transform: capitalize; white-space: nowrap;
+}
+.badge--pro { background: linear-gradient(135deg, var(--purple), var(--primary)); color: #fff; text-transform: uppercase; letter-spacing: 0.4px; }
+.badge--success { background: color-mix(in srgb, var(--success) 16%, transparent); color: color-mix(in srgb, var(--success) 75%, var(--text)); }
+.badge--warning { background: color-mix(in srgb, var(--warning) 16%, transparent); color: color-mix(in srgb, var(--warning) 80%, var(--text)); }
+
+.spinner {
+  width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent;
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty { text-align: center; padding: 48px 16px; display: grid; gap: 10px; justify-items: center; color: var(--muted); }
+.empty__icon { font-size: 44px; }

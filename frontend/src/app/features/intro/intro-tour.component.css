@@ -1,0 +1,18 @@
+.tour {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
+  background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  animation: fade 0.25s var(--ease) both;
+}
+.tour__card {
+  width: min(440px, 100%); background: var(--surface); border-radius: 24px; padding: 26px 24px 20px;
+  display: grid; gap: 12px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3); animation: pop 0.45s var(--spring) both;
+}
+.tour__icon { font-size: 46px; line-height: 1; }
+.tour__dots { display: flex; gap: 6px; justify-content: center; padding: 4px 0; }
+.tour__dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--fill); transition: all 0.3s var(--spring); }
+.tour__dots span.active { width: 22px; border-radius: 99px; background: var(--primary); }
+@keyframes fade { from { opacity: 0; } }
+@media (max-width: 760px) {
+  .tour { place-items: end stretch; padding: 0; }
+  .tour__card { width: 100%; border-radius: 24px 24px 0 0; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+}

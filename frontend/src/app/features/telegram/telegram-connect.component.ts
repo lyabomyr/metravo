@@ -2,6 +2,7 @@ import { Component, DestroyRef, OnInit, inject, output, signal } from '@angular/
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap, timer } from 'rxjs';
 
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TelegramChat, TelegramLink } from './telegram.model';
 import { TelegramApiService } from './telegram-api.service';
 
@@ -17,17 +18,18 @@ const POLL_MS = 3000;
  */
 @Component({
   selector: 'app-telegram-connect',
+  imports: [TranslatePipe],
   template: `
     @if (link(); as link) {
       <div class="row">
         <a class="button button--primary" [href]="link.private_url" target="_blank" rel="noopener" data-cy="telegram-open">
-          Open Telegram
+          ✈️ {{ 'alerts.open' | t }}
         </a>
-        <a class="button" [href]="link.group_url" target="_blank" rel="noopener" data-cy="telegram-group">Add to a group</a>
+        <a class="button" [href]="link.group_url" target="_blank" rel="noopener" data-cy="telegram-group">{{ 'alerts.group' | t }}</a>
       </div>
-      <p class="muted">Then press <b>Start</b> in Telegram. This page updates by itself.</p>
+      <p class="muted small">{{ 'alerts.pressStart' | t }}</p>
     } @else {
-      <p class="muted">Preparing your link…</p>
+      <p class="muted"><span class="spinner"></span> {{ 'alerts.preparing' | t }}</p>
     }
   `,
 })

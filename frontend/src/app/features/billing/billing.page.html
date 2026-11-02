@@ -1,51 +1,40 @@
-<app-page-header title="Plan" subtitle="Everything is free while we are getting started." />
+<app-page-header [title]="'billing.title' | t" [subtitle]="'billing.subtitle' | t" />
 
 @if (status() === 'success') {
-  <div class="banner banner--success" data-cy="billing-success">Payment received — welcome to Pro!</div>
+  <div class="banner banner--success" data-cy="billing-success">{{ 'billing.success' | t }}</div>
 }
 <app-error-banner [error]="error()" />
 
 <div class="grid">
   @for (plan of plans(); track plan.code) {
-    <article class="card stack plan" [class.plan--featured]="plan.price_pln > 0" [attr.data-cy]="'plan-' + plan.code">
-      <div class="row row--between">
-        <h2>{{ plan.name }}</h2>
-        @if (session.user()?.plan === plan.code) {
-          <span class="badge badge--success" data-cy="current-plan">current plan</span>
-        } @else if (!isOnSale(plan)) {
-          <span class="badge badge--warning" data-cy="coming-soon">coming soon</span>
-        }
-      </div>
-      <div>
-        <span class="plan__price">{{ plan.price_pln }} zł</span>
-        <span class="muted"> / month</span>
-      </div>
-      <ul class="plan__features">
-        <li>{{ plan.max_searches }} search{{ plan.max_searches > 1 ? 'es' : '' }}</li>
-        <li>Checks as often as {{ describe(plan.min_interval_minutes).toLowerCase() }}</li>
-        <li>{{ plan.sources.join(', ') }}</li>
-        <li [class.off]="!plan.price_alerts">Price-drop alerts</li>
-        <li [class.off]="!plan.database_credentials">Direct access to your database</li>
-        <li>Download your data any time</li>
-      </ul>
+    <app-plan-card [plan]="plan">
+      @if (session.user()?.plan === plan.code) {
+        <span badge class="badge badge--success" data-cy="current-plan">{{ 'billing.current' | t }}</span>
+      } @else if (!isOnSale(plan)) {
+        <span badge class="badge badge--warning" data-cy="coming-soon">{{ 'billing.comingSoon' | t }}</span>
+      }
       @if (session.user()?.plan !== plan.code && plan.price_pln) {
         @if (isOnSale(plan)) {
           <button class="button button--primary button--block" type="button" (click)="upgrade(plan)" [disabled]="loading()" data-cy="upgrade">
-            Upgrade to {{ plan.name }}
+            {{ 'billing.upgrade' | t: { plan: plan.name } }}
           </button>
         } @else {
           <button class="button button--block" type="button" disabled data-cy="upgrade-soon">
-            Available {{ plan.available_from ? 'from ' + (plan.available_from | date: 'd MMMM') : 'soon' }}
+            @if (plan.available_from) {
+              {{ 'billing.availableFrom' | t: { date: (plan.available_from | when: 'date') } }}
+            } @else {
+              {{ 'billing.availableSoon' | t }}
+            }
           </button>
         }
       }
-    </article>
+    </app-plan-card>
   }
 </div>
 
 @if (subscription(); as subscription) {
   <section class="card row row--between" style="margin-top: 16px">
-    <span data-cy="subscription-status">Subscription: {{ subscription.plan }} · {{ subscription.status }}</span>
-    <button class="button" type="button" (click)="manage()" data-cy="manage-subscription">Manage or cancel</button>
+    <span data-cy="subscription-status">{{ 'billing.subscription' | t: { plan: subscription.plan, status: subscription.status } }}</span>
+    <button class="button" type="button" (click)="manage()" data-cy="manage-subscription">{{ 'billing.manage' | t }}</button>
   </section>
 }

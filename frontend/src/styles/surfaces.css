@@ -1,0 +1,37 @@
+/* ---------- surfaces ---------- */
+
+.card {
+  background: var(--surface); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow);
+  transition: transform 0.35s var(--spring), box-shadow 0.25s var(--ease);
+}
+.card--interactive:hover { transform: translateY(-2px); }
+.grid { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
+.grid > * { animation: rise 0.5s var(--ease) both; }
+.grid > *:nth-child(2) { animation-delay: 0.04s; }
+.grid > *:nth-child(3) { animation-delay: 0.08s; }
+.grid > *:nth-child(4) { animation-delay: 0.12s; }
+.grid > *:nth-child(n + 5) { animation-delay: 0.16s; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* Grouped inset list — the iOS Settings look. */
+.section-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin: 0 16px 6px; }
+.section-note { font-size: 13px; color: var(--muted); margin: 6px 16px 0; }
+.list { background: var(--surface); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow); }
+.list__row {
+  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 8px 16px;
+  position: relative; color: var(--text); font-size: 17px;
+}
+.list__row + .list__row::before {
+  content: ''; position: absolute; top: 0; left: 16px; right: 0; border-top: 0.5px solid var(--separator);
+}
+.list__row > :first-child { flex: 1; min-width: 0; }
+.list__row--disabled { opacity: 0.45; }
+.card .list { background: var(--surface-2); box-shadow: none; } /* a list inside a card sits one shade deeper */
+.list__row input:not([type='checkbox']):not([type='radio']), .list__row select {
+  border: 0; background: none; padding: 4px 0; text-align: right; color: var(--muted); max-width: 55%; width: auto; flex: 1; min-width: 0;
+  box-shadow: none;
+}
+.list__row input:focus, .list__row select:focus { outline: none; color: var(--text); box-shadow: none; }
+.list__row--stacked { flex-direction: column; align-items: stretch; gap: 4px; }
+.list__row--stacked input:not([type='checkbox']) { text-align: left; max-width: none; }
+.list__hint { font-size: 13px; color: var(--muted); }

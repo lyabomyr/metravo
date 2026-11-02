@@ -23,7 +23,15 @@ entirely on free tiers, with every secret held in GitHub Secrets.
    commit. CI blocks a deploy otherwise.
 4. **Works without accounts.** Every feature must run locally and in tests with
    fake adapters (`APP_ENV=e2e`), with no network.
-5. **No bot-detection circumvention.** Do not add IP rotation, proxies,
+5. **No file over 300 lines.** Split by responsibility — a new class, a new
+   component, a new section of a dictionary — never by cutting a file in half.
+6. **Every visible word is translated.** UI text goes through the `t` pipe
+   with keys in all four dictionaries (`frontend/src/app/core/i18n/locales/`
+   en, pl, uk, ru — the compiler rejects a missing key). Errors and Telegram
+   text go through `backend/app/core/i18n` catalogs; raise errors with a key
+   (`Invalid("search.not_found")`), never a sentence. The admin page is the
+   one exception (English only).
+7. **No bot-detection circumvention.** Do not add IP rotation, proxies,
    CAPTCHA solving or fingerprint spoofing to get past a portal that blocks
    us. A blocked portal returns an error for that source; the scan goes on.
 
@@ -93,8 +101,10 @@ Straight from *The Pragmatic Programmer*:
   use the `container`, `sign_in`, `clock` fixtures and `make_search`.
   No network, no sleeping (`FixedClock.advance`).
 - Frontend logic in core classes gets a Vitest spec next to it.
-- A new user journey gets a Cypress spec in `e2e/cypress/e2e/`; select
-  elements by `data-cy`.
+- A new user journey gets a Cypress spec in `e2e/cypress/e2e/` **and** a row
+  in `e2e/TEST_CASES.md` with an id (e.g. `FLT-14`) used in the test name;
+  select elements by `data-cy`. The fixture table at the top of
+  TEST_CASES.md says what each saved portal page contains.
 - Portal parsing changes: save a real results page to
   `backend/tests/fixtures/pages/` and assert on it.
 - Look at UI changes in a browser at desktop width and at phone width (≤ 390 px).
@@ -108,8 +118,10 @@ Straight from *The Pragmatic Programmer*:
 
 ### Operator — after merging
 - Deploy = merge to `main`; watch `ci` then `deploy` in Actions.
-- Check `https://metravo-api.onrender.com/api/health` and the site.
-- A failing deploy step names the missing secret; see README §8.
+- Check `https://metravo-api.onrender.com/api/health`, the site, and Admin →
+  System. Admins get Telegram alerts for downtime, memory/CPU over 80 %,
+  crashed scans and failing portals.
+- A failing deploy step names the missing secret; see README → Troubleshooting.
 
 ## Map of the code
 
@@ -123,7 +135,10 @@ Straight from *The Pragmatic Programmer*:
 | change plans or prices | `billing/plans.py` (the only place tariffs are defined) |
 | change the scan schedule | `scanning/scheduler.py`, `searches/models.py` (`SCAN_INTERVALS`) |
 | add a Telegram command | `telegram/commands/<name>.py` (extend `BaseCommand`) + `container._telegram_dispatcher` |
-| change the look | `frontend/src/styles.css` (all styles; pages only combine its classes) |
+| change the look | `frontend/src/styles/*.css` (shared classes); landing, tour and admin panels keep their own component styles |
+| add or change text | `frontend/src/app/core/i18n/locales/<lang>/*.ts` (all four), `backend/app/core/i18n/catalogs/*.py` |
+| add a delivery channel | `notifications/senders/<channel>.py` (extend `ChannelSender`) + `container.py`; `live=True` in `notifications/channels.py` |
+| change alert thresholds | `monitoring/monitor.py` (`Thresholds`), `infra/worker/uptime.js` |
 | change infrastructure | `infra/terraform/*.tf`, `render.yaml`, `.github/workflows/deploy.yml` |
 
 ## Commands

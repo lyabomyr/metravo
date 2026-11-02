@@ -12,6 +12,7 @@ export interface Plan {
   sources: string[];
   price_alerts: boolean;
   database_credentials: boolean;
+  channels: string[];
   /** ISO date; before it the plan is shown as "coming soon". */
   available_from: string | null;
   on_sale: boolean;

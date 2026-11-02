@@ -7,11 +7,12 @@ more searches — buy or rent, flat or house, city, budget, area, rooms, price
 per m², words that must appear, portals, how often to check (daily by
 default) — and connects Telegram in two clicks. A scanner reads Otodom, OLX,
 Morizon and bailiff auctions, keeps what matches each search, and sends new
-flats and price drops to Telegram. Free gets one search checked at most every
-6 hours; Pro (19 zł/month, on sale from the day in `PRO_AVAILABLE_FROM`) gets
-five searches as often as every 15 minutes, bailiff auctions, price-drop
-alerts and direct credentials to their database. Everyone can download their
-data.
+flats and price drops to Telegram. Free gets one search checked once a day;
+Pro (19 zł/month, on sale from the day in `PRO_AVAILABLE_FROM`) gets five
+searches checked up to every hour, bailiff auctions, price-drop alerts, the
+same listings duplicated to email, WhatsApp, Viber and Signal, and direct
+credentials to their database. Everyone can download their data. The
+website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
 
 ## Runtime
 
@@ -20,7 +21,7 @@ data.
               │ Bearer <session JWT>
               ▼
           FastAPI (Render free) ──────────────┐
-          + ScanScheduler thread              │
+          + ScanScheduler + HealthMonitor     │
             ▲        ▲                        ▼
    Telegram │ Stripe │                Control DB (Turso)        ← service management
                                      users · tenants · plans
@@ -30,7 +31,9 @@ data.
                                      User DBs (Turso, one each)
                                      searches · listings · price_changes
 
- ScanScheduler (every minute) ──► due searches ──► portals ─► user DBs ─► Telegram
+ ScanScheduler (every minute) ──► due searches ──► portals ─► user DBs ─► FanOutNotifier ─► channels
+                                └─► HealthMonitor ─► memory / CPU / scan / portal alerts ─► admins' Telegram
+ Cloudflare Worker (cron 5 min) ──► site + /api/health ─► down / back-up alerts ─► admins' Telegram
  GitHub Actions ── ci on every push · deploy after green CI on main (no schedules)
 ```
 
@@ -50,6 +53,20 @@ data.
   state encrypted on the `infra-state` branch. Render's free service is
   described by `render.yaml` instead, because Render's API cannot create or
   update free services.
+- **Monitoring.** `services/monitoring` reads memory and CPU against the
+  container's limits (cgroup, or `MEMORY_LIMIT_MB` / `CPU_CORES`), tracks
+  crashed scans and portals failing in a row, and alerts admins when a problem
+  starts and when it ends. A down server cannot report itself, so a Worker
+  outside it (`infra/worker/uptime.js`) checks the site and the API every 5
+  minutes. Admin → System shows the same numbers and the last warnings.
+- **Channels.** `services/notifications` keeps, per user, which channels get
+  listings. `FanOutNotifier` sends to each switched-on channel that has a
+  `ChannelSender`; Telegram is the first. A channel without a sender yet can
+  still be ticked and starts delivering the day its sender is added.
+- **Languages.** The backend translates with `core/i18n` (one catalog per
+  language, `Accept-Language` for API errors, the user's saved language for
+  Telegram). The frontend has a dictionary per language and section under
+  `core/i18n/locales/`, checked for completeness by the compiler.
 - **Two kinds of database.** The control database is ours — it decides who
   exists, what they pay and where their data lives. Each user's database
   holds only their searches and listings; we can hand out credentials to it
@@ -60,6 +77,7 @@ data.
 | Piece | Service | Free allowance | If it is outgrown |
 |---|---|---|---|
 | Frontend | Cloudflare Pages | unlimited bandwidth, commercial use OK | — |
+| Uptime watcher | Cloudflare Worker + cron + KV | 100 000 requests/day; KV writes only on state change | — |
 | API + scanner | Render free web service | 750 h/month (one service 24/7); kept awake by its own ping | Render Starter |
 | CI / deploy | GitHub Actions | unlimited on public repos, 2 000 min/month private; no schedules | — |
 | Databases | Turso | free plan includes a limited number of databases — check the current quota | Turso paid, or one shared DB (see below) |
@@ -84,7 +102,7 @@ Each folder under `backend/app/services/` owns its tables, logic and routes.
 
 | Service | Owns | HTTP |
 |---|---|---|
-| `auth` | identity providers, session tokens | `POST /api/auth/session`, `GET /api/auth/me` |
+| `auth` | identity providers, session tokens | `POST /api/auth/session`, `GET /api/auth/me`, `PUT /api/auth/me/locale` |
 | `users` | `users` (control DB) | — |
 | `tenants` | `tenants` (control DB), provisioning, credentials | `GET /api/database`, `POST /api/database/credentials` |
 | `export` | — (reads the user DB) | `GET /api/export/database.sqlite`, `GET /api/export/listings.csv` |
@@ -92,7 +110,9 @@ Each folder under `backend/app/services/` owns its tables, logic and routes.
 | `listings` | `listings`, `price_changes` (user DB) | `GET /api/listings`, `GET /api/listings/price-changes` |
 | `connectors` | one sub-folder per portal | — |
 | `scanning` | filter, fetch cache, scan run | `POST /api/scan/mine`, `/all` (admin), `/cron` |
-| `telegram` | `telegram_chats`, `telegram_link_tokens` (control DB), commands | `POST /api/telegram/link`, `/chats`, `/webhook` |
+| `telegram` | `telegram_chats`, `telegram_link_tokens` (control DB), commands, `TelegramSender` | `POST /api/telegram/link`, `/chats`, `/webhook` |
+| `notifications` | `notification_settings` (control DB), channel catalog, fan-out | `GET /api/notifications/channels`, `PUT /channels/{code}` |
+| `monitoring` | probe, health monitor, admin alerts, recent logs | `GET /api/admin/system` |
 | `billing` | plans, `subscriptions` (control DB), providers | `/api/billing/plans`, `/checkout`, `/portal`, `/webhook` |
 | `admin` | — (reads the control DB) | `/api/admin/overview`, `/users`, `/users/{id}/plan` |
 | `system` | — | `GET /api/health`, `GET /api/config` |

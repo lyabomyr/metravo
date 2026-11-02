@@ -1,7 +1,8 @@
-import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { WhenPipe } from '../../core/i18n/format.pipes';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
@@ -10,7 +11,7 @@ import { ExportApiService } from './export-api.service';
 
 @Component({
   selector: 'app-database-page',
-  imports: [DatePipe, RouterLink, ErrorBannerComponent, PageHeaderComponent],
+  imports: [RouterLink, ErrorBannerComponent, PageHeaderComponent, TranslatePipe, WhenPipe],
   templateUrl: './database.page.html',
 })
 export class DatabasePage extends BasePage implements OnInit {

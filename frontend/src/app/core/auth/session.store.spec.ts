@@ -9,7 +9,7 @@ import { SessionStore } from './session.store';
 const session: Session = {
   token: 't-1',
   is_new: true,
-  user: { id: 'u1', email: 'a@b.pl', plan: 'free', is_admin: false, created_at: '2026-11-01' },
+  user: { id: 'u1', email: 'a@b.pl', plan: 'free', is_admin: false, created_at: '2026-11-01', locale: 'en' },
 };
 
 describe('SessionStore', () => {

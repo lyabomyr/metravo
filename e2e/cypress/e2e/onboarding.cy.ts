@@ -1,11 +1,9 @@
-import { uniqueEmail } from '../support/commands';
+import { uniqueEmail, visitAsReturning } from '../support/commands';
 
 describe('First visit: sign in, save a search, connect Telegram, see listings', () => {
-  it('takes a new user from the login page to their first listings', () => {
+  it('ONB-1 takes a new user from the landing page to their first listings', () => {
     const email = uniqueEmail('onboarding');
-    cy.visit('/');
-    cy.location('pathname').should('eq', '/login');
-
+    visitAsReturning('/');
     cy.get('[data-cy=email]').type(email);
     cy.get('[data-cy=sign-in]').click();
 

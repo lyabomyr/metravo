@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
@@ -15,29 +16,29 @@ import { TelegramConnectComponent } from '../telegram/telegram-connect.component
  */
 @Component({
   selector: 'app-onboarding-page',
-  imports: [RouterLink, ErrorBannerComponent, PageHeaderComponent, SearchFormComponent, TelegramConnectComponent],
+  imports: [RouterLink, ErrorBannerComponent, PageHeaderComponent, SearchFormComponent, TelegramConnectComponent, TranslatePipe],
   template: `
-    <app-page-header title="Welcome to Metravo" subtitle="Two steps and new flats start arriving in Telegram." />
+    <app-page-header [title]="'onboarding.title' | t" [subtitle]="'onboarding.subtitle' | t" />
     <app-error-banner [error]="error()" />
 
     <div class="steps">
       <section class="card stack step" [class.step--done]="searchSaved()">
-        <h2><span class="step__number">{{ searchSaved() ? '✓' : '1' }}</span>What are you looking for?</h2>
+        <h2><span class="step__number">{{ searchSaved() ? '✓' : '1' }}</span>{{ 'onboarding.step1' | t }}</h2>
         @if (!searchSaved()) {
-          <app-search-form submitLabel="Save and continue" [busy]="loading()" (saved)="saveSearch($event)" />
+          <app-search-form [submitLabel]="'onboarding.saveContinue' | t" [busy]="loading()" (saved)="saveSearch($event)" />
         } @else {
-          <p class="muted" data-cy="onboarding-search-saved">Saved. You can fine-tune it later under Searches.</p>
+          <p class="muted" data-cy="onboarding-search-saved">{{ 'onboarding.saved' | t }}</p>
         }
       </section>
 
       <section class="card stack step" [class.step--done]="connected()">
-        <h2><span class="step__number">{{ connected() ? '✓' : '2' }}</span>Connect Telegram</h2>
+        <h2><span class="step__number">{{ connected() ? '✓' : '2' }}</span>{{ 'onboarding.step2' | t }}</h2>
         @if (connected()) {
-          <p data-cy="onboarding-done">All set! <a routerLink="/listings">See your listings →</a></p>
+          <p data-cy="onboarding-done">{{ 'onboarding.done' | t }} <a routerLink="/listings">{{ 'onboarding.seeListings' | t }}</a></p>
         } @else if (searchSaved()) {
           <app-telegram-connect (connected)="connected.set(true)" />
         } @else {
-          <p class="muted">Save your search first.</p>
+          <p class="muted">{{ 'onboarding.saveFirst' | t }}</p>
         }
       </section>
     </div>

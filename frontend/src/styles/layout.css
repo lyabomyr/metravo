@@ -1,0 +1,77 @@
+/* ---------- layout ---------- */
+
+.container {
+  max-width: 980px; margin: 0 auto;
+  padding: 16px 20px calc(48px + var(--tabbar-height) + env(safe-area-inset-bottom));
+  animation: page-in 0.45s var(--ease) both;
+}
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Translucent bar. The blur lives on a pseudo-element so `position: fixed`
+   children (the mobile tab bar) still anchor to the viewport. */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 20px;
+  padding: 10px 20px; padding-top: max(10px, env(safe-area-inset-top));
+}
+.topbar::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: var(--bar); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--separator);
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 19px; color: var(--text); }
+.brand__icon {
+  width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, #5ac8fa, #007aff 55%, #5856d6);
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.35);
+}
+.brand__icon svg { width: 18px; height: 18px; }
+
+.tabs { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.tabs a {
+  display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px;
+  color: var(--muted); font-size: 15px; font-weight: 500;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--spring);
+}
+.tabs a:hover { background: var(--fill); color: var(--text); opacity: 1; }
+.tabs a.active { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.tabs a:active { transform: scale(0.94); }
+.tabs svg { width: 18px; height: 18px; flex: none; }
+
+.account { display: flex; gap: 10px; align-items: center; font-size: 14px; }
+.account__email { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Phones: the nav becomes an iOS tab bar at the bottom. */
+@media (max-width: 760px) {
+  :root { --tabbar-height: 56px; }
+  .topbar { padding-left: 16px; padding-right: 16px; }
+  .account__email { display: none; }
+  .tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    justify-content: space-around; gap: 0;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .tabs::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    background: var(--bar); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: 0.5px solid var(--separator);
+  }
+  .tabs a { flex-direction: column; gap: 2px; padding: 4px 6px; font-size: 10px; border-radius: 10px; min-width: 56px; }
+  .tabs a.active { background: none; }
+  .tabs a:hover { background: none; }
+  .tabs svg { width: 24px; height: 24px; }
+  .container { padding-left: 16px; padding-right: 16px; }
+  h1 { font-size: 30px; }
+}
+
+.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 12px 0 20px; flex-wrap: wrap; }
+.page-header p { margin-top: 6px; font-size: 15px; }
+
+/* Signed-out pages (landing, finishing sign-in) lay themselves out edge to edge. */
+.page { min-height: 100vh; }
+
+@media (max-width: 760px) {
+  .brand__name { display: none; }
+  .topbar { gap: 10px; }
+  .account { flex: 1; justify-content: flex-end; gap: 8px; }
+}

@@ -15,4 +15,8 @@ export class AuthApiService extends BaseApiService {
   me(): Observable<User> {
     return this.get<User>('/me');
   }
+
+  setLocale(locale: string): Observable<User> {
+    return this.put<User>('/me/locale', { locale });
+  }
 }

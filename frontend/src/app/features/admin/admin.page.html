@@ -4,6 +4,8 @@
 
 <app-error-banner [error]="error()" />
 
+<app-system-health />
+
 @if (scanReport(); as report) {
   <div class="banner banner--success">
     {{ report.searches_scanned }} searches · {{ report.fetches }} page fetches · {{ report.new_listings }} new ·

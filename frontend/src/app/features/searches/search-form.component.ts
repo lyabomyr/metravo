@@ -4,17 +4,20 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { SessionStore } from '../../core/auth/session.store';
 import { PublicConfigService } from '../../core/config/public-config.service';
-import { DEFAULT_BUDGET, DEFAULT_SEARCH, DealType, PropertyType, SearchDraft, describeInterval } from './search.model';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { IntervalPipe } from './interval.pipe';
+import { DEFAULT_BUDGET, DEFAULT_SEARCH, DealType, PropertyType, SearchDraft } from './search.model';
 
 /** The one search form, used by the editor and the onboarding wizard alike. */
 @Component({
   selector: 'app-search-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, IntervalPipe, TranslatePipe],
   templateUrl: './search-form.component.html',
 })
 export class SearchFormComponent {
   readonly value = input<SearchDraft>(DEFAULT_SEARCH);
-  readonly submitLabel = input('Save');
+  /** Empty = the translated “Save”. */
+  readonly submitLabel = input('');
   readonly busy = input(false);
   readonly saved = output<SearchDraft>();
 
@@ -37,7 +40,6 @@ export class SearchFormComponent {
     enabled: [true],
   });
   protected readonly selectedSources = signal(new Set<string>());
-  protected readonly describe = describeInterval;
   private readonly session = inject(SessionStore);
   /** The most often the user's plan may scan; faster options are shown but locked. */
   protected readonly planFloor = computed(() => this.config.plan_min_intervals[this.session.user()?.plan ?? 'free'] ?? 0);
@@ -62,6 +64,11 @@ export class SearchFormComponent {
   protected supports(source: string): boolean {
     const capabilities = this.config.source_capabilities[source] ?? [];
     return capabilities.some((c) => c.deal_type === this.dealType() && c.property_type === this.propertyType());
+  }
+
+  /** A portal outside the user's plan gets a Pro badge; the backend refuses it on save. */
+  protected planAllows(source: string): boolean {
+    return (this.config.plan_sources[this.session.user()?.plan ?? 'free'] ?? []).includes(source);
   }
 
   protected toggleSource(source: string, checked: boolean): void {

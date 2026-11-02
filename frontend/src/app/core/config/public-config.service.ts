@@ -25,6 +25,8 @@ export interface PublicConfig {
   scan_intervals: number[];
   /** The most often each plan allows, in minutes. */
   plan_min_intervals: Record<string, number>;
+  /** The portals each plan includes. */
+  plan_sources: Record<string, string[]>;
   cities: City[];
 }
 

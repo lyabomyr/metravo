@@ -1,0 +1,20 @@
+/* ---------- base ---------- */
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.4; font-size: 17px; letter-spacing: -0.2px; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { opacity: 0.8; }
+h1 { font-size: 34px; font-weight: 700; letter-spacing: 0.3px; margin: 0; line-height: 1.15; }
+h2 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: 0.2px; }
+h3 { font-size: 17px; font-weight: 600; margin: 0; }
+p { margin: 0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.stack { display: grid; gap: var(--gap); }
+.stack > *, .grid > * { min-width: 0; } /* let long content shrink instead of pushing the page sideways */
+.stack--tight { gap: 6px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row--between { justify-content: space-between; }
+.spacer { flex: 1; }

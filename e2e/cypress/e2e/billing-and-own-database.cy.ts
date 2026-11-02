@@ -3,7 +3,7 @@ import { uniqueEmail } from '../support/commands';
 describe('Upgrading unlocks direct access to your own database', () => {
   beforeEach(() => cy.signIn(uniqueEmail('billing')));
 
-  it('free → pay → pro with credentials → cancel → free', () => {
+  it('PLAN-1 free → pay → pro with credentials → cancel → free', () => {
     cy.visit('/database');
     cy.get('[data-cy=credentials-locked]').should('be.visible');
 

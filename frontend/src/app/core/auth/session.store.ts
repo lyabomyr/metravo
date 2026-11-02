@@ -37,6 +37,12 @@ export class SessionStore {
     }
   }
 
+  /** Keep the profile's language (used for Telegram) in step with the website's. */
+  syncLocale(locale: string): void {
+    const user = this.user();
+    if (user && user.locale !== locale) this.api.setLocale(locale).subscribe((updated) => this.user.set(updated));
+  }
+
   refresh(): Observable<User> {
     return this.api.me().pipe(tap((user) => this.user.set(user)));
   }

@@ -1,18 +1,19 @@
 import { Component, OnInit, inject, input, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 
 import { SessionStore } from '../../core/auth/session.store';
 import { PublicConfigService } from '../../core/config/public-config.service';
+import { WhenPipe } from '../../core/i18n/format.pipes';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
-import { describeInterval } from '../searches/search.model';
 import { BillingApiService, Plan, Subscription } from './billing-api.service';
+import { PlanCardComponent } from './plan-card.component';
 
 @Component({
   selector: 'app-billing-page',
-  imports: [DatePipe, ErrorBannerComponent, PageHeaderComponent],
+  imports: [ErrorBannerComponent, PageHeaderComponent, PlanCardComponent, TranslatePipe, WhenPipe],
   templateUrl: './billing.page.html',
 })
 export class BillingPage extends BasePage implements OnInit {
@@ -23,7 +24,6 @@ export class BillingPage extends BasePage implements OnInit {
   protected readonly session = inject(SessionStore);
   protected readonly plans = signal<Plan[]>([]);
   protected readonly subscription = signal<Subscription | null>(null);
-  protected readonly describe = describeInterval;
   private readonly payments = inject(PublicConfigService).value.billing_provider;
 
   ngOnInit(): void {

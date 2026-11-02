@@ -5,20 +5,21 @@ import { from } from 'rxjs';
 
 import { FirebaseAuthClient } from '../../core/auth/firebase-auth.client';
 import { SessionStore } from '../../core/auth/session.store';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 
 /** Landing page for the Firebase email link. If it fails (e.g. opened on another device), asks for the email. */
 @Component({
   selector: 'app-finish-sign-in-page',
-  imports: [FormsModule, ErrorBannerComponent],
+  imports: [FormsModule, ErrorBannerComponent, TranslatePipe],
   template: `
-    <section class="card stack" style="max-width: 420px; margin: 48px auto">
-      <h1>Signing you in…</h1>
+    <section class="card stack" style="max-width: 420px; margin: 12vh auto 0">
+      <h1>{{ 'auth.finish.title' | t }}</h1>
       <app-error-banner [error]="error()" />
       @if (error()) {
-        <label>Confirm your email <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" /></label>
-        <button class="button button--primary" type="button" (click)="finish(email())">Continue</button>
+        <label>{{ 'auth.finish.confirm' | t }} <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" /></label>
+        <button class="button button--primary" type="button" (click)="finish(email())">{{ 'auth.finish.continue' | t }}</button>
       }
     </section>
   `,
