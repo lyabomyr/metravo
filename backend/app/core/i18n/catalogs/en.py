@@ -78,4 +78,5 @@ MESSAGES = {
     "search.radius_invalid": "The distance around the place can be: {choices} km",
     "tg.start.first_batch": "📬 Coming up: the {n} newest listings for your searches in one go. After that, only new ones, as they appear.",
     "places.unavailable": "Place search is not available right now. Try again in a minute, or pick a big city.",
+    "plan.free_week_over": "Your free week is over, so checks and alerts are paused. Switch to Pro to carry on.",
 }

@@ -25,6 +25,8 @@ class Plan:
     channels: tuple[str, ...] = ("telegram",)
     #: Before this day the plan is shown but cannot be bought. ``None`` = on sale.
     available_from: date | None = None
+    #: How long the plan lasts from sign-up; ``None`` = as long as it is paid for.
+    trial_days: int | None = None
 
     def allows_source(self, source: str) -> bool:
         return source in self.sources
@@ -52,6 +54,7 @@ class PlanCatalog:
                 code=FREE,
                 name="Free",
                 price_usd=0,
+                trial_days=7,  # a free week to see it work, then Pro
                 max_searches=1,
                 min_interval_minutes=1440,  # once a day
                 sources=("otodom", "olx", "morizon"),

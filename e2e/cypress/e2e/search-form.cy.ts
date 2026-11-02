@@ -139,6 +139,15 @@ describe('Search form', () => {
     cy.get('[data-cy=place-name]').should('have.text', 'Kraków');
   });
 
+  it('FORM-13 the name is a hint, not text to delete', () => {
+    cy.visit('/searches/new');
+    cy.get('[data-cy=search-name]').should('have.value', '').and('have.attr', 'placeholder', 'Kraków');
+    cy.get('[data-cy=search-name]').type('Blisko pracy').should('have.value', 'Blisko pracy'); // typing replaces nothing
+    cy.get('[data-cy=search-name]').clear();
+    cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-card]').should('contain', 'Kraków'); // left empty, named after the place
+  });
+
   it('FORM-8 bailiff auctions are Pro', () => {
     cy.visit('/searches/new');
     cy.get('[data-cy=source-komornik]').parents('label').should('contain', 'Pro');

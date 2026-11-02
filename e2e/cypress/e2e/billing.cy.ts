@@ -38,4 +38,18 @@ describe('Upgrading and cancelling', () => {
     cy.location('pathname').should('eq', '/billing');
     cy.get('[data-cy=plan-badge]').should('have.text', 'pro');
   });
+
+  it('PLAN-4 Free is a week: the days left are shown, and the plan says so', () => {
+    cy.visit('/listings');
+    cy.get('[data-cy=free-week-left]').should('contain', '7 day(s) left');
+    cy.visit('/billing');
+    cy.get('[data-cy=plan-free]').should('contain', 'Free for 7 days');
+    cy.api('GET', '/api/auth/me').its('body').should((me: { active: boolean; free_until: string }) => {
+      expect(me.active).to.eq(true);
+      expect(Date.parse(me.free_until) - Date.now()).to.be.within(6.9 * 864e5, 7 * 864e5);
+    });
+    cy.upgradeToPro();
+    cy.reload();
+    cy.get('[data-cy=free-week-left]').should('not.exist'); // Pro has no end date
+  });
 });

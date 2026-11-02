@@ -24,7 +24,7 @@ export class SearchFormComponent {
 
   protected readonly config = inject(PublicConfigService).value;
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', Validators.required],
+    name: [''],
     place: [KRAKOW as Place],
     radius_km: [0],
     deal_type: ['sale' as DealType],
@@ -87,9 +87,11 @@ export class SearchFormComponent {
 
   protected submit(): void {
     if (this.form.invalid) return;
-    const { required_keywords, reject_keywords, ...values } = this.form.getRawValue();
+    const { required_keywords, reject_keywords, name, ...values } = this.form.getRawValue();
     this.saved.emit({
       ...values,
+      // Left empty, the search is called after its place ("Zabierzów").
+      name: name.trim() || values.place.name,
       required_keywords: words(required_keywords),
       reject_keywords: words(reject_keywords),
       sources: [...this.selectedSources()].filter((source) => this.supports(source)),

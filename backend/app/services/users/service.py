@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import datetime, timedelta
 
-from ...core.clock import Clock, new_id
+from ...core.clock import Clock, new_id, parse_iso
 from ...core.errors import Invalid, NotFound
 from ...core.i18n import translator
 from ...core.service import BaseService
@@ -46,6 +47,18 @@ class UserService(BaseService):
     def plan_of(self, user: User) -> Plan:
         return self._plans.get(user.plan)
 
+    def free_until(self, user: User) -> datetime | None:
+        """When a time-limited plan ends; None for paid plans and admins."""
+        days = self.plan_of(user).trial_days
+        if days is None or user.email in self._admin_emails:
+            return None
+        return parse_iso(user.created_at) + timedelta(days=days)
+
+    def is_active(self, user: User) -> bool:
+        """Scans, alerts and new searches run only while this is true."""
+        until = self.free_until(user)
+        return until is None or self._clock.now() < until
+
     def set_locale(self, user: User, locale: str) -> User:
         if not translator.supports(locale):
             raise Invalid("user.locale_unsupported")
@@ -63,7 +76,13 @@ class UserService(BaseService):
         return self._repo.count_by_plan()
 
     def _decorate(self, user: User) -> User:
-        return replace(user, is_admin=user.email in self._admin_emails)
+        until = self.free_until(user)
+        return replace(
+            user,
+            is_admin=user.email in self._admin_emails,
+            free_until=until.isoformat(timespec="seconds") if until else None,
+            active=self.is_active(user),
+        )
 
     @staticmethod
     def _normalise(email: str) -> str:

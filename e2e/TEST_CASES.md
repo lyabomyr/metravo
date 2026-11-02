@@ -93,6 +93,7 @@ which matches **101, 104, 302, mzn201**.
 | FORM-10 | “Create your first search” on the empty page, and “New search” | Both open the form |
 | FORM-11 | Find a village by name, pick it, +15 km | The card shows “Zabierzów +15 km”; saved with its voivodeship/county/municipality path and the radius |
 | FORM-12 | A name that matches nothing; a click on the map | “Nothing found”; the click picks the place at that point |
+| FORM-13 | The name field | Empty with the place as a hint, so typing needs no deleting; saved empty, the search is named after its place |
 
 ## Filters — `filters.cy.ts` (each through the form, then “Check now”)
 
@@ -144,6 +145,7 @@ which matches **101, 104, 302, mzn201**.
 | PLAN-1 | Free → test checkout ($10) → Pro → cancel → Free | Badge follows the plan |
 | PLAN-2 | Cancel on the checkout page | Back on Plan with “Payment cancelled”; still Free |
 | PLAN-3 | Manage subscription → Back | Back on Plan; still Pro |
+| PLAN-4 | A new Free account | “Free week: 7 day(s) left” on every page, “Free for 7 days” on the plan; gone on Pro. The end of the week (checks, alerts and new searches pause) is proven in `billing/test_free_week.py` with a fixed clock |
 | DATA-1 | “My data” → CSV | A CSV with a header and one row per match, named after the search |
 | DATA-2 | Another user's export, searches and listings | Empty: everyone shares one database, nobody sees anyone else's rows |
 | ADM-1 | Regular user opens `/admin` | Redirected; no Admin tab |

@@ -40,6 +40,8 @@ class SearchService(BaseService):
 
     def create(self, user: User, draft: Search) -> Search:
         repo = self._repo(user.id)
+        if not self._users.is_active(user):
+            raise LimitReached("plan.free_week_over")
         plan = self._users.plan_of(user)
         if repo.count() >= plan.max_searches:
             raise LimitReached("search.limit", plan=plan.name, n=plan.max_searches)

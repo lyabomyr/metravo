@@ -15,7 +15,7 @@
     <div class="list">
       <label class="list__row">
         <span>{{ 'form.name' | t }}</span>
-        <input formControlName="name" data-cy="search-name" />
+        <input formControlName="name" [placeholder]="form.controls.place.value.name" data-cy="search-name" />
       </label>
       <label class="list__row">
         <span>{{ 'form.frequency' | t }}</span>

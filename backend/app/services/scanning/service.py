@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import threading
 
+from ...core.errors import LimitReached
 from ...core.service import BaseService
 from ..connectors.registry import ConnectorRegistry
 from ..listings.models import EventKind, ListingEvent
@@ -45,12 +46,20 @@ class ScanService(BaseService):
         with self._lock:
             return self._run(only_user_id)
 
+    def check_now(self, user: User) -> ScanReport:
+        """"Check now" on the website: the user's due searches, if their plan is running."""
+        if not self._users.is_active(user):
+            raise LimitReached("plan.free_week_over")
+        return self.run(only_user_id=user.id)
+
     def deliver_now(self, user: User) -> int:
         """A channel was just connected: start at once instead of waiting for the schedule.
 
         Listings found before the user connected were stored but announced to
         nobody, so they are sent now; a search never checked is scanned now.
         """
+        if not self._users.is_active(user):
+            return 0
         with self._lock:
             sent = 0
             cache, report = FetchCache(), ScanReport()
@@ -73,6 +82,8 @@ class ScanService(BaseService):
             if only_user_id and user_id != only_user_id:
                 continue
             user = self._users.get(user_id)
+            if not user.active:
+                continue  # the free week is over: nothing is checked or sent
             for search in self._searches.due(user):
                 self._scan_search(user, search, cache, report)
         report.fetches = cache.fetches

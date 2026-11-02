@@ -48,6 +48,7 @@
 }
 <main [class.container]="session.user()" [class.page]="!session.user()">
   @if (session.user()) {
+    <app-free-week-banner />
     <app-connect-reminder />
   }
   <router-outlet />

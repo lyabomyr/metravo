@@ -41,4 +41,8 @@ export const COMMON: Section<typeof EN> = {
   'auth.emailPrompt': 'Podaj adres e-mail, którym się logujesz',
   'landing.demo.rentTitle': '🏠 Wynajem w Krakowie',
   'landing.demo.rentPrice': '3 200 zł / mies.',
+  'freeWeek.left': 'Darmowy tydzień: zostało dni: {n}. Potem sprawdzanie się wstrzyma, dopóki nie przejdziesz na Pro.',
+  'freeWeek.over': 'Twój darmowy tydzień skończył się {date}. Sprawdzanie i powiadomienia są wstrzymane.',
+  'freeWeek.seePro': 'Zobacz Pro',
+  'plan.trialDays': 'Za darmo przez {n} dni',
 };

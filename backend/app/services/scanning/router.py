@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/scan", tags=["scan"])
 @router.post("/mine")
 def scan_mine(user: User = Depends(current_user), container: Container = Depends(get_container)) -> dict:
     """Scan the caller's due searches now. The plan interval still applies."""
-    return asdict(container.scanner.run(only_user_id=user.id))
+    return asdict(container.scanner.check_now(user))
 
 
 @router.post("/all")

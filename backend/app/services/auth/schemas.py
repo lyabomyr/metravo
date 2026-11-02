@@ -17,10 +17,16 @@ class UserOut(BaseModel):
     is_admin: bool
     created_at: str
     locale: str
+    #: The end of the free week (None on Pro); after it, scans and alerts pause.
+    free_until: str | None
+    active: bool
 
     @classmethod
     def of(cls, user: User) -> UserOut:
-        return cls(id=user.id, email=user.email, plan=user.plan, is_admin=user.is_admin, created_at=user.created_at, locale=user.locale)
+        return cls(
+            id=user.id, email=user.email, plan=user.plan, is_admin=user.is_admin, created_at=user.created_at,
+            locale=user.locale, free_until=user.free_until, active=user.active,
+        )
 
 
 class LocaleChange(BaseModel):

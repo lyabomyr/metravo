@@ -20,6 +20,8 @@ class PlanOut(BaseModel):
     channels: list[str]
     available_from: date | None
     on_sale: bool
+    #: Days the plan lasts from sign-up (the free week); None for paid plans.
+    trial_days: int | None
 
     @classmethod
     def of(cls, plan: Plan, today: date) -> PlanOut:

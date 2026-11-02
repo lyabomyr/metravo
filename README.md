@@ -68,6 +68,7 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
 | | Free | Pro (on sale from `PRO_AVAILABLE_FROM`) |
 |---|---|---|
 | Price | $0 | $10 / month |
+| Lasts | 7 days from sign-up, then checks and alerts pause (admins have no limit) | while paid |
 | Saved searches | 1 | 5 |
 | Checked | once a day | up to every hour |
 | Portals | otodom, olx, morizon | + bailiff auctions (komornik) |

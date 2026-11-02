@@ -39,4 +39,8 @@ export const COMMON = {
   'auth.emailPrompt': 'Enter the email address you signed in with',
   'landing.demo.rentTitle': '🏠 Rent in Kraków',
   'landing.demo.rentPrice': '3 200 zł / month',
+  'freeWeek.left': 'Free week: {n} day(s) left. After that, checks pause until you switch to Pro.',
+  'freeWeek.over': 'Your free week ended on {date}. Checks and alerts are paused.',
+  'freeWeek.seePro': 'See Pro',
+  'plan.trialDays': 'Free for {n} days',
 };

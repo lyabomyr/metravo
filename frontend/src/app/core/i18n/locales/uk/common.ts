@@ -41,4 +41,8 @@ export const COMMON: Section<typeof EN> = {
   'auth.emailPrompt': 'Введіть адресу пошти, з якою ви входили',
   'landing.demo.rentTitle': '🏠 Оренда в Кракові',
   'landing.demo.rentPrice': '3 200 zł / міс.',
+  'freeWeek.left': 'Безкоштовний тиждень: залишилося днів: {n}. Далі перевірки зупиняться, доки ви не перейдете на Pro.',
+  'freeWeek.over': 'Ваш безкоштовний тиждень закінчився {date}. Перевірки й сповіщення призупинено.',
+  'freeWeek.seePro': 'Переглянути Pro',
+  'plan.trialDays': 'Безкоштовно {n} днів',
 };

@@ -15,6 +15,8 @@ export interface Plan {
   /** ISO date; before it the plan is shown as "coming soon". */
   available_from: string | null;
   on_sale: boolean;
+  /** Days the plan lasts from sign-up (the free week); null for paid plans. */
+  trial_days: number | null;
 }
 
 export interface Subscription {

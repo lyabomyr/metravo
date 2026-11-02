@@ -56,7 +56,8 @@ export interface Search extends SearchDraft {
 }
 
 export const DEFAULT_SEARCH: SearchDraft = {
-  name: 'My flat',
+  /** Empty: the form shows a hint and the search is named after its place. */
+  name: '',
   place: KRAKOW,
   radius_km: 0,
   deal_type: 'sale',

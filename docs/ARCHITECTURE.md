@@ -6,7 +6,7 @@ A person signs in with their email, saves one or more searches — buy or rent, 
 per m², words that must appear, portals, how often to check (daily by
 default) — and picks where alerts go: Telegram (two clicks) for everyone, email on Pro. A scanner reads Otodom, OLX,
 Morizon and bailiff auctions, keeps what matches each search, and sends new
-flats and price drops to Telegram. Free gets one search checked once a day;
+flats and price drops to Telegram. Free is a one-week trial — one search checked once a day — after which checks, alerts and new searches pause (`Plan.trial_days`, `UserService.is_active`);
 Pro ($10/month, on sale from the day in `PRO_AVAILABLE_FROM`) gets five
 searches checked up to every hour, bailiff auctions, price-drop alerts, and
 the same listings duplicated to email, WhatsApp, Viber and Signal. Everyone

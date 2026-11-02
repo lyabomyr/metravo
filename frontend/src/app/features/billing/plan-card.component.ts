@@ -40,6 +40,7 @@ export class PlanCardComponent {
   protected readonly features = computed<Feature[]>(() => {
     const plan = this.plan();
     const features: Feature[] = [
+      ...(plan.trial_days ? [{ key: 'plan.trialDays', params: { n: plan.trial_days }, included: true } as Feature] : []),
       { key: 'plan.searches', params: { n: plan.max_searches }, included: true },
       { key: plan.min_interval_minutes < 1440 ? 'plan.hourly' : 'plan.daily', included: true },
       { key: 'plan.portals', params: { sources: plan.sources.join(', ') }, included: true },
