@@ -155,6 +155,8 @@ def test_the_mailbox_defaults_to_the_smtp_login(settings):
     assert replace(smtp, mail_alerts_imap_host="imap.other.pl").alert_mailbox[0] == "imap.other.pl"
     assert replace(settings, smtp_host="mail.example.com", smtp_username="a", smtp_password="b").alert_mailbox is None
     assert settings.alert_owner == ADMIN_EMAIL
+    spaced = replace(smtp, smtp_password="abcd efgh ijkl mnop")
+    assert spaced.alert_mailbox[3] == "abcdefghijklmnop"  # as Google shows it, without the spaces
 
 
 def test_the_published_reason_names_the_failure_not_the_mailbox():

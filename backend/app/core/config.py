@@ -180,6 +180,9 @@ class Settings:
         host = self.mail_alerts_imap_host
         if not host and self.smtp_host.startswith("smtp."):
             host = "imap." + self.smtp_host.removeprefix("smtp.")  # smtp.gmail.com → imap.gmail.com
+        if host.endswith("gmail.com"):
+            # Google shows app passwords in groups ("abcd efgh ijkl mnop"); the spaces are not part of it.
+            password = "".join(password.split())
         return (host, self.mail_alerts_imap_port, username, password) if host and username and password else None
 
     @property
