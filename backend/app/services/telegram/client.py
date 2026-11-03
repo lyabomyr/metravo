@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import requests
@@ -13,6 +14,9 @@ MAX_WAIT_SECONDS = 30
 
 
 class TelegramClient(ABC):
+    #: Called with (old id, new id) when a group turns out to have become a supergroup.
+    on_chat_moved: Callable[[str, str], None] = staticmethod(lambda old, new: None)
+
     @abstractmethod
     def send_message(self, chat_id: str, text: str) -> bool:
         """Send HTML-formatted text. Return False instead of raising."""
@@ -53,7 +57,7 @@ class HttpTelegramClient(TelegramClient):
         return self.send_message(chat_id, caption)
 
     def _send(self, method: str, body: dict) -> bool:
-        for attempt in range(2):
+        for attempt in range(3):
             try:
                 response = requests.post(f"{self._base}/{method}", json=body, timeout=self._timeout)
             except requests.RequestException as exc:
@@ -62,6 +66,11 @@ class HttpTelegramClient(TelegramClient):
             if response.status_code == 429 and attempt == 0:
                 # Too many messages to one chat at once: Telegram says how long to wait.
                 time.sleep(min(_retry_after(response), MAX_WAIT_SECONDS))
+                continue
+            if moved_to := _parameter(response, "migrate_to_chat_id"):
+                # The group was upgraded to a supergroup; it now lives under a new id.
+                self.on_chat_moved(str(body["chat_id"]), str(moved_to))
+                body = {**body, "chat_id": str(moved_to)}
                 continue
             if not response.ok:
                 log.warning("telegram refused %s to %s: %s", method, body.get("chat_id"), response.text[:200])
@@ -96,11 +105,17 @@ class HttpTelegramClient(TelegramClient):
         return ok
 
 
-def _retry_after(response: requests.Response) -> int:
+def _parameter(response: requests.Response, name: str) -> int | None:
+    """One of the ``parameters`` Telegram adds to an error (retry_after, migrate_to_chat_id)."""
     try:
-        return int(response.json().get("parameters", {}).get("retry_after", 1))
+        value = response.json().get("parameters", {}).get(name)
     except (ValueError, AttributeError):
-        return 1
+        return None
+    return int(value) if value is not None else None
+
+
+def _retry_after(response: requests.Response) -> int:
+    return _parameter(response, "retry_after") or 1
 
 
 @dataclass(frozen=True)

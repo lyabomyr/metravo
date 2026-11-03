@@ -51,6 +51,6 @@ describe('Landing page', () => {
 
   it('LND-6 shows both plans', () => {
     cy.get('#pricing [data-cy=plan-free]').should('contain', '$0').and('contain', 'Start free');
-    cy.get('#pricing [data-cy=plan-pro]').should('contain', '$10').and('contain', 'WhatsApp, Viber, Signal');
+    cy.get('#pricing [data-cy=plan-pro]').should('contain', '$15').and('contain', 'WhatsApp, Viber, Signal');
   });
 });

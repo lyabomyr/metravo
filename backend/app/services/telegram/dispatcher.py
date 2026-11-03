@@ -32,7 +32,13 @@ class CommandDispatcher:
 
     def handle(self, update: dict) -> str | None:
         """Process one update. Returns the reply text (handy for tests)."""
+        if member := update.get("my_chat_member"):
+            self._membership(member)
+            return None
         message = update.get("message") or {}
+        if moved_to := message.get("migrate_to_chat_id"):
+            self._links.move_chat(str(message["chat"]["id"]), str(moved_to))
+            return None
         text = (message.get("text") or "").strip()
         chat = message.get("chat") or {}
         if not text.startswith("/") or "id" not in chat:
@@ -48,6 +54,11 @@ class CommandDispatcher:
         if not was_linked and (user := self._links.owner_of(chat_id)):
             self._on_connected(user)  # after the greeting, so it arrives first
         return reply
+
+    def _membership(self, member: dict) -> None:
+        """The bot was removed from a group, or blocked in a private chat: stop sending there."""
+        if (member.get("new_chat_member") or {}).get("status") in ("left", "kicked"):
+            self._links.unlink_from_telegram(str(member["chat"]["id"]))
 
     def _run(self, name: str, argument: str, chat_id: str, chat_title: str, app_language: str | None) -> str:
         user = self._links.owner_of(chat_id)

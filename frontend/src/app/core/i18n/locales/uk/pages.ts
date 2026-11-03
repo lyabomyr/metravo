@@ -60,6 +60,7 @@ export const PAGES: Section<typeof EN> = {
   'form.mustMentionExample': 'напр. balkon, winda',
   'form.mustNotMention': 'Не має містити',
   'form.mustNotMentionExample': 'напр. TBS, suterena',
+  'form.mustNotMentionSuggested': 'Запропоновані слова, сірим. Вони лишаються, доки ви їх не зміните чи не зітрете.',
   'form.wordsHint': 'Через кому; шукаємо початок слова в заголовку, описі й адресі (оголошення польською — пишіть польською). Порожнє «Має містити» приймає будь-яке оголошення; порожнє «Не має містити» нічого не виключає.',
   'form.portals': 'Портали',
   'form.notAvailable': 'недоступно для цього пошуку',

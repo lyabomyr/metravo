@@ -47,6 +47,11 @@ export class SearchFormComponent {
   /** The most often the user's plan may scan; faster options are shown but locked. */
   protected readonly planFloor = computed(() => this.config.plan_min_intervals[this.session.user()?.plan ?? 'free'] ?? 0);
   private readonly dealType = toSignal(this.form.controls.deal_type.valueChanges, { initialValue: 'sale' as DealType });
+  private readonly rejectWords = toSignal(this.form.controls.reject_keywords.valueChanges, { initialValue: '' });
+  /** Still the server's suggested words: shown grey, so it is clear they stay unless edited. */
+  protected readonly rejectIsSuggested = computed(
+    () => sameWords(words(this.rejectWords()), this.config.default_reject_keywords),
+  );
   private readonly propertyType = toSignal(this.form.controls.property_type.valueChanges, { initialValue: 'flat' as PropertyType });
 
   constructor() {
@@ -103,4 +108,9 @@ export class SearchFormComponent {
 
 function words(text: string): string[] {
   return text.split(',').map((word) => word.trim()).filter(Boolean);
+}
+
+function sameWords(a: string[], b: string[]): boolean {
+  const lower = (list: string[]) => list.map((word) => word.toLowerCase()).sort().join('|');
+  return a.length > 0 && lower(a) === lower(b);
 }

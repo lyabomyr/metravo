@@ -59,3 +59,13 @@ def test_a_long_wait_is_capped(calls):
     answers.extend([Reply(429, {"parameters": {"retry_after": 600}}), Reply(429, {})])
     assert not HttpTelegramClient("t").send_message("1", "hi")
     assert ("sleep", {"s": client_module.MAX_WAIT_SECONDS}) in made
+
+
+def test_a_group_that_became_a_supergroup_is_followed(calls):
+    made, answers = calls
+    answers.extend([Reply(400, {"parameters": {"migrate_to_chat_id": -100555}}), Reply(200)])
+    client, moved = HttpTelegramClient("t"), []
+    client.on_chat_moved = lambda old, new: moved.append((old, new))
+    assert client.send_message("-555", "hi")
+    assert moved == [("-555", "-100555")]
+    assert made[1][1]["chat_id"] == "-100555"

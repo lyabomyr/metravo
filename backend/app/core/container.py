@@ -109,6 +109,7 @@ class Container:
 
         self.telegram_client = telegram_client or self._telegram_client()
         self.telegram_links = TelegramLinkService(telegram_repo, self.users, settings.telegram_bot_username, self.clock)
+        self.telegram_client.on_chat_moved = self.telegram_links.move_chat
         self.telegram_dispatcher = self._telegram_dispatcher()
         self.bot_profile = BotProfile(self.telegram_client, self.telegram_commands)
 

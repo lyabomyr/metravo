@@ -43,7 +43,10 @@ class HealthMonitor:
         self.status = Status()
 
     def record_scan(self, report: ScanReport) -> None:
-        self.status.last_scan, self.status.last_scan_failed = report, None
+        # Most ticks find nothing due; keep the last scan that did something, so the admin page shows it.
+        if report.searches_scanned or self.status.last_scan is None:
+            self.status.last_scan = report
+        self.status.last_scan_failed = None
         failed = {error.split(":", 1)[0] for error in report.errors}
         streaks = self.status.failing_sources
         for source in failed:

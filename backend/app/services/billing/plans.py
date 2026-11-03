@@ -63,7 +63,7 @@ class PlanCatalog:
             Plan(
                 code=PRO,
                 name="Pro",
-                price_usd=10,
+                price_usd=15,
                 max_searches=5,
                 min_interval_minutes=60,  # once an hour
                 sources=("otodom", "olx", "morizon", "komornik"),

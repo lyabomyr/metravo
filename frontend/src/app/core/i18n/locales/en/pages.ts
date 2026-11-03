@@ -58,6 +58,7 @@ export const PAGES = {
   'form.mustMentionExample': 'e.g. balkon, winda',
   'form.mustNotMention': 'Must not mention',
   'form.mustNotMentionExample': 'e.g. TBS, suterena',
+  'form.mustNotMentionSuggested': 'Suggested words, shown grey. They stay unless you edit or clear them.',
   'form.wordsHint': 'Comma-separated, matched at the start of a word in the title, description and address (Polish listings: write them in Polish). Leave “Must mention” empty to accept any listing; empty “Must not mention” excludes nothing.',
   'form.portals': 'Portals',
   'form.notAvailable': 'not available for this search',

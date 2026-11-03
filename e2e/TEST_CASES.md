@@ -46,7 +46,7 @@ which matches **101, 104, 302, mzn201**.
 | LND-3 | Click “Sign in” in the bar, or the final call to action | The page scrolls to the sign-in form and focuses the email field |
 | LND-4 | Pick Polski, Українська, Русский in the language picker | The headline changes language; the choice survives a reload |
 | LND-5 | Open `/` while signed in | Redirected to `/listings` |
-| LND-6 | Pricing on the landing page | Free is $0 with “Start free”; Pro is $10 and lists the extra channels |
+| LND-6 | Pricing on the landing page | Free is $0 with “Start free”; Pro is $15 and lists the extra channels |
 
 ## Sign-in and session — `auth.cy.ts`
 
@@ -96,6 +96,7 @@ which matches **101, 104, 302, mzn201**.
 | FORM-13 | The name field | Empty with “Named after the place”, then the chosen place, as a hint, so typing needs no deleting; saved empty, the search is named after its place |
 | FORM-14 | Type “k”, then “kato”; press Enter | Nothing asked for one letter; a spinner while places load; one request for the word; Enter picks the first suggestion (Katowice) |
 | FORM-15 | Focus an empty field | Its placeholder disappears at once, before typing |
+| FORM-16 | The prefilled “must not mention” words | Grey with a note that they stay; typing in the field makes them normal text and hides the note |
 
 ## Filters — `filters.cy.ts` (each through the form, then “Check now”)
 
@@ -144,7 +145,7 @@ which matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| PLAN-1 | Free → test checkout ($10) → Pro → cancel → Free | Badge follows the plan |
+| PLAN-1 | Free → test checkout ($15) → Pro → cancel → Free | Badge follows the plan |
 | PLAN-2 | Cancel on the checkout page | Back on Plan with “Payment cancelled”; still Free |
 | PLAN-3 | Manage subscription → Back | Back on Plan; still Pro |
 | PLAN-4 | A new Free account | “Free week: 7 day(s) left” on every page, “Free for 7 days” on the plan; gone on Pro. The end of the week (checks, alerts and new searches pause) is proven in `billing/test_free_week.py` with a fixed clock |
@@ -183,7 +184,7 @@ which matches **101, 104, 302, mzn201**.
 | Welcome | Save and continue (`search-save`), Open Telegram (`telegram-open`), See your listings (`onboarding-listings`) | ONB-1, ONB-2 |
 | Listings | Check now (`scan-now`), open an ad | LST-2, LST-3 |
 | Searches | New search, Create your first search, Edit, Delete (`new-search`, `create-first-search`, `search-edit`, `search-delete`) | FORM-10, FORM-6 |
-| Search form | Buy/Rent, Flat/House, place autocomplete, spinner, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-15, FLT-1 … FLT-13 |
+| Search form | Buy/Rent, Flat/House, place autocomplete, spinner, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-16, FLT-1 … FLT-13 |
 | Alerts | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
 | Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |
 | My data | Download listings (.csv) (`download-csv`) | DATA-1 |

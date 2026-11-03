@@ -60,6 +60,7 @@ export const PAGES: Section<typeof EN> = {
   'form.mustMentionExample': 'np. balkon, winda',
   'form.mustNotMention': 'Nie może zawierać',
   'form.mustNotMentionExample': 'np. TBS, suterena',
+  'form.mustNotMentionSuggested': 'Sugerowane słowa, na szaro. Zostają, dopóki ich nie zmienisz lub nie usuniesz.',
   'form.wordsHint': 'Po przecinku; dopasowujemy początek słowa w tytule, opisie i adresie. Puste „Musi zawierać” przyjmuje każde ogłoszenie; puste „Nie może zawierać” niczego nie wyklucza.',
   'form.portals': 'Portale',
   'form.notAvailable': 'niedostępne dla tego wyszukiwania',

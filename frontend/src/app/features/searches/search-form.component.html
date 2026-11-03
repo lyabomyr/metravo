@@ -95,7 +95,15 @@
       </label>
       <label class="list__row list__row--stacked">
         <span>{{ 'form.mustNotMention' | t }}</span>
-        <input formControlName="reject_keywords" [placeholder]="'form.mustNotMentionExample' | t" data-cy="search-reject" />
+        <input
+          formControlName="reject_keywords"
+          [class.input--suggested]="rejectIsSuggested()"
+          [placeholder]="'form.mustNotMentionExample' | t"
+          data-cy="search-reject"
+        />
+        @if (rejectIsSuggested()) {
+          <span class="small muted" data-cy="reject-suggested">{{ 'form.mustNotMentionSuggested' | t }}</span>
+        }
       </label>
     </div>
     <p class="section-note">{{ 'form.wordsHint' | t }}</p>

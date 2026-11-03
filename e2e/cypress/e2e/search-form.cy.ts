@@ -192,4 +192,14 @@ describe('Search form', () => {
     cy.get('[data-cy=search-max-price]').focus().should((el) => expect(placeholderColour(el)).to.eq('rgba(0, 0, 0, 0)'));
     cy.get('[data-cy=search-max-price]').type('5').should('have.value', '5');
   });
+
+  it('FORM-16 suggested “must not mention” words read grey until edited', () => {
+    cy.visit('/searches/new');
+    cy.get('[data-cy=search-reject]').should('have.class', 'input--suggested').and('contain.value', 'TBS');
+    cy.get('[data-cy=reject-suggested]').should('be.visible');
+    cy.get('[data-cy=search-reject]').focus().should('contain.value', 'TBS'); // a value, not a hint: focus keeps it
+    cy.get('[data-cy=search-reject]').type(', parter');
+    cy.get('[data-cy=search-reject]').should('not.have.class', 'input--suggested');
+    cy.get('[data-cy=reject-suggested]').should('not.exist');
+  });
 });

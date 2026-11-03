@@ -72,6 +72,11 @@ class TelegramLinkService(BaseService):
             raise NotFound("telegram.chat_not_found")
         self._repo.unlink_chat(chat_id)
 
+    def move_chat(self, old_id: str, new_id: str) -> None:
+        """A group became a supergroup: Telegram gave it a new id, the link and pause stay."""
+        if self._repo.move_chat(old_id, new_id):
+            self.log.info("telegram chat %s is now %s", old_id, new_id)
+
     def unlink_from_telegram(self, chat_id: str) -> None:
         self._repo.unlink_chat(chat_id)
 

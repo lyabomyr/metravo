@@ -42,6 +42,9 @@ class TelegramRepository(BaseRepository):
     def unlink_chat(self, chat_id: str) -> int:
         return self._exec("DELETE FROM telegram_chats WHERE chat_id = ?", (chat_id,))
 
+    def move_chat(self, old_id: str, new_id: str) -> int:
+        return self._exec("UPDATE telegram_chats SET chat_id = ? WHERE chat_id = ?", (new_id, old_id))
+
     def set_paused(self, chat_id: str, paused: bool) -> None:
         self._exec("UPDATE telegram_chats SET paused = ? WHERE chat_id = ?", (int(paused), chat_id))
 

@@ -60,6 +60,7 @@ export const PAGES: Section<typeof EN> = {
   'form.mustMentionExample': 'напр. balkon, winda',
   'form.mustNotMention': 'Не должно содержать',
   'form.mustNotMentionExample': 'напр. TBS, suterena',
+  'form.mustNotMentionSuggested': 'Предложенные слова, серым. Они остаются, пока вы их не измените или не сотрёте.',
   'form.wordsHint': 'Через запятую; ищем начало слова в заголовке, описании и адресе (объявления на польском — пишите по-польски). Пустое «Должно содержать» принимает любое объявление; пустое «Не должно содержать» ничего не исключает.',
   'form.portals': 'Порталы',
   'form.notAvailable': 'недоступно для этого поиска',
