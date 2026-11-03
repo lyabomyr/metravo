@@ -5,7 +5,7 @@ from collections import Counter
 
 from ...core.errors import LimitReached
 from ...core.service import BaseService
-from ..connectors.models import SearchQuery
+from ..connectors.models import Listing, SearchQuery
 from ..connectors.registry import ConnectorRegistry
 from ..listings.models import EventKind, ListingEvent
 from ..listings.service import ListingService
@@ -107,11 +107,24 @@ class ScanService(BaseService):
             self.log.info("scan finished: %s", report)
         return report
 
+    def ingest(self, user: User, search: Search, listings: list[Listing]) -> ScanReport:
+        """Listings that arrived another way (a portal's alert email): same filter, store and alerts."""
+        with self._lock:
+            report = ScanReport()
+            if not self._users.is_active(user) or not search.enabled:
+                return report
+            plan = self._users.plan_of(user)
+            allowed = [listing for listing in listings if plan.allows_source(listing.source)]
+            events = self._take(user, search, allowed, report, Counter())
+            if events:
+                report.messages_sent += self._notifier.notify(user, search, events)
+            return report
+
     def _scan_search(self, user: User, search: Search, cache: FetchCache, report: ScanReport) -> None:
         plan = self._users.plan_of(user)
-        listing_filter = ListingFilter(search)
         events: list[ListingEvent] = []
-        found, fit, reasons = 0, 0, Counter()
+        reasons: Counter = Counter()
+        seen_before, kept_before = report.listings_seen, report.new_listings + report.price_changes + report.kept
         for source in search.sources:
             connector = self._connectors.get(source)
             if connector is None or not plan.allows_source(source):
@@ -122,25 +135,33 @@ class ScanService(BaseService):
             result = cache.get(connector, url)
             if result.error:
                 report.errors.append(f"{source}: {result.error}")
-            for listing in result.listings:
-                report.listings_seen += 1
-                found += 1
-                if reason := listing_filter.reason_to_reject(listing):
-                    reasons[reason_code(reason)] += 1
-                    continue
-                fit += 1
-                event = self._listings.record(user.id, search, listing)
-                if event is None:
-                    continue
-                if event.kind is EventKind.NEW:
-                    report.new_listings += 1
-                    events.append(event)
-                else:
-                    report.price_changes += 1
-                    if plan.price_alerts:
-                        events.append(event)
+            events += self._take(user, search, result.listings, report, reasons)
+        found = report.listings_seen - seen_before
+        fit = report.new_listings + report.price_changes + report.kept - kept_before
         top_reason = reasons.most_common(1)[0][0] if reasons else None
         self._searches.mark_scanned(user, search.id, found, fit, top_reason)
         report.searches_scanned += 1
         if events:
             report.messages_sent += self._notifier.notify(user, search, events)
+
+    def _take(self, user: User, search: Search, listings: list[Listing], report: ScanReport, reasons: Counter) -> list[ListingEvent]:
+        """Filter and store listings for one search; the events worth telling the user about."""
+        price_alerts = self._users.plan_of(user).price_alerts
+        listing_filter = ListingFilter(search)
+        events: list[ListingEvent] = []
+        for listing in listings:
+            report.listings_seen += 1
+            if reason := listing_filter.reason_to_reject(listing):
+                reasons[reason_code(reason)] += 1
+                continue
+            event = self._listings.record(user.id, search, listing)
+            if event is None:
+                report.kept += 1  # fits, and the user has already heard about it
+            elif event.kind is EventKind.NEW:
+                report.new_listings += 1
+                events.append(event)
+            else:
+                report.price_changes += 1
+                if price_alerts:
+                    events.append(event)
+        return events

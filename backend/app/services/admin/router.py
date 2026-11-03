@@ -21,6 +21,17 @@ def system(_: User = Depends(admin_user), container: Container = Depends(get_con
     return SystemOut.of(container.monitor.status, container.recent_logs.entries())
 
 
+@router.get("/mail-alerts")
+def mail_alerts(_: User = Depends(admin_user), container: Container = Depends(get_container)) -> dict:
+    """The alert mailbox: is it read, when, and what the last check found."""
+    return asdict(container.mail_alerts.status)
+
+
+@router.post("/mail-alerts/check")
+def check_mail_alerts(_: User = Depends(admin_user), container: Container = Depends(get_container)) -> dict:
+    return asdict(container.mail_alerts.check())
+
+
 @router.get("/database")
 def database(_: User = Depends(admin_user), container: Container = Depends(get_container)) -> list[dict]:
     """Every table with its rows and size, the biggest first."""

@@ -7,6 +7,8 @@ import re
 _PRICE = re.compile(r"([\d\s]+)\s*zł", re.IGNORECASE)
 _AREA = re.compile(r"(\d+[.,]?\d*)\s*m", re.IGNORECASE)
 _ROOMS = re.compile(r"(\d+)\s*pok", re.IGNORECASE)
+# OLX and Otodom end an offer's address with its id: ".../oferta/...-ID4uXyZ" (Otodom), "...-IDabc12.html" (OLX).
+_ID_IN_URL = re.compile(r"-ID([A-Za-z0-9]+)(?:\.html)?/?(?:[?#]|$)")
 
 
 def parse_price(text: str | None) -> int | None:
@@ -20,6 +22,13 @@ def parse_area(text: str | None) -> float | None:
     """'40,60 m²' → 40.6."""
     match = _AREA.search(text or "")
     return float(match.group(1).replace(",", ".")) if match else None
+
+
+def listing_id_from_url(url: str) -> str | None:
+    """The id an OLX or Otodom address carries. Results pages and alert emails both have the
+    address, so a listing gets the same key whichever way it arrives."""
+    match = _ID_IN_URL.search(url)
+    return match.group(1) if match else None
 
 
 def parse_rooms(text: str | None) -> int | None:

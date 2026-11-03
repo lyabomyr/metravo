@@ -208,6 +208,7 @@ Opening the Worker's URL shows its last check.
 | Change the Pro launch date | `PRO_AVAILABLE_FROM` in `render.yaml` |
 | Turn on payments | three Stripe secrets + `BILLING_PROVIDER: stripe` ([docs/SETUP.md](docs/SETUP.md#later-turning-on-payments)) |
 | Add a delivery channel | a `ChannelSender` subclass (`deliver` and `send_test`, like `services/email/sender.py`), added to `senders` in `core/container.py` — that makes the channel live |
+| Get OLX and Otodom offers | they block our server, so use their alert emails: sign in to OLX and Otodom with the SMTP mailbox's address, save a search per place (e.g. "Mieszkania, Kraków") with **email alerts on, as often as offered**. Gmail: IMAP on, an app password in `SMTP_PASSWORD`. Admin → "OLX and Otodom alert emails" shows the mailbox and what came in; offers go to the admin's searches that include OLX/Otodom |
 | Add a portal | `connectors/<portal>/connector.py` (extend `BaseConnector`) → `CONNECTOR_CLASSES` → fixture page + test → allow it in `billing/plans.py` |
 | Add a language | a catalog in `backend/app/core/i18n/catalogs/` and a folder in `frontend/src/app/core/i18n/locales/`; the compiler and the tests list every missing key |
 

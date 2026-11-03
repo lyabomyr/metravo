@@ -1,0 +1,49 @@
+From: OLX <powiadomienia@olx.pl>
+To: alerts@example.com
+Subject: =?utf-8?q?Nowe_og=C5=82oszenia_dla_Ciebie=3A_Mieszkania_-_Krak=C3=B3w?=
+Date: Tue, 03 Nov 2026 12:00:00 +0000
+Message-ID: <olx-krakow-1@olx.pl>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="b1"
+
+--b1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+Nowe ogłoszenia: Mieszkania - Kraków
+3 pokoje z balkonem, Krowodrza – 649 000 zł – https://www.olx.pl/d/oferta/3-pokoje-z-balkonem-krowodrza-CID3-IDXy12Ab.html
+Kawalerka przy AGH – 389 000 zł – https://www.olx.pl/d/oferta/kawalerka-przy-agh-CID3-IDQw34Cd.html
+
+--b1
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+<html><body>
+<table width="600"><tr><td>
+  <h1>Nowe ogłoszenia dla Ciebie</h1>
+  <p>Wyszukiwanie: Mieszkania - Kraków</p>
+  <table class="card"><tr>
+    <td><a href="https://www.olx.pl/d/oferta/3-pokoje-z-balkonem-krowodrza-CID3-IDXy12Ab.html?utm_source=email&amp;utm_medium=alert"><img src="https://ireland.apollo.olxcdn.com/v1/files/xy12ab/image;s=300x225" width="140" alt="3 pokoje z balkonem, Krowodrza"></a></td>
+    <td>
+      <a href="https://www.olx.pl/d/oferta/3-pokoje-z-balkonem-krowodrza-CID3-IDXy12Ab.html?utm_source=email&amp;utm_medium=alert">3 pokoje z balkonem, Krowodrza</a>
+      <p><b>649&nbsp;000 zł</b></p>
+      <p>58 m² · 13 534 zł/m²</p>
+      <p>Kraków, Krowodrza</p>
+    </td>
+  </tr></table>
+  <table class="card"><tr>
+    <td><a href="https://www.olx.pl/d/oferta/kawalerka-przy-agh-CID3-IDQw34Cd.html?utm_source=email"><img src="https://ireland.apollo.olxcdn.com/v1/files/qw34cd/image;s=300x225" width="140" alt="Kawalerka przy AGH"></a></td>
+    <td>
+      <a href="https://www.olx.pl/d/oferta/kawalerka-przy-agh-CID3-IDQw34Cd.html?utm_source=email">Kawalerka przy AGH</a>
+      <p><b>389 000 zł</b></p>
+      <p>27 m²</p>
+      <p>Kraków, Krowodrza</p>
+    </td>
+  </tr></table>
+  <p><a href="https://www.olx.pl/mojolx/obserwowane/wyszukiwania/">Zarządzaj powiadomieniami</a>
+     · <a href="https://www.olx.pl/unsubscribe?token=abc">Wypisz się</a></p>
+  <img src="https://track.olx.pl/open.gif?id=1" width="1" height="1" alt="">
+</td></tr></table>
+</body></html>
+
+--b1--

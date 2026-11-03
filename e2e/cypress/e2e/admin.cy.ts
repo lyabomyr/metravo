@@ -53,4 +53,17 @@ describe('Service management', () => {
     cy.visit('/searches/new');
     cy.get('[data-cy=search-interval] option:disabled').should('have.length', 0); // every hour is allowed
   });
+
+  it('ADM-7 OLX and Otodom offers arrive from their alert emails, for the owner', () => {
+    cy.signIn(Cypress.env('adminEmail'));
+    cy.api('GET', '/api/searches').then(({ body }) => body.forEach((search: { id: string }) => cy.api('DELETE', `/api/searches/${search.id}`)));
+    cy.api('POST', '/api/searches', { name: 'Z poczty', city: 'krakow', sources: ['otodom', 'olx'] });
+    cy.visit('/admin');
+    cy.get('[data-cy=mail-mailbox]').should('contain', 'mail/');
+    cy.get('[data-cy=mail-check]').click();
+    cy.get('[data-cy=mail-last]').should('contain', '2 emails').and('contain', '4 offers');
+    cy.visit('/listings');
+    cy.contains('[data-cy=listing]', 'Kawalerka przy AGH').should('contain', 'olx');
+    cy.contains('[data-cy=listing]', '2 pokoje Podgórze po remoncie').should('contain', 'otodom');
+  });
 });

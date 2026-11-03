@@ -54,7 +54,8 @@ def check_api() -> str:
     assert [plan["code"] for plan in plans] == ["free", "pro"], "plans missing"
     portals = {name: state["state"] + (f" ({state['http_status']})" if state.get("http_status") else "")
                for name, state in config.get("portal_status", {}).items()}
-    return f"API healthy; sign-in {config['auth_providers']}; portals as the server sees them: {portals or 'not checked yet'}"
+    return (f"API healthy; sign-in {config['auth_providers']}; portals as the server sees them: {portals or 'not checked yet'}; "
+            f"OLX/Otodom alert emails: {config.get('mail_alerts', 'unknown')}")
 
 
 def check_cors() -> str:

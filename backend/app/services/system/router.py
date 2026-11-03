@@ -37,5 +37,7 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "radius_choices": list(RADIUS_CHOICES),
         "default_reject_keywords": list(DEFAULT_REJECT_KEYWORDS),
         "first_batch": FIRST_DELIVERY,
+        # "off", "waiting", "ok" or "error" — whether OLX and Otodom alert emails are being read.
+        "mail_alerts": container.mail_alerts.status.state,
         "portal_status": container.portal_access.status(),
     }

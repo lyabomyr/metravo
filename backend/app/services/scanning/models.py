@@ -11,4 +11,6 @@ class ScanReport:
     new_listings: int = 0
     price_changes: int = 0
     messages_sent: int = 0
+    #: Listings that fit but were already known (no message).
+    kept: int = 0
     errors: list[str] = field(default_factory=list)

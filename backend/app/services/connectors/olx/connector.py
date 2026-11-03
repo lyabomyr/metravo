@@ -9,9 +9,8 @@ from bs4 import BeautifulSoup, Tag
 
 from ..base import BaseConnector
 from ..models import DealType, Listing, PropertyType
-from ..parsing import parse_area, parse_price
+from ..parsing import listing_id_from_url, parse_area, parse_price
 
-_ID_FROM_URL = re.compile(r"ID([A-Za-z0-9]+)\.html")
 # OLX glues the posting date onto the place: "Kraków, Nowa Huta - 04 sierpnia 2026".
 # Left in, the date would leak into the address and break cross-portal matching.
 _TIMESTAMP = re.compile(r"\s+-\s+(?:Odświeżono|Dzisiaj|Wczoraj|\d{1,2}\s+\w+\s+\d{4}).*$")
@@ -46,8 +45,7 @@ class OlxConnector(BaseConnector):
         url = href if href.startswith("http") else f"https://www.olx.pl{href}"
         if "otodom.pl" in url:
             return None  # OLX re-lists Otodom ads; the Otodom connector owns those
-        match = _ID_FROM_URL.search(url)
-        listing_id = card.get("id") or (match.group(1) if match else url)
+        listing_id = listing_id_from_url(url) or card.get("id") or url
         title = card.find(["h4", "h6"])
         price = card.select_one('[data-testid="ad-price"]')
         place = card.select_one('[data-testid="location-date"]')

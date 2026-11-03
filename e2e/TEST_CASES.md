@@ -161,6 +161,7 @@ which matches **101, 104, 302, mzn201**.
 | ADM-4 | Refresh, then “Run scan for everyone” | Health reloads; a report of searches, page fetches and new listings appears |
 | ADM-5 | Admin opens the page | “Database” lists every table with its rows (and size where the engine reports it), the biggest first |
 | ADM-6 | Admin opens a new search | Every check frequency is open: admins have Pro without paying |
+| ADM-7 | Admin with a Kraków search for OLX + Otodom presses “Check mail now” | The saved alert emails (backend/tests/fixtures/mail) give 2 emails · 4 offers; the offers appear in Listings with their portal |
 
 ## Languages — `i18n.cy.ts`
 
@@ -196,7 +197,7 @@ which matches **101, 104, 302, mzn201**.
 | Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |
 | My data | Download listings (.csv) (`download-csv`) | DATA-1 |
 | Plan | Upgrade, Manage subscription; test checkout Pay / Cancel; test portal Cancel subscription / Back | PLAN-1 … PLAN-3 |
-| Admin | Make pro / Make free, Refresh, Run scan for everyone | ADM-2, ADM-4 |
+| Admin | Make pro / Make free, Refresh, Run scan for everyone, Check mail now | ADM-2, ADM-4, ADM-7 |
 
 ## Below the UI — backend unit tests
 

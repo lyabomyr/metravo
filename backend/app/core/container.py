@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable
+from datetime import timedelta
 
 from ..services.admin.database_usage import DatabaseUsage
 from .clock import Clock
@@ -127,6 +128,7 @@ class Container:
         self.notifier = FanOutNotifier(self.notifications, senders)
         self.portal_access = PortalAccess(self.clock)
         self.scanner = ScanService(self.users, self.searches, self.listings, self.connectors, self.notifier, self.portal_access)
+        self.mail_alerts = self._mail_alerts()
         self.admin = AdminService(self.users, self.telegram_links)
         self.recent_logs = RecentLogs()
         self.monitor = HealthMonitor(
@@ -163,8 +165,26 @@ class Container:
         keep_alive = KeepAlive(f"{s.public_api_url}/api/health", s.keep_alive_minutes * 60) if s.is_production else None
         from ..services.system.housekeeping import Housekeeping
 
-        housekeeping = Housekeeping(self.listings, self.telegram_links, self.clock)
-        return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor, housekeeping)
+        chores = (Housekeeping(self.listings, self.telegram_links, self.clock), self.mail_alerts)
+        return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor, chores)
+
+    def _mail_alerts(self):
+        from ..services.mail_alerts.inbox import FolderInbox, ImapInbox
+        from ..services.mail_alerts.parser import AlertParser
+        from ..services.mail_alerts.redirects import RedirectResolver
+        from ..services.mail_alerts.service import MailAlertService
+
+        s = self.settings
+        if s.mail_alerts_dir:
+            inbox = FolderInbox(s.mail_alerts_dir)
+        elif mailbox := s.alert_mailbox:
+            inbox = ImapInbox(*mailbox)
+        else:
+            inbox = None
+        return MailAlertService(
+            inbox, AlertParser(RedirectResolver()), self.users, self.searches, self.scanner, s.alert_owner, self.clock,
+            every=timedelta(minutes=s.mail_alerts_every_minutes),
+        )
 
     def _places(self):
         from ..services.places.directory import PlaceDirectory

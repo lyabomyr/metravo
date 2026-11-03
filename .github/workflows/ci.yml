@@ -44,6 +44,7 @@ jobs:
       APP_ENV: e2e
       PAGE_FETCHER: fixtures
       FIXTURES_DIR: ${{ github.workspace }}/backend/tests/fixtures/pages
+      MAIL_ALERTS_DIR: ${{ github.workspace }}/backend/tests/fixtures/mail  # saved OLX/Otodom alert emails
       CONTROL_DB_URL: sqlite:///${{ github.workspace }}/backend/data/control.db
       ADMIN_EMAILS: admin@metravo.test
       SCAN_DELAY_SECONDS: "0"

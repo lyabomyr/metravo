@@ -31,6 +31,20 @@ export interface TableUsage {
   bytes: number | null;
 }
 
+/** The OLX/Otodom alert mailbox (backend services/mail_alerts). */
+export interface MailAlertStatus {
+  state: 'off' | 'waiting' | 'ok' | 'error';
+  mailbox: string;
+  owner: string;
+  checked_at: string | null;
+  mails: number;
+  offers: number;
+  new: number;
+  sent: number;
+  totals: { mails: number; offers: number; new: number; sent: number };
+  error: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminApiService extends BaseApiService {
   protected readonly path = '/api/admin';
@@ -41,6 +55,14 @@ export class AdminApiService extends BaseApiService {
 
   system(): Observable<SystemHealth> {
     return this.get<SystemHealth>('/system');
+  }
+
+  mailAlerts(): Observable<MailAlertStatus> {
+    return this.get<MailAlertStatus>('/mail-alerts');
+  }
+
+  checkMailAlerts(): Observable<MailAlertStatus> {
+    return this.post<MailAlertStatus>('/mail-alerts/check');
   }
 
   database(): Observable<TableUsage[]> {

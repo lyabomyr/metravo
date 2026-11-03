@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 from ..base import BaseConnector
 from ..models import DealType, Listing, PropertyType
-from ..parsing import as_float, as_int
+from ..parsing import as_float, as_int, listing_id_from_url
 
 # Otodom has moved the result list around between releases; try each known home.
 _ITEM_PATHS = (
@@ -56,10 +56,12 @@ class OtodomConnector(BaseConnector):
         listing_id, slug = item.get("id"), item.get("slug")
         if not listing_id or not slug:
             return None
+        url = f"https://www.otodom.pl/pl/oferta/{slug}"
         return Listing(
             source=self.name,
-            external_id=str(listing_id),
-            url=f"https://www.otodom.pl/pl/oferta/{slug}",
+            # The id in the address, as in alert emails; the numeric id when the address has none.
+            external_id=listing_id_from_url(url) or str(listing_id),
+            url=url,
             title=item.get("title") or "",
             price=as_int(self._price(item)),
             area=as_float(self._number(item, "areaInSquareMeters", "area")),

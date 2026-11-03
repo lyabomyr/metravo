@@ -95,6 +95,19 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   we have. Each scan stores on the search how many offers the portals
   showed, how many fit and the commonest reason for the rest
   (`last_found`, `last_fit`, `last_reason`); the search card shows it.
+- **OLX and Otodom through their alert emails.** Both block our server
+  (CloudFront WAF, 403) and their terms forbid aggregating their listings for
+  third parties without written consent, so they are not scraped. Their own
+  saved-search emails reach one mailbox (`services/mail_alerts`): every 5
+  minutes `ImapInbox` reads unread mail from olx.pl / otodom.pl (BODY.PEEK,
+  marked read only after processing), `AlertParser` turns each email into
+  `Listing`s — offer links (click trackers followed by their `Location`
+  header only, never onto the portal; unsubscribe/settings links never
+  touched), price, area, rooms, photo — with the same `source:id` keys as the
+  scrapers (`listing_id_from_url`). `ScanService.ingest` sends them through
+  the scan's filter, store and Telegram path for the mailbox **owner only**
+  (personal use), into the owner's searches that include the portal and,
+  when the email names a place, the search for that place.
 - **Keeping the database small.** Each offer is stored once; a user's
   match is a row of ids. Once a day (`system/Housekeeping`, from the
   scheduler) offers no scan has seen for 90 days are forgotten for everyone,
@@ -129,6 +142,7 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
 | CI / deploy | GitHub Actions | unlimited on public repos, 2 000 min/month private; no schedules | — |
 | Database | Turso, one database | free plan storage and row reads — check the current quota | Turso paid |
 | Sign-in | Firebase Auth (Google; email links are built but switched off in the UI) | free; Google sends the emails, no domain needed | — |
+| OLX / Otodom | their saved-search alert emails, read over IMAP | free (the SMTP mailbox) | — (their pages block our server) |
 | Places | Photon (OSM) + ULDK (Polish geoportal), Nominatim as fallback, OSM map tiles | free; throttled and cached | a hosted geocoder |
 | Email alerts | any SMTP; Gmail with an app password | about 500 emails/day, no domain needed | Brevo (300/day free) or a paid SMTP |
 | Payments | off for now (`BILLING_PROVIDER=none`); Stripe later | Stripe: no monthly fee, a cut per payment | — |

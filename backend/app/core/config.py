@@ -77,6 +77,15 @@ class Settings:
     smtp_username: str = ""
     smtp_password: str = ""
     smtp_from: str = ""  # "Metravo <you@gmail.com>"; defaults to the username
+    # OLX and Otodom alert emails (their saved searches), read from a mailbox. The SMTP
+    # mailbox by default: imap.<provider> with the same login. Offers go to the owner only.
+    mail_alerts_imap_host: str = ""
+    mail_alerts_imap_port: int = 993
+    mail_alerts_username: str = ""
+    mail_alerts_password: str = ""
+    mail_alerts_owner: str = ""  # Metravo account that gets them; the admin when there is one
+    mail_alerts_every_minutes: int = 5
+    mail_alerts_dir: str = ""  # local and e2e runs: saved .eml files instead of a mailbox
 
     # Billing
     billing_provider: str = "fake"  # none | fake | stripe
@@ -135,6 +144,13 @@ class Settings:
             smtp_username=get("SMTP_USERNAME", ""),
             smtp_password=get("SMTP_PASSWORD", ""),
             smtp_from=get("SMTP_FROM", ""),
+            mail_alerts_imap_host=get("MAIL_ALERTS_IMAP_HOST", ""),
+            mail_alerts_imap_port=int(get("MAIL_ALERTS_IMAP_PORT", str(defaults.mail_alerts_imap_port))),
+            mail_alerts_username=get("MAIL_ALERTS_USERNAME", ""),
+            mail_alerts_password=get("MAIL_ALERTS_PASSWORD", ""),
+            mail_alerts_owner=get("MAIL_ALERTS_OWNER", "").lower(),
+            mail_alerts_every_minutes=int(get("MAIL_ALERTS_EVERY_MINUTES", str(defaults.mail_alerts_every_minutes))),
+            mail_alerts_dir=get("MAIL_ALERTS_DIR", ""),
             billing_provider=get("BILLING_PROVIDER", defaults.billing_provider),
             pro_available_from=date.fromisoformat(pro_from) if pro_from else None,
             stripe_secret_key=get("STRIPE_SECRET_KEY", ""),
@@ -155,6 +171,20 @@ class Settings:
     @property
     def is_production(self) -> bool:
         return self.env == "prod"
+
+    @property
+    def alert_mailbox(self) -> tuple[str, int, str, str] | None:
+        """(host, port, username, password) of the alert mailbox, or None when there is none."""
+        username = self.mail_alerts_username or self.smtp_username
+        password = self.mail_alerts_password or self.smtp_password
+        host = self.mail_alerts_imap_host
+        if not host and self.smtp_host.startswith("smtp."):
+            host = "imap." + self.smtp_host.removeprefix("smtp.")  # smtp.gmail.com → imap.gmail.com
+        return (host, self.mail_alerts_imap_port, username, password) if host and username and password else None
+
+    @property
+    def alert_owner(self) -> str:
+        return self.mail_alerts_owner or (sorted(self.admin_emails)[0] if self.admin_emails else "")
 
     def validate(self) -> None:
         """Crash early on settings that would only fail later, at the worst time."""

@@ -5,11 +5,12 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from collections.abc import Sequence
+from typing import Protocol
 
 import requests
 
 from ..monitoring.monitor import HealthMonitor
-from ..system.housekeeping import Housekeeping
 from .service import ScanService
 
 log = logging.getLogger(__name__)
@@ -33,6 +34,12 @@ class KeepAlive:
             log.warning("keep-alive ping failed: %s", error)
 
 
+class Chore(Protocol):
+    """Side work on the same timer, each deciding for itself when it is due (cleanup, alert emails)."""
+
+    def run_if_due(self) -> None: ...
+
+
 class ScanScheduler:
     """Every tick, scan whatever is due, then check the instance's health.
 
@@ -47,13 +54,13 @@ class ScanScheduler:
         tick_seconds: int,
         keep_alive: KeepAlive | None = None,
         monitor: HealthMonitor | None = None,
-        housekeeping: Housekeeping | None = None,
+        chores: Sequence[Chore] = (),
     ):
         self._scanner = scanner
         self._tick_seconds = tick_seconds
         self._keep_alive = keep_alive
         self._monitor = monitor
-        self._housekeeping = housekeeping
+        self._chores = chores
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -73,14 +80,11 @@ class ScanScheduler:
                 self._monitor.record_scan(report)
         if self._monitor:
             self._check_health()
-        if self._housekeeping:
-            self._tidy()
-
-    def _tidy(self) -> None:
-        try:
-            self._housekeeping.run_if_due()
-        except Exception:  # noqa: BLE001 — cleaning up must not stop scanning
-            log.exception("housekeeping failed")
+        for chore in self._chores:
+            try:
+                chore.run_if_due()
+            except Exception:  # noqa: BLE001 — side work must not stop scanning
+                log.exception("%s failed", type(chore).__name__)
 
     def _check_health(self) -> None:
         try:

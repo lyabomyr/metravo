@@ -83,6 +83,10 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          MAIL_ALERTS_IMAP_HOST: ${{ secrets.MAIL_ALERTS_IMAP_HOST || vars.MAIL_ALERTS_IMAP_HOST }}
+          MAIL_ALERTS_USERNAME: ${{ secrets.MAIL_ALERTS_USERNAME }}
+          MAIL_ALERTS_PASSWORD: ${{ secrets.MAIL_ALERTS_PASSWORD }}
+          MAIL_ALERTS_OWNER: ${{ secrets.MAIL_ALERTS_OWNER || vars.MAIL_ALERTS_OWNER }}
           # The Pages URL from OpenTofu; the project's default address if that step was skipped.
           FRONTEND_URL: ${{ vars.FRONTEND_URL || steps.pages.outputs.url || 'https://metravo.pages.dev' }}
         run: python3 .github/scripts/deploy.py render

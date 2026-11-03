@@ -3,7 +3,7 @@
 NODE_PATH_PREFIX := $(if $(wildcard $(HOME)/.local/node/current/bin),PATH=$(HOME)/.local/node/current/bin:$$PATH,)
 E2E_ENV := APP_ENV=e2e PAGE_FETCHER=fixtures FIXTURES_DIR=$(CURDIR)/backend/tests/fixtures/pages \
 	CONTROL_DB_URL=sqlite:///$(CURDIR)/backend/data/control.db \
-	ADMIN_EMAILS=admin@metravo.test SCAN_DELAY_SECONDS=0
+	ADMIN_EMAILS=admin@metravo.test SCAN_DELAY_SECONDS=0 MAIL_ALERTS_DIR=$(CURDIR)/backend/tests/fixtures/mail
 
 .PHONY: help install api web test lint e2e build scan clean
 
