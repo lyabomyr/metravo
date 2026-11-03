@@ -8,6 +8,8 @@ MESSAGES = {
     "search.area_range": "Maximum area is below minimum area",
     "search.price_range": "“Price from” is higher than “price up to”",
     "search.rooms_range": "Maximum rooms is below minimum rooms",
+    "search.floor_range": "“Floor up to” is below “floor from”",
+    "search.portal_filter": "{sources} cannot filter offers by this market or seller: switch it off or drop that filter",
     "search.no_portal": "Pick at least one portal",
     "search.portal_unsupported": "{sources} has no {property} listings to {deal}",
     "search.interval_invalid": "Scan interval must be one of {choices} minutes",

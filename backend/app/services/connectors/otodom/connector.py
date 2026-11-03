@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
+from urllib.parse import quote
 
 from bs4 import BeautifulSoup
 
 from ..base import BaseConnector
-from ..models import DealType, Listing, PropertyType
+from ..models import DealType, Listing, PropertyType, SearchQuery
 from ..parsing import as_float, as_int, listing_id_from_url
 
 # Otodom has moved the result list around between releases; try each known home.
@@ -19,8 +20,14 @@ _ITEM_PATHS = (
 )
 
 
+#: Otodom's floor names; the position is the floor (0 = ground). Checked against otodom.pl.
+_FLOORS = ("GROUND", "FIRST", "SECOND", "THIRD", "FOURTH", "FIFTH", "SIXTH", "SEVENTH", "EIGHTH", "NINTH", "TENTH")
+_FLOOR_NUMBERS = {name: number for number, name in enumerate(_FLOORS)} | {"CELLAR": -1, "ABOVE_TENTH": 11}
+
+
 class OtodomConnector(BaseConnector):
     name = "otodom"
+    FILTERS = frozenset({"market:primary", "market:secondary", "private"})
     _URL = (
         "https://www.otodom.pl/pl/wyniki/{deal}/{kind}/{{place_path}}"
         "?distanceRadius={{radius}}&priceMax={{max_price}}&areaMin={{min_area}}&limit=36&by=LATEST&direction=DESC"
@@ -31,6 +38,22 @@ class OtodomConnector(BaseConnector):
         (DealType.SALE, PropertyType.HOUSE): _URL.format(deal="sprzedaz", kind="dom"),
         (DealType.RENT, PropertyType.HOUSE): _URL.format(deal="wynajem", kind="dom"),
     }
+
+    def filter_params(self, query: SearchQuery) -> list[str]:
+        params = []
+        if query.market:
+            params.append(f"market={query.market.value.upper()}")
+        if query.private_only:
+            params.append("ownerTypeSingleSelect=PRIVATE")
+        if floors := query.floors:
+            low, high = floors
+            names = [name for number, name in enumerate(_FLOORS) if number >= low and (high is None or number <= high)]
+            if high is None or high > 10:
+                names.append("ABOVE_TENTH")
+            if high is None:
+                names.append("GARRET")  # the attic: the top, whatever its number
+            params.append("floors=" + quote(f"[{','.join(names)}]"))
+        return params
 
     def parse(self, html: str) -> Iterable[Listing]:
         tag = BeautifulSoup(html, "html.parser").find("script", id="__NEXT_DATA__")
@@ -70,6 +93,8 @@ class OtodomConnector(BaseConnector):
             build_year=as_int(self._number(item, "buildYear", "yearBuilt")),
             description=item.get("shortDescription") or item.get("description"),
             image_url=self._image(item),
+            floor=_FLOOR_NUMBERS.get(item.get("floorNumber")),
+            private=item["isPrivateOwner"] if isinstance(item.get("isPrivateOwner"), bool) else None,
         )
 
     @staticmethod

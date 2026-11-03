@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 from ...core.clock import parse_iso
 from ...core.i18n import translator
-from ..connectors.models import DealType, PropertyType, SearchQuery
+from ..connectors.models import DealType, Market, PropertyType, SearchQuery
 from ..places.models import Place
 
 #: How often a search may be scanned, in minutes. The plan sets the floor.
@@ -63,6 +63,13 @@ class Search:
     last_found: int | None = None
     last_fit: int | None = None
     last_reason: str | None = None
+    #: None = new builds and second-hand alike (sales only).
+    market: Market | None = None
+    #: Offers from the owner only: portals that cannot tell are skipped.
+    private_only: bool = False
+    #: Floors, 0 = the ground floor; None = no limit (flats only).
+    min_floor: int | None = None
+    max_floor: int | None = None
     #: When the GitHub job last fetched this search's remote portals (``REMOTE_PORTALS``).
     remote_scanned_at: str | None = None
 
@@ -75,6 +82,10 @@ class Search:
             property_type=self.property_type,
             max_price=self.max_price,
             min_area=self.min_area,
+            market=self.market,
+            private_only=self.private_only,
+            min_floor=self.min_floor,
+            max_floor=self.max_floor,
         )
 
     def is_due(self, now: datetime, interval_minutes: int, remote: bool = False) -> bool:

@@ -4,7 +4,7 @@ import json
 
 from ...core.database import Database, Row
 from ...core.repository import OwnedRepository
-from ..connectors.models import DealType, PropertyType
+from ..connectors.models import DealType, Market, PropertyType
 from ..places.known import known_place
 from ..places.models import Place
 from .models import Search
@@ -59,6 +59,10 @@ class SearchRepository(OwnedRepository):
         ("searches", "last_reason", "TEXT"),
         # The GitHub job fetches some portals on its own clock (see Settings.remote_portals).
         ("searches", "remote_scanned_at", "TEXT"),
+        ("searches", "market", "TEXT"),  # primary | secondary; NULL = both
+        ("searches", "private_only", "INTEGER NOT NULL DEFAULT 0"),
+        ("searches", "min_floor", "INTEGER"),
+        ("searches", "max_floor", "INTEGER"),
     )
 
     _COLUMNS = (
@@ -66,6 +70,7 @@ class SearchRepository(OwnedRepository):
         "deal_type", "property_type", "min_price", "max_price", "min_area", "max_area",
         "min_rooms", "max_rooms", "max_price_per_m2", "min_build_year", "sources", "required_keywords",
         "reject_keywords", "interval_minutes", "enabled", "last_scanned_at", "created_at",
+        "market", "private_only", "min_floor", "max_floor",
     )
 
     @staticmethod
@@ -116,6 +121,7 @@ class SearchRepository(OwnedRepository):
             search.max_price_per_m2, search.min_build_year, json.dumps(search.sources),
             json.dumps(search.required_keywords, ensure_ascii=False), json.dumps(search.reject_keywords, ensure_ascii=False),
             search.interval_minutes, int(search.enabled), search.last_scanned_at, search.created_at,
+            search.market.value if search.market else None, int(search.private_only), search.min_floor, search.max_floor,
         )
 
     @staticmethod
@@ -138,5 +144,7 @@ class SearchRepository(OwnedRepository):
                 "required_keywords": json.loads(row["required_keywords"]),
                 "reject_keywords": json.loads(row["reject_keywords"]),
                 "enabled": bool(row["enabled"]),
+                "market": Market(row["market"]) if row.get("market") else None,
+                "private_only": bool(row.get("private_only")),
             }
         )

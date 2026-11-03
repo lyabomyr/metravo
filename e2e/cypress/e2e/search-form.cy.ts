@@ -207,4 +207,36 @@ describe('Search form', () => {
     cy.get('[data-cy=search-reject]').should('not.have.class', 'input--suggested');
     cy.get('[data-cy=reject-suggested]').should('not.exist');
   });
+
+  it('FORM-17 second-hand from the owner, floors 1–4: portals that cannot filter sit out', () => {
+    cy.visit('/searches/new');
+    pickPlace('Kraków');
+    cy.get('[data-cy=search-market]').select('second-hand only');
+    cy.get('[data-cy=search-private]').check();
+    // Morizon has no "private sellers only", so it would send agencies: it is switched off.
+    cy.get('[data-cy=source-morizon]').should('be.disabled').and('not.be.checked');
+    cy.get('[data-cy=source-otodom]').should('be.enabled').and('be.checked');
+    cy.get('[data-cy=search-min-floor]').select('1');
+    cy.get('[data-cy=search-max-floor] option:disabled').should('have.length', 1); // the ground floor, below “from”
+    cy.get('[data-cy=search-max-floor]').select('4');
+    cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
+    cy.api('GET', '/api/searches').its('body.0').should((search: Record<string, unknown>) => {
+      expect(search['market']).to.eq('secondary');
+      expect(search['private_only']).to.eq(true);
+      expect([search['min_floor'], search['max_floor']]).to.deep.eq([1, 4]);
+      expect(search['sources']).to.deep.eq(['otodom', 'olx']);
+    });
+  });
+
+  it('FORM-18 floors are for flats and the market for sales', () => {
+    cy.visit('/searches/new');
+    cy.get('[data-cy=search-min-floor]').should('be.visible');
+    cy.get('[data-cy=property-house]').parent('label').click();
+    cy.get('[data-cy=search-min-floor]').should('not.exist');
+    cy.get('[data-cy=search-market]').should('be.visible');
+    chooseSegment('deal-rent');
+    cy.get('[data-cy=search-market]').should('not.exist');
+    cy.get('[data-cy=search-private]').should('be.visible'); // a landlord can be private too
+  });
 });

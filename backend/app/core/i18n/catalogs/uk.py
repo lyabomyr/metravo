@@ -7,6 +7,8 @@ MESSAGES = {
     "search.area_range": "Максимальна площа менша за мінімальну",
     "search.price_range": "«Ціна від» більша за «ціну до»",
     "search.rooms_range": "Максимум кімнат менший за мінімум",
+    "search.floor_range": "«Поверх до» нижчий за «поверх від»",
+    "search.portal_filter": "{sources} не вміє фільтрувати оголошення за цим ринком чи продавцем: вимкніть його або приберіть цей фільтр",
     "search.no_portal": "Оберіть хоча б один портал",
     "search.portal_unsupported": "{sources}: немає оголошень типу {property} / {deal}",
     "search.interval_invalid": "Частота перевірки має бути одним зі значень (у хвилинах): {choices}",

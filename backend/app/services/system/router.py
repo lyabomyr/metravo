@@ -31,6 +31,8 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "billing_provider": settings.billing_provider,
         "sources": container.connectors.names,
         "source_capabilities": container.connectors.capabilities(),
+        # What else each portal can filter by ("market:primary", "private"); the form switches off the rest.
+        "source_filters": container.connectors.filters(),
         "scan_intervals": list(SCAN_INTERVALS),
         "plan_min_intervals": {plan.code: plan.min_interval_minutes for plan in container.plans},
         "plan_sources": {plan.code: list(plan.sources) for plan in container.plans},

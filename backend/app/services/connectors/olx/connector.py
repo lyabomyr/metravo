@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from bs4 import BeautifulSoup, Tag
 
 from ..base import BaseConnector
-from ..models import DealType, Listing, PropertyType
+from ..models import DealType, Listing, PropertyType, SearchQuery
 from ..parsing import listing_id_from_url, parse_area, parse_price
 
 # OLX glues the posting date onto the place: "Kraków, Nowa Huta - 04 sierpnia 2026".
@@ -18,6 +18,7 @@ _TIMESTAMP = re.compile(r"\s+-\s+(?:Odświeżono|Dzisiaj|Wczoraj|\d{1,2}\s+\w+\s
 
 class OlxConnector(BaseConnector):
     name = "olx"
+    FILTERS = frozenset({"market:primary", "market:secondary", "private"})
     _URL = (
         "https://www.olx.pl/nieruchomosci/{kind}/{deal}/{{city}}/"
         "?search%5Bdist%5D={{radius}}"
@@ -30,6 +31,22 @@ class OlxConnector(BaseConnector):
         (DealType.SALE, PropertyType.HOUSE): _URL.format(kind="domy", deal="sprzedaz"),
         (DealType.RENT, PropertyType.HOUSE): _URL.format(kind="domy", deal="wynajem"),
     }
+
+    def filter_params(self, query: SearchQuery) -> list[str]:
+        # Checked in OLX's own filter form: market, private, floor_0 … floor_10. "Above 10"
+        # as floor_11 follows the pattern; OLX refuses our servers, so it is unconfirmed.
+        params = []
+        if query.market:
+            params.append(f"search%5Bfilter_enum_market%5D%5B0%5D={query.market.value}")
+        if query.private_only:
+            params.append("search%5Bprivate_business%5D=private")
+        if floors := query.floors:
+            low, high = floors
+            codes = [f"floor_{n}" for n in range(low, 11) if high is None or n <= high]
+            if high is None or high > 10:
+                codes.append("floor_11")
+            params += [f"search%5Bfilter_enum_floor_select%5D%5B{i}%5D={code}" for i, code in enumerate(codes)]
+        return params
 
     def parse(self, html: str) -> Iterable[Listing]:
         for card in BeautifulSoup(html, "html.parser").select('[data-cy="l-card"]'):

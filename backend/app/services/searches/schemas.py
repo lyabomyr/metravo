@@ -5,7 +5,7 @@ from dataclasses import asdict
 from pydantic import BaseModel, Field, model_validator
 
 from ...core.errors import Invalid
-from ..connectors.models import DealType, PropertyType
+from ..connectors.models import DealType, Market, PropertyType
 from ..places.known import known_place
 from ..places.models import Place
 from .models import DEFAULT_REJECT_KEYWORDS, DEFAULT_SCAN_INTERVAL, Search
@@ -45,6 +45,10 @@ class SearchFields(BaseModel):
     interval_minutes: int = DEFAULT_SCAN_INTERVAL
     radius_km: int = 0
     enabled: bool = True
+    market: Market | None = None
+    private_only: bool = False
+    min_floor: int | None = Field(default=None, ge=0, le=50)
+    max_floor: int | None = Field(default=None, ge=0, le=50)
 
 
 class SearchIn(SearchFields):

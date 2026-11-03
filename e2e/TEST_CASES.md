@@ -98,6 +98,8 @@ which matches **101, 104, 302, mzn201**.
 | FORM-14 | Type “k”, then “kato”; press Enter | Nothing asked for one letter; a spinner while places load; one request for the word; Enter picks the first suggestion (Katowice) |
 | FORM-15 | Focus an empty field | Its placeholder disappears at once, before typing |
 | FORM-16 | The prefilled “must not mention” words | Grey with a note that they stay; typing in the field makes them normal text and hides the note |
+| FORM-17 | Second-hand only, from the owner only, floors 1–4 | Morizon is switched off (it cannot show private sellers alone); saved with market, private_only, floors and Otodom + OLX |
+| FORM-18 | Switch to a house, then to renting | Floors disappear for a house; the market disappears for a rental; “from the owner” stays |
 
 ## Filters — `filters.cy.ts` (each through the form, then “Check now”)
 

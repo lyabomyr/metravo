@@ -2,6 +2,8 @@ import type { TranslationKey } from '../../core/i18n/locales/en';
 
 export type DealType = 'sale' | 'rent';
 export type PropertyType = 'flat' | 'house';
+/** A new build from the developer, or second-hand. */
+export type Market = 'primary' | 'secondary';
 
 /** Any city, town or village in Poland (see backend ``places``). */
 export interface Place {
@@ -37,6 +39,13 @@ export interface SearchDraft {
   reject_keywords?: string[];
   interval_minutes: number;
   enabled: boolean;
+  /** null = new builds and second-hand alike (sales only). */
+  market: Market | null;
+  /** Offers from the owner only; portals that cannot tell are left out. */
+  private_only: boolean;
+  /** Floors, 0 = the ground floor; null = no limit (flats only). */
+  min_floor: number | null;
+  max_floor: number | null;
 }
 
 export interface Search extends SearchDraft {
@@ -47,7 +56,7 @@ export interface Search extends SearchDraft {
   /** The last scan: offers the portals showed, how many fit, and what turned most of the rest away. */
   last_found?: number | null;
   last_fit?: number | null;
-  /** "price", "area", "rooms", "per_m2", "year", "reject:<word>" or "missing:<word>". */
+  /** "price", "area", "rooms", "per_m2", "year", "floor", "reject:<word>" or "missing:<word>". */
   last_reason?: string | null;
 }
 
@@ -57,6 +66,7 @@ export function outcomeReason(reason: string): { key: TranslationKey; word: stri
   const keys: Record<string, TranslationKey> = {
     price: 'searches.reason.price', area: 'searches.reason.area', rooms: 'searches.reason.rooms',
     per_m2: 'searches.reason.perM2', year: 'searches.reason.year', reject: 'searches.reason.reject', missing: 'searches.reason.missing',
+    floor: 'searches.reason.floor',
   };
   return { key: keys[kind] ?? 'searches.reason.other', word };
 }
@@ -84,7 +94,14 @@ export const DEFAULT_SEARCH: SearchFormValue = {
   required_keywords: [],
   interval_minutes: 1440,
   enabled: true,
+  market: null,
+  private_only: false,
+  min_floor: null,
+  max_floor: null,
 };
+
+/** Floors a search can start or end at; 0 is the ground floor. */
+export const FLOORS = Array.from({ length: 16 }, (_, floor) => floor);
 
 /** How each choice reads in the UI. */
 export const DEAL_LABEL: Record<DealType, TranslationKey> = { sale: 'deal.sale', rent: 'deal.rent' };

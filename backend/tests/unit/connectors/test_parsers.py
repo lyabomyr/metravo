@@ -1,10 +1,12 @@
 """Each connector parses its saved fixture page into the expected listings."""
 
+import json
+
 import pytest
 
 from app.services.connectors.fetchers import FixturePageFetcher
 from app.services.connectors.komornik.connector import KomornikConnector
-from app.services.connectors.models import DealType, PropertyType, SearchQuery
+from app.services.connectors.models import DealType, Market, PropertyType, SearchQuery
 from app.services.connectors.morizon.connector import MorizonConnector
 from app.services.connectors.olx.connector import OlxConnector
 from app.services.connectors.otodom.connector import OtodomConnector
@@ -86,3 +88,33 @@ def test_a_village_with_a_radius():
     assert "/mieszkania/sprzedaz/zabierzow/?search%5Bdist%5D=30&" in OlxConnector(fetcher).build_url(query)  # OLX has no 25
     assert "morizon.pl/mieszkania/najnowsze/zabierzow/" in MorizonConnector(fetcher).build_url(query)
     assert "city=Zabierz%C3%B3w" in KomornikConnector(fetcher).build_url(query)
+
+
+def test_market_seller_and_floors_go_into_each_portals_address():
+    fetcher = FixturePageFetcher(str(FIXTURES))
+    query = SearchQuery(place=KRAKOW, market=Market.SECONDARY, private_only=True, min_floor=2, max_floor=3)
+    otodom = OtodomConnector(fetcher).build_url(query)
+    assert otodom.endswith("&market=SECONDARY&ownerTypeSingleSelect=PRIVATE&floors=%5BSECOND%2CTHIRD%5D")
+    olx = OlxConnector(fetcher).build_url(query)
+    assert "&search%5Bfilter_enum_market%5D%5B0%5D=secondary&search%5Bprivate_business%5D=private" in olx
+    assert olx.endswith("%5B0%5D=floor_2&search%5Bfilter_enum_floor_select%5D%5B1%5D=floor_3")
+    # Morizon cannot show private sellers only, and a bailiff never sells as the owner: both sit this one out.
+    assert MorizonConnector(fetcher).build_url(query) is None
+    assert KomornikConnector(fetcher).build_url(query) is None
+
+    new_builds = SearchQuery(place=KRAKOW, market=Market.PRIMARY, min_floor=1)
+    assert MorizonConnector(fetcher).build_url(new_builds).endswith("&ps%5Bmarket_type%5D=1&ps%5Bfloor_from%5D=1")
+    assert KomornikConnector(fetcher).build_url(new_builds) is None  # no new builds at an auction
+
+
+def test_an_open_floor_range_reaches_the_top():
+    url = OtodomConnector(FixturePageFetcher(str(FIXTURES))).build_url(SearchQuery(place=KRAKOW, min_floor=9))
+    assert url.endswith("&floors=%5BNINTH%2CTENTH%2CABOVE_TENTH%2CGARRET%5D")
+
+
+def test_otodom_and_morizon_read_the_floor():
+    item = {"id": 1, "slug": "a-1", "title": "2 pokoje", "floorNumber": "GROUND", "isPrivateOwner": True}
+    html = '<script id="__NEXT_DATA__">' + json.dumps({"props": {"pageProps": {"data": {"searchAds": {"items": [item]}}}}}) + "</script>"
+    listing = next(iter(OtodomConnector(FixturePageFetcher(str(FIXTURES))).parse(html)))
+    assert (listing.floor, listing.private) == (0, True)
+    assert [MorizonConnector._floor(text) for text in ("piętro 3/10", "parter/4", "parter", None)] == [3, 0, 0, None]

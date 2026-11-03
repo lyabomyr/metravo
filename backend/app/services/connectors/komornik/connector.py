@@ -19,6 +19,8 @@ _PLAUSIBLE_FLAT_AREA = (15, 500)
 
 class KomornikConnector(BaseConnector):
     name = "komornik"
+    # A bailiff sells what someone already owned: never a new build, never the owner selling.
+    FILTERS = frozenset({"market:secondary"})
     _URL = (
         "https://licytacje.komornik.pl/wyszukiwarka-licytacji"
         "?mainCategory=REAL_ESTATE&subCategory={category}&province={{region_name}}&city={{city_label}}"

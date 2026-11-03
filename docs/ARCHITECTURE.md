@@ -77,6 +77,15 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   `distanceRadius`, OLX the locality with `search[dist]` rounded up to its
   steps, Morizon and the bailiff auctions the locality itself. Local runs and
   tests use the built-in `places/known.py`, no network.
+- **Market, seller, floors.** A search may ask for new builds or second-hand,
+  private sellers only, and a floor range. Each connector adds what its portal
+  can filter to the URL (`filter_params`) and lists in `FILTERS` what it can
+  honour; a portal that cannot honour the market or the seller (Morizon has
+  no "private only", auctions are never new builds) sits the search out rather
+  than send what was excluded. Floors the portal cannot filter are checked on
+  the offer when published (Otodom `floorNumber`, Morizon "piętro 3/10").
+  Titles that offer a garage, a parking space or a commercial unit are left
+  out of every search.
 - **Channels.** `services/notifications` keeps, per user, which channels get
   listings. `FanOutNotifier` sends to each switched-on channel that has a
   `ChannelSender`: Telegram, and email (`services/email`, SMTP) when

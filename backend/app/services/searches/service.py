@@ -7,6 +7,7 @@ from ...core.clock import Clock, new_id
 from ...core.database import Database
 from ...core.errors import Invalid, LimitReached, NotFound, Term
 from ...core.service import BaseService
+from ..connectors.models import DealType, PropertyType
 from ..connectors.registry import ConnectorRegistry
 from ..places.models import RADIUS_CHOICES
 from ..users.models import User
@@ -45,7 +46,7 @@ class SearchService(BaseService):
         plan = self._users.plan_of(user)
         if repo.count() >= plan.max_searches:
             raise LimitReached("search.limit", plan=plan.name, n=plan.max_searches)
-        search = replace(draft, id=new_id(), created_at=self._clock.iso(), last_scanned_at=None)
+        search = _tidy(replace(draft, id=new_id(), created_at=self._clock.iso(), last_scanned_at=None))
         self._validate(user, search)
         repo.save(search)
         return search
@@ -53,7 +54,7 @@ class SearchService(BaseService):
     def update(self, user: User, search_id: str, draft: Search) -> Search:
         current = self.get(user, search_id)
         # Changing what to look for means the next scan should run right away.
-        search = replace(draft, id=current.id, created_at=current.created_at, last_scanned_at=None)
+        search = _tidy(replace(draft, id=current.id, created_at=current.created_at, last_scanned_at=None))
         self._validate(user, search)
         self._repo(user.id).save(search)
         return search
@@ -102,6 +103,8 @@ class SearchService(BaseService):
             raise Invalid("search.price_range")
         if search.min_rooms and search.max_rooms and search.max_rooms < search.min_rooms:
             raise Invalid("search.rooms_range")
+        if search.min_floor is not None and search.max_floor is not None and search.max_floor < search.min_floor:
+            raise Invalid("search.floor_range")
         if not search.sources:
             raise Invalid("search.no_portal")
         unsupported = [
@@ -116,6 +119,10 @@ class SearchService(BaseService):
                 property=Term(f"property.{search.property_type.value}"),
                 deal=Term(f"deal.{search.deal_type.value}"),
             )
+        # Morizon cannot show only private sellers: rather than send its agencies, the search must leave it out.
+        unable = [source for source in search.sources if not self._connectors.get(source).honours(search.query)]
+        if unable:
+            raise Invalid("search.portal_filter", sources=", ".join(unable))
         if search.interval_minutes not in SCAN_INTERVALS:
             raise Invalid("search.interval_invalid", choices=", ".join(map(str, SCAN_INTERVALS)))
         plan = self._users.plan_of(user)
@@ -127,3 +134,14 @@ class SearchService(BaseService):
 
     def _repo(self, user_id: str) -> SearchRepository:
         return SearchRepository(self._db, user_id)
+
+
+def _tidy(search: Search) -> Search:
+    """Drop options that do not apply: floors for a house, new build or second-hand for a rental."""
+    flat, sale = search.property_type is PropertyType.FLAT, search.deal_type is DealType.SALE
+    return replace(
+        search,
+        min_floor=search.min_floor if flat else None,
+        max_floor=search.max_floor if flat else None,
+        market=search.market if sale else None,
+    )

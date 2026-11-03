@@ -1,7 +1,10 @@
+from dataclasses import replace
+
 import pytest
 
 from app.core.errors import Invalid, LimitReached, NotFound
 from app.services.billing.plans import PRO
+from app.services.connectors.models import DealType, Market, PropertyType
 from app.services.places.models import Place
 from tests.unit.conftest import make_search
 
@@ -85,3 +88,24 @@ def test_scan_interval_must_be_offered_and_allowed_by_the_plan(container, sign_i
 
 def test_new_search_is_scanned_daily_by_default(container, sign_in):
     assert container.searches.create(sign_in(), make_search()).interval_minutes == 1440
+
+
+def test_market_seller_and_floors_are_saved_where_they_apply(container, sign_in):
+    user = sign_in()
+    search = container.searches.create(
+        user, make_search(market=Market.SECONDARY, private_only=True, min_floor=1, max_floor=3, sources=["otodom", "olx"])
+    )
+    saved = container.searches.get(user, search.id)
+    assert (saved.market, saved.private_only, saved.min_floor, saved.max_floor) == (Market.SECONDARY, True, 1, 3)
+    # A house has no floor, and a rental is neither a new build nor second-hand.
+    house_to_rent = container.searches.update(user, search.id, replace(saved, deal_type=DealType.RENT, property_type=PropertyType.HOUSE))
+    assert (house_to_rent.market, house_to_rent.min_floor, house_to_rent.max_floor) == (None, None, None)
+    assert house_to_rent.private_only
+
+
+def test_a_portal_that_cannot_filter_by_seller_is_left_out(container, sign_in):
+    user = sign_in()
+    with pytest.raises(Invalid, match="morizon"):
+        container.searches.create(user, make_search(private_only=True))  # make_search includes Morizon
+    with pytest.raises(Invalid):
+        container.searches.create(user, make_search(min_floor=4, max_floor=2))

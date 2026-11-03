@@ -87,6 +87,47 @@
   </section>
 
   <section>
+    <h3 class="section-title">{{ 'form.offer' | t }}</h3>
+    <div class="list">
+      @if (dealType() === 'sale') {
+        <label class="list__row">
+          <span>{{ 'form.market' | t }}</span>
+          <select formControlName="market" data-cy="search-market">
+            <option [ngValue]="null">{{ 'common.any' | t }}</option>
+            <option ngValue="secondary">{{ 'form.marketSecondary' | t }}</option>
+            <option ngValue="primary">{{ 'form.marketPrimary' | t }}</option>
+          </select>
+        </label>
+      }
+      <label class="list__row">
+        <span>{{ 'form.privateOnly' | t }}</span>
+        <input class="switch" type="checkbox" formControlName="private_only" data-cy="search-private" />
+      </label>
+      @if (propertyType() === 'flat') {
+        <label class="list__row">
+          <span>{{ 'form.floorFrom' | t }}</span>
+          <select formControlName="min_floor" data-cy="search-min-floor">
+            <option [ngValue]="null">{{ 'common.any' | t }}</option>
+            @for (floor of floors; track floor) {
+              <option [ngValue]="floor">{{ floor ? floor : ('form.floorGround' | t) }}</option>
+            }
+          </select>
+        </label>
+        <label class="list__row">
+          <span>{{ 'form.floorTo' | t }}</span>
+          <select formControlName="max_floor" data-cy="search-max-floor">
+            <option [ngValue]="null">{{ 'common.any' | t }}</option>
+            @for (floor of floors; track floor) {
+              <option [ngValue]="floor" [disabled]="floor < (lowestFloor() ?? 0)">{{ floor ? floor : ('form.floorGround' | t) }}</option>
+            }
+          </select>
+        </label>
+      }
+    </div>
+    <p class="section-note">{{ 'form.offerHint' | t }}</p>
+  </section>
+
+  <section>
     <h3 class="section-title">{{ 'form.words' | t }}</h3>
     <div class="list">
       <label class="list__row list__row--stacked">

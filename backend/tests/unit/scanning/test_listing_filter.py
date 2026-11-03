@@ -49,6 +49,15 @@ def test_a_flat_sold_with_its_tenant_is_left_out_by_default():
     assert not ListingFilter(make_search()).accepts(listing(title="DWA MIESZKANIA NA WYNAJEM, Z NAJEMCAMI"))
 
 
+def test_floors_and_private_sellers():
+    rules = ListingFilter(make_search(min_floor=1, max_floor=4, private_only=True))
+    assert rules.reason_to_reject(listing(floor=0)) == "floor 0 < 1"
+    assert rules.reason_to_reject(listing(floor=5)) == "floor 5 > 4"
+    assert rules.accepts(listing(floor=None))  # a floor the portal did not publish rejects nothing
+    assert rules.reason_to_reject(listing(floor=2, private=False)) == "not from the owner"
+    assert rules.accepts(listing(floor=2, private=True))
+
+
 def test_rooms_range():
     rules = ListingFilter(make_search(min_rooms=2, max_rooms=3))
     assert rules.reason_to_reject(listing(rooms=1)) == "rooms 1 < 2"
@@ -86,3 +95,4 @@ def test_rejections_are_named_for_the_search_card():
     assert reason_code("no price published") == "price"
     assert reason_code("11111 zł/m² > 10000") == "per_m2"
     assert reason_code("area 30 < 40") == "area"
+    assert reason_code("floor 0 < 1") == "floor"

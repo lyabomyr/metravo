@@ -16,6 +16,8 @@ export interface PublicConfig {
   billing_provider: string;
   sources: string[];
   source_capabilities: Record<string, SourceCapability[]>;
+  /** What else each portal can filter by: "market:primary", "market:secondary", "private". */
+  source_filters: Record<string, string[]>;
   /** How often a search may be scanned, in minutes. */
   scan_intervals: number[];
   /** The most often each plan allows, in minutes. */

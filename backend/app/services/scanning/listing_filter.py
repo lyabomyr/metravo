@@ -55,6 +55,12 @@ class ListingFilter:
                 return f"{per_m2:.0f} zł/m² > {search.max_price_per_m2}"
         if search.min_build_year and listing.build_year and listing.build_year < search.min_build_year:
             return f"built {listing.build_year} < {search.min_build_year}"
+        if listing.floor is not None and search.min_floor is not None and listing.floor < search.min_floor:
+            return f"floor {listing.floor} < {search.min_floor}"
+        if listing.floor is not None and search.max_floor is not None and listing.floor > search.max_floor:
+            return f"floor {listing.floor} > {search.max_floor}"
+        if search.private_only and listing.private is False:
+            return "not from the owner"
         if match := _NOT_A_HOME.match(listing.title or ""):
             return f"not a home: {match.group(1).lower()}"
         text = " ".join(filter(None, (listing.title, listing.description, listing.location)))
@@ -85,4 +91,4 @@ def reason_code(reason: str) -> str:
     if "zł/m²" in reason:
         return "per_m2"
     first = reason.split(" ", 1)[0]
-    return {"no": "price", "price": "price", "area": "area", "rooms": "rooms", "built": "year"}.get(first, "other")
+    return {"no": "price", "price": "price", "area": "area", "rooms": "rooms", "built": "year", "floor": "floor"}.get(first, "other")

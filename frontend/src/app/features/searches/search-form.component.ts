@@ -8,7 +8,7 @@ import { SourcesPipe } from '../../core/i18n/format.pipes';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IntervalPipe } from './interval.pipe';
 import { PlacePickerComponent } from './place-picker.component';
-import { DEFAULT_SEARCH, DealType, Place, PropertyType, SearchDraft, SearchFormValue } from './search.model';
+import { DEFAULT_SEARCH, DealType, FLOORS, Market, Place, PropertyType, SearchDraft, SearchFormValue } from './search.model';
 
 /** The one search form, used by the editor and the onboarding wizard alike. */
 @Component({
@@ -42,18 +42,27 @@ export class SearchFormComponent {
     reject_keywords: [''],
     interval_minutes: [DEFAULT_SEARCH.interval_minutes],
     enabled: [true],
+    market: [null as Market | null],
+    private_only: [false],
+    min_floor: [null as number | null],
+    max_floor: [null as number | null],
   });
+  protected readonly floors = FLOORS;
   protected readonly selectedSources = signal(new Set<string>());
   private readonly session = inject(SessionStore);
   /** The most often the user's plan may scan; faster options are shown but locked. */
   protected readonly planFloor = computed(() => this.config.plan_min_intervals[this.session.user()?.plan ?? 'free'] ?? 0);
-  private readonly dealType = toSignal(this.form.controls.deal_type.valueChanges, { initialValue: 'sale' as DealType });
+  protected readonly dealType = toSignal(this.form.controls.deal_type.valueChanges, { initialValue: 'sale' as DealType });
   private readonly rejectWords = toSignal(this.form.controls.reject_keywords.valueChanges, { initialValue: '' });
   /** Still the server's suggested words: shown grey, so it is clear they stay unless edited. */
   protected readonly rejectIsSuggested = computed(
     () => sameWords(words(this.rejectWords()), this.config.default_reject_keywords),
   );
-  private readonly propertyType = toSignal(this.form.controls.property_type.valueChanges, { initialValue: 'flat' as PropertyType });
+  protected readonly propertyType = toSignal(this.form.controls.property_type.valueChanges, { initialValue: 'flat' as PropertyType });
+  private readonly market = toSignal(this.form.controls.market.valueChanges, { initialValue: null as Market | null });
+  private readonly privateOnly = toSignal(this.form.controls.private_only.valueChanges, { initialValue: false });
+  /** Floors run from the ground up; "up to" never sits below "from". */
+  protected readonly lowestFloor = toSignal(this.form.controls.min_floor.valueChanges, { initialValue: null as number | null });
 
   constructor() {
     effect(() => {
@@ -76,7 +85,14 @@ export class SearchFormComponent {
   /** Can this portal search the chosen deal and property type? */
   protected supports(source: string): boolean {
     const capabilities = this.config.source_capabilities[source] ?? [];
-    return capabilities.some((c) => c.deal_type === this.dealType() && c.property_type === this.propertyType());
+    return capabilities.some((c) => c.deal_type === this.dealType() && c.property_type === this.propertyType()) && this.filters(source);
+  }
+
+  /** Can this portal show only the chosen market and only private sellers? If not, it sits the search out. */
+  protected filters(source: string): boolean {
+    const filters = this.config.source_filters?.[source] ?? [];
+    const market = this.dealType() === 'sale' ? this.market() : null;
+    return (!market || filters.includes(`market:${market}`)) && (!this.privateOnly() || filters.includes('private'));
   }
 
   /** A portal outside the user's plan gets a Pro badge; the backend refuses it on save. */
@@ -102,6 +118,7 @@ export class SearchFormComponent {
       name: name.trim() || place.name,
       required_keywords: words(required_keywords),
       reject_keywords: words(reject_keywords),
+      // Sent as chosen; the server drops floors for a house and the market for a rental.
       sources: [...this.selectedSources()].filter((source) => this.supports(source)),
     });
   }

@@ -7,6 +7,8 @@ MESSAGES = {
     "search.area_range": "Maksymalna powierzchnia jest mniejsza niż minimalna",
     "search.price_range": "„Cena od” jest wyższa niż „Cena do”",
     "search.rooms_range": "Maksymalna liczba pokoi jest mniejsza niż minimalna",
+    "search.floor_range": "„Piętro do” jest niższe niż „piętro od”",
+    "search.portal_filter": "{sources} nie filtruje ofert po tym rynku lub sprzedającym: wyłącz go albo usuń ten filtr",
     "search.no_portal": "Wybierz co najmniej jeden portal",
     "search.portal_unsupported": "{sources}: brak ogłoszeń typu {property} / {deal}",
     "search.interval_invalid": "Częstotliwość sprawdzania musi być jedną z wartości (w minutach): {choices}",

@@ -40,6 +40,11 @@ class BaseConnector(ABC):
     URL_TEMPLATES: dict[tuple[DealType, PropertyType], str]
     #: The radii the portal offers, in km; a search's radius rounds up to one. Empty = any.
     RADII: tuple[int, ...] = ()
+    #: What else the portal can filter by: "market:primary", "market:secondary", "private".
+    #: A search that asks for one it lacks skips the portal rather than receive
+    #: everything. Floors are not here: a portal that cannot filter them still
+    #: shows its offers, and an offer's floor, when published, is checked like any value.
+    FILTERS: frozenset[str] = frozenset()
 
     def __init__(self, fetcher: PageFetcher, pages: int = 1, delay_seconds: float = 0.0):
         self.fetcher = fetcher
@@ -54,13 +59,19 @@ class BaseConnector(ABC):
     def capabilities(self) -> list[dict[str, str]]:
         return [{"deal_type": deal.value, "property_type": kind.value} for deal, kind in self.URL_TEMPLATES]
 
+    def honours(self, query: SearchQuery) -> bool:
+        """Can the portal filter by the market and the kind of seller the search asks for?"""
+        if query.market and f"market:{query.market.value}" not in self.FILTERS:
+            return False
+        return not query.private_only or "private" in self.FILTERS
+
     def build_url(self, query: SearchQuery) -> str | None:
         """The results URL for this search, or ``None`` if the portal does not offer it."""
         template = self.URL_TEMPLATES.get((query.deal_type, query.property_type))
-        if template is None:
+        if template is None or not self.honours(query):
             return None
         place = query.place
-        return template.format(
+        url = template.format(
             city=place.slug,
             city_label=quote(place.name),
             place_path=place.path,
@@ -70,6 +81,11 @@ class BaseConnector(ABC):
             max_price="" if query.max_price is None else int(query.max_price),
             min_area="" if query.min_area is None else f"{query.min_area:g}",
         )
+        return url + "".join(f"&{param}" for param in self.filter_params(query))
+
+    def filter_params(self, query: SearchQuery) -> list[str]:
+        """Query parameters for the market, the seller and the floors, already encoded."""
+        return []
 
     def _radius(self, km: int) -> int:
         if not self.RADII:

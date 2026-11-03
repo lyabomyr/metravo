@@ -7,6 +7,8 @@ MESSAGES = {
     "search.area_range": "Максимальная площадь меньше минимальной",
     "search.price_range": "«Цена от» больше, чем «Цена до»",
     "search.rooms_range": "Максимальное число комнат меньше минимального",
+    "search.floor_range": "«Этаж до» ниже, чем «этаж от»",
+    "search.portal_filter": "{sources} не умеет фильтровать объявления по этому рынку или продавцу: отключите его или уберите этот фильтр",
     "search.no_portal": "Выберите хотя бы один портал",
     "search.portal_unsupported": "{sources}: нет объявлений в категории «{property}, {deal}»",
     "search.interval_invalid": "Частота проверки должна быть одним из значений (в минутах): {choices}",

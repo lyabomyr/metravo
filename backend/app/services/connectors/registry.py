@@ -45,3 +45,7 @@ class ConnectorRegistry:
     def capabilities(self) -> dict[str, list[dict[str, str]]]:
         """Which deal/property combinations each portal can search."""
         return {name: connector.capabilities for name, connector in self._connectors.items()}
+
+    def filters(self) -> dict[str, list[str]]:
+        """What else each portal can filter by ("market:primary", "private")."""
+        return {name: sorted(connector.FILTERS) for name, connector in self._connectors.items()}

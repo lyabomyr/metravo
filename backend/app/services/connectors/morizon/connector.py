@@ -8,14 +8,18 @@ from collections.abc import Iterable
 from bs4 import BeautifulSoup, Tag
 
 from ..base import BaseConnector
-from ..models import DealType, Listing, PropertyType
+from ..models import DealType, Listing, Market, PropertyType, SearchQuery
 from ..parsing import parse_area, parse_price, parse_rooms
 
 _ID = re.compile(r"(mzn\d+)")
+#: "piętro 3/10", "parter/4", "parter": the floor before the building's height.
+_FLOOR = re.compile(r"^(?:piętro\s*(\d+)|(parter))", re.IGNORECASE)
 
 
 class MorizonConnector(BaseConnector):
     name = "morizon"
+    # No filter for private sellers. Checked against morizon.pl: market_type 1 = new builds, 2 = second-hand.
+    FILTERS = frozenset({"market:primary", "market:secondary"})
     _QUERY = "?ps%5Bprice_to%5D={max_price}&ps%5Bliving_area_from%5D={min_area}"
     URL_TEMPLATES = {
         (DealType.SALE, PropertyType.FLAT): "https://www.morizon.pl/mieszkania/najnowsze/{city}/" + _QUERY,
@@ -23,6 +27,18 @@ class MorizonConnector(BaseConnector):
         (DealType.SALE, PropertyType.HOUSE): "https://www.morizon.pl/domy/najnowsze/{city}/" + _QUERY,
         (DealType.RENT, PropertyType.HOUSE): "https://www.morizon.pl/do-wynajecia/domy/najnowsze/{city}/" + _QUERY,
     }
+
+    def filter_params(self, query: SearchQuery) -> list[str]:
+        params = []
+        if query.market:
+            params.append("ps%5Bmarket_type%5D=" + ("1" if query.market is Market.PRIMARY else "2"))
+        if floors := query.floors:
+            low, high = floors
+            if low:
+                params.append(f"ps%5Bfloor_from%5D={low}")
+            if high is not None:
+                params.append(f"ps%5Bfloor_to%5D={high}")
+        return params
 
     def parse(self, html: str) -> Iterable[Listing]:
         for card in BeautifulSoup(html, "html.parser").select(".card"):
@@ -47,7 +63,15 @@ class MorizonConnector(BaseConnector):
             rooms=parse_rooms(info),
             location=self._text(card, '[data-cy="propertyCardLocation"]'),
             image_url=self._image(card),
+            floor=self._floor(self._text(card, '[data-cy="cardPropertyInfoFloor"]')),
         )
+
+    @staticmethod
+    def _floor(text: str | None) -> int | None:
+        match = _FLOOR.match(text or "")
+        if not match:
+            return None
+        return 0 if match.group(2) else int(match.group(1))
 
     @staticmethod
     def _text(card: Tag, selector: str) -> str | None:
