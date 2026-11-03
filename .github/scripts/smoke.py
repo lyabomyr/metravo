@@ -82,6 +82,9 @@ def check_bot() -> str:
     assert me.get("ok"), "the bot token is not accepted"
     hook = telegram("getWebhookInfo")["result"]
     assert hook.get("url") == API + "/api/telegram/webhook", "the webhook points elsewhere"
+    # An empty list means Telegram's default set, which includes channel posts.
+    wanted = set(hook.get("allowed_updates") or ["message", "channel_post", "my_chat_member"])
+    assert {"message", "channel_post", "my_chat_member"} <= wanted, f"the webhook skips updates: {sorted(wanted)}"
     error_at = hook.get("last_error_date") or 0
     assert time.time() - error_at > 3600, f"Telegram could not deliver recently: {hook.get('last_error_message')}"
     commands = telegram("getMyCommands")["result"]
