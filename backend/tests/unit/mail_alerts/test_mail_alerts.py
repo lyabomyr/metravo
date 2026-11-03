@@ -163,6 +163,11 @@ def test_the_published_reason_names_the_failure_not_the_mailbox():
 
     from app.services.mail_alerts.service import _reason
 
-    assert _reason(imaplib.IMAP4.error("b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'")) == "login refused"
+    assert _reason(imaplib.IMAP4.error("b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'")) == "wrong username or password"
+    app_password = "b'[ALERT] Application-specific password required: https://support.google.com/accounts/answer/185833'"
+    assert _reason(imaplib.IMAP4.error(app_password)) == "Gmail wants an app password"
+    assert _reason(imaplib.IMAP4.error("b'[ALERT] Your account is not enabled for IMAP use.'")) == "IMAP is off in Gmail"
+    assert _reason(imaplib.IMAP4.error("b'[ALERT] Please log in via your web browser'")).startswith("Google blocked")
+    assert _reason(imaplib.IMAP4.error("b'LOGIN failed'")) == "login refused"
     assert _reason(socket.gaierror(8, "nodename nor servname provided")) == "mail host not found"
     assert _reason(TimeoutError()) == "mail host did not answer"

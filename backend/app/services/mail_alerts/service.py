@@ -107,8 +107,23 @@ class MailAlertService(BaseService):
         return named or searches
 
 
+# What Gmail says when it refuses an IMAP login, and what that means for the person fixing it.
+_GMAIL_REFUSALS = (
+    ("application-specific password required", "Gmail wants an app password"),
+    ("not enabled for imap", "IMAP is off in Gmail"),
+    ("imap access is disabled", "IMAP is off in Gmail"),
+    ("log in via your web browser", "Google blocked the sign-in; confirm it at myaccount.google.com"),
+    ("web login required", "Google blocked the sign-in; confirm it at myaccount.google.com"),
+    ("authenticationfailed", "wrong username or password"),
+    ("invalid credentials", "wrong username or password"),
+)
+
+
 def _reason(error: Exception) -> str:
     text = str(error).lower()
+    for phrase, reason in _GMAIL_REFUSALS:
+        if phrase in text:
+            return reason
     if isinstance(error, socket.gaierror):
         return "mail host not found"
     if isinstance(error, TimeoutError | socket.timeout):
