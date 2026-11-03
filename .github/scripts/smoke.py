@@ -118,12 +118,15 @@ def storage_of(usage: dict) -> int:
 def report_databases() -> None:
     """Every database in the Turso organisation and what it holds. Informational: never fails the check."""
     try:
+        total = 0
         for database in turso("/databases")["databases"]:
             name = database.get("Name") or database.get("name")
-            usage = turso(f"/databases/{name}/usage").get("database", {})
+            size = storage_of(turso(f"/databases/{name}/usage").get("database", {}))
+            total += size
             ours = " ← Metravo" if OUR_DB_HOST and OUR_DB_HOST == (database.get("Hostname") or database.get("hostname")) else ""
-            print(f"ℹ database {name}: {megabytes(storage_of(usage))} stored{ours}")
-        print(f"ℹ Turso organisation total: {megabytes(storage_of(turso('/usage').get('organization', {})))} stored")
+            print(f"ℹ database {name}: {megabytes(size)} stored{ours}")
+        # Summed here: the organisation-wide usage endpoint needs a broader token than the deploy has.
+        print(f"ℹ all databases together: {megabytes(total)} stored")
     except (KeyError, ValueError, OSError, TypeError, LookupError) as error:
         print(f"ℹ database sizes unavailable: {type(error).__name__} {error}")
 
