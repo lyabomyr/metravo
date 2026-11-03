@@ -29,6 +29,7 @@ def describe_interval(minutes: int, locale: str = "en") -> str:
 DEFAULT_REJECT_KEYWORDS: tuple[str, ...] = (
     "TBS", "T.B.S", "suterena", "półpiwnica", "polpiwnica", "poziom -1",
     "piwnica mieszkalna", "udział", "udzial", "współwłasnoś", "wspolwlasnos",
+    "z najemc",  # sold with a tenant inside: "z najemcą", "z najemcami"
 )
 
 

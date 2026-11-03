@@ -33,6 +33,7 @@ RENDER_SETTINGS = (
     "MAIL_ALERTS_IMAP_HOST", "MAIL_ALERTS_USERNAME", "MAIL_ALERTS_PASSWORD", "MAIL_ALERTS_OWNER",
     "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO",  # once BILLING_PROVIDER=stripe
     "REMOTE_PORTALS",  # left to .github/workflows/portal-scan.yml
+    "SCAN_PAGES",  # result pages read per portal and search, newest first
 )
 
 

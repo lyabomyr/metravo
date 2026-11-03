@@ -32,6 +32,8 @@ jobs:
     timeout-minutes: 15
     env:
       REMOTE_PORTALS: ${{ vars.REMOTE_PORTALS || 'otodom' }}
+      # A run every hour or two: three pages of the newest offers, so a busy city loses none in between.
+      SCAN_PAGES: "3"
       CONTROL_DB_URL: ${{ secrets.CONTROL_DB_URL }}
     steps:
       - uses: actions/checkout@v4

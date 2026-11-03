@@ -89,6 +89,8 @@ jobs:
           MAIL_ALERTS_OWNER: ${{ secrets.MAIL_ALERTS_OWNER || vars.MAIL_ALERTS_OWNER }}
           # Portals the portal-scan workflow fetches from GitHub; the API skips them. Same default there.
           REMOTE_PORTALS: ${{ vars.REMOTE_PORTALS || 'otodom' }}
+          # Every 5 minutes, two pages of the newest offers cover what appeared in between.
+          SCAN_PAGES: ${{ vars.SCAN_PAGES || '2' }}
           # The Pages URL from OpenTofu; the project's default address if that step was skipped.
           FRONTEND_URL: ${{ vars.FRONTEND_URL || steps.pages.outputs.url || 'https://metravo.pages.dev' }}
         run: python3 .github/scripts/deploy.py render

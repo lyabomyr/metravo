@@ -32,6 +32,23 @@ def test_reject_keywords_match_inflected_forms():
     assert not rules.accepts(listing(title="Sprzedam 1/2 udziału w mieszkaniu"))
 
 
+def test_a_garage_or_a_shop_is_not_a_home_but_a_flat_with_a_garage_is():
+    rules = ListingFilter(make_search(reject_keywords=[]))
+    for title in ("GARAŻ - 17m2 - ZAMKNIĘTE OSIEDLE", "Miejsce postojowe w hali", "Lokal użytkowy na parterze"):
+        assert rules.reason_to_reject(listing(title=title)).startswith("not a home"), title
+    for title in ("Bezpośrednio | 62m² + Garaż", "Hala Garażowa W CENIE -> 2 pokoje", "Lokal na ostatnim piętrze"):
+        assert rules.accepts(listing(title=title)), title
+
+
+def test_a_rejected_word_also_catches_its_other_spelling():
+    rules = ListingFilter(make_search(reject_keywords=["suterena"]))
+    assert not rules.accepts(listing(title="2 pokoje | Wola Duchacka | Suteryna"))
+
+
+def test_a_flat_sold_with_its_tenant_is_left_out_by_default():
+    assert not ListingFilter(make_search()).accepts(listing(title="DWA MIESZKANIA NA WYNAJEM, Z NAJEMCAMI"))
+
+
 def test_rooms_range():
     rules = ListingFilter(make_search(min_rooms=2, max_rooms=3))
     assert rules.reason_to_reject(listing(rooms=1)) == "rooms 1 < 2"
