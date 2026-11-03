@@ -31,6 +31,7 @@ export class PlaceMapComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.map?.stop();
     this.map?.remove();
   }
 
@@ -48,8 +49,9 @@ export class PlaceMapComponent implements OnDestroy {
       this.layers = L.featureGroup().addTo(this.map);
     }
     this.layers!.clearLayers();
+    // No animation: the form can close mid-zoom (Save), and Leaflet fails on a map removed while it zooms.
     if (!places.length) {
-      this.map.setView(POLAND, 6);
+      this.map.setView(POLAND, 6, { animate: false });
       return;
     }
     for (const place of places) {
@@ -57,7 +59,7 @@ export class PlaceMapComponent implements OnDestroy {
       L.circleMarker(centre, { radius: 7, color: '#007aff', fillOpacity: 1 }).addTo(this.layers!);
       if (radiusKm) L.circle(centre, { radius: radiusKm * 1000, color: '#007aff', fillOpacity: 0.12, weight: 1 }).addTo(this.layers!);
     }
-    if (places.length === 1 && !radiusKm) this.map.setView([places[0].lat, places[0].lon], 12);
-    else this.map.fitBounds(this.layers!.getBounds(), { padding: [12, 12], maxZoom: 12 });
+    if (places.length === 1 && !radiusKm) this.map.setView([places[0].lat, places[0].lon], 12, { animate: false });
+    else this.map.fitBounds(this.layers!.getBounds(), { padding: [12, 12], maxZoom: 12, animate: false });
   }
 }
