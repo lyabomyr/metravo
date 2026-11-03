@@ -5,7 +5,7 @@ import { BaseApiService } from '../api/base-api.service';
 
 export interface SourceCapability {
   deal_type: 'sale' | 'rent';
-  property_type: 'flat' | 'house';
+  property_type: 'flat' | 'house' | 'room' | 'plot' | 'commercial';
 }
 
 export interface PublicConfig {

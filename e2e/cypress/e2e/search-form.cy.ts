@@ -258,4 +258,25 @@ describe('Search form', () => {
     cy.get('[data-cy=search-place]').should('contain', 'Zabierzów, Katowice +15 km');
     cy.api('GET', '/api/searches').its('body.0.more_places.0.name').should('eq', 'Katowice');
   });
+
+  it('FORM-20 a room is rented, a plot is bought, and each shows only what applies', () => {
+    cy.visit('/searches/new');
+    pickPlace('Kraków');
+    cy.get('[data-cy=property-room]').parent('label').click();
+    cy.get('[data-cy=deal-rent]').should('be.checked'); // nobody sells a room
+    cy.get('[data-cy=search-min-rooms]').should('not.exist');
+    cy.get('[data-cy=search-min-floor]').should('not.exist');
+    cy.get('[data-cy=property-plot]').parent('label').click();
+    cy.get('[data-cy=deal-sale]').should('be.checked'); // nor rents out a plot
+    cy.get('[data-cy=search-build-year]').should('not.exist');
+    cy.get('[data-cy=search-market]').should('not.exist');
+    cy.get('[data-cy=source-komornik]').should('be.enabled'); // auctions sell land too
+    cy.get('[data-cy=search-min-area]').type('1000');
+    cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
+    cy.get('[data-cy=search-card]').should('contain', 'Plot');
+    cy.api('GET', '/api/searches').its('body.0').should((search: Record<string, unknown>) => {
+      expect([search['property_type'], search['deal_type'], search['min_area']]).to.deep.eq(['plot', 'sale', 1000]);
+    });
+  });
 });

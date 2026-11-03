@@ -4,9 +4,10 @@
       <label><input type="radio" formControlName="deal_type" value="sale" data-cy="deal-sale" /> {{ 'deal.sale' | t }}</label>
       <label><input type="radio" formControlName="deal_type" value="rent" data-cy="deal-rent" /> {{ 'deal.rent' | t }}</label>
     </div>
-    <div class="segmented" role="radiogroup">
-      <label><input type="radio" formControlName="property_type" value="flat" data-cy="property-flat" /> {{ 'property.flat' | t }}</label>
-      <label><input type="radio" formControlName="property_type" value="house" data-cy="property-house" /> {{ 'property.house' | t }}</label>
+    <div class="segmented segmented--grid" role="radiogroup">
+      @for (kind of propertyTypes; track kind) {
+        <label><input type="radio" formControlName="property_type" [value]="kind" [attr.data-cy]="'property-' + kind" /> {{ propertyLabel[kind] | t }}</label>
+      }
     </div>
   </div>
 
@@ -73,25 +74,29 @@
         <span>{{ 'form.maxArea' | t }}</span>
         <input type="number" inputmode="decimal" formControlName="max_area" [placeholder]="'common.any' | t" data-cy="search-max-area" />
       </label>
-      <label class="list__row">
-        <span>{{ 'form.roomsFrom' | t }}</span>
-        <input type="number" inputmode="numeric" formControlName="min_rooms" [placeholder]="'common.any' | t" data-cy="search-min-rooms" />
-      </label>
-      <label class="list__row">
-        <span>{{ 'form.roomsTo' | t }}</span>
-        <input type="number" inputmode="numeric" formControlName="max_rooms" [placeholder]="'common.any' | t" data-cy="search-max-rooms" />
-      </label>
-      <label class="list__row">
-        <span>{{ 'form.builtAfter' | t }}</span>
-        <input type="number" inputmode="numeric" formControlName="min_build_year" [placeholder]="'common.any' | t" data-cy="search-build-year" />
-      </label>
+      @if (isHome(propertyType())) {
+        <label class="list__row">
+          <span>{{ 'form.roomsFrom' | t }}</span>
+          <input type="number" inputmode="numeric" formControlName="min_rooms" [placeholder]="'common.any' | t" data-cy="search-min-rooms" />
+        </label>
+        <label class="list__row">
+          <span>{{ 'form.roomsTo' | t }}</span>
+          <input type="number" inputmode="numeric" formControlName="max_rooms" [placeholder]="'common.any' | t" data-cy="search-max-rooms" />
+        </label>
+      }
+      @if (isHome(propertyType()) || propertyType() === 'commercial') {
+        <label class="list__row">
+          <span>{{ 'form.builtAfter' | t }}</span>
+          <input type="number" inputmode="numeric" formControlName="min_build_year" [placeholder]="'common.any' | t" data-cy="search-build-year" />
+        </label>
+      }
     </div>
   </section>
 
   <section>
     <h3 class="section-title">{{ 'form.offer' | t }}</h3>
     <div class="list">
-      @if (dealType() === 'sale') {
+      @if (dealType() === 'sale' && isHome(propertyType())) {
         <label class="list__row">
           <span>{{ 'form.market' | t }}</span>
           <select formControlName="market" data-cy="search-market">

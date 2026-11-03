@@ -87,7 +87,13 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   than send what was excluded. Floors the portal cannot filter are checked on
   the offer when published (Otodom `floorNumber`, Morizon "piętro 3/10").
   Titles that offer a garage, a parking space or a commercial unit are left
-  out of every search.
+  out of every home search.
+- **Property types.** Flats and houses (sale and rent), rooms (rent only),
+  plots (sale only) and commercial units (sale and rent). Each connector's
+  `URL_TEMPLATES` says which it offers, with addresses checked against the
+  portal; the bailiff auctions also sell land and commercial units
+  (`LAND`, `COMMERCIAL_PREMISESISES` — their spelling). Rooms, floors, build
+  year and the market are dropped where they do not apply.
 - **Channels.** `services/notifications` keeps, per user, which channels get
   listings. `FanOutNotifier` sends to each switched-on channel that has a
   `ChannelSender`: Telegram, and email (`services/email`, SMTP) when

@@ -37,6 +37,10 @@ class OtodomConnector(BaseConnector):
         (DealType.RENT, PropertyType.FLAT): _URL.format(deal="wynajem", kind="mieszkanie"),
         (DealType.SALE, PropertyType.HOUSE): _URL.format(deal="sprzedaz", kind="dom"),
         (DealType.RENT, PropertyType.HOUSE): _URL.format(deal="wynajem", kind="dom"),
+        (DealType.RENT, PropertyType.ROOM): _URL.format(deal="wynajem", kind="pokoj"),
+        (DealType.SALE, PropertyType.PLOT): _URL.format(deal="sprzedaz", kind="dzialka"),
+        (DealType.SALE, PropertyType.COMMERCIAL): _URL.format(deal="sprzedaz", kind="lokal"),
+        (DealType.RENT, PropertyType.COMMERCIAL): _URL.format(deal="wynajem", kind="lokal"),
     }
 
     def filter_params(self, query: SearchQuery) -> list[str]:

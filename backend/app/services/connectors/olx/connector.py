@@ -30,6 +30,11 @@ class OlxConnector(BaseConnector):
         (DealType.RENT, PropertyType.FLAT): _URL.format(kind="mieszkania", deal="wynajem"),
         (DealType.SALE, PropertyType.HOUSE): _URL.format(kind="domy", deal="sprzedaz"),
         (DealType.RENT, PropertyType.HOUSE): _URL.format(kind="domy", deal="wynajem"),
+        # Rooms have no sale/rent level: "stancje-pokoje" is rentals only.
+        (DealType.RENT, PropertyType.ROOM): _URL.replace("{kind}/{deal}", "stancje-pokoje").format(),
+        (DealType.SALE, PropertyType.PLOT): _URL.format(kind="dzialki", deal="sprzedaz"),
+        (DealType.SALE, PropertyType.COMMERCIAL): _URL.format(kind="biura-lokale", deal="sprzedaz"),
+        (DealType.RENT, PropertyType.COMMERCIAL): _URL.format(kind="biura-lokale", deal="wynajem"),
     }
 
     def filter_params(self, query: SearchQuery) -> list[str]:

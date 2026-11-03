@@ -8,7 +8,7 @@ import { SourcesPipe } from '../../core/i18n/format.pipes';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IntervalPipe } from './interval.pipe';
 import { PlacePickerComponent } from './place-picker.component';
-import { DEFAULT_SEARCH, DealType, FLOORS, Market, Place, PropertyType, SearchDraft, SearchFormValue } from './search.model';
+import { DEFAULT_SEARCH, DealType, FLOORS, Market, PROPERTY_LABEL, PROPERTY_TYPES, Place, PropertyType, SearchDraft, SearchFormValue, isHome } from './search.model';
 
 /** The one search form, used by the editor and the onboarding wizard alike. */
 @Component({
@@ -49,6 +49,9 @@ export class SearchFormComponent {
     max_floor: [null as number | null],
   });
   protected readonly floors = FLOORS;
+  protected readonly propertyTypes = PROPERTY_TYPES;
+  protected readonly propertyLabel = PROPERTY_LABEL;
+  protected readonly isHome = isHome;
   protected readonly selectedSources = signal(new Set<string>());
   private readonly session = inject(SessionStore);
   /** The most often the user's plan may scan; faster options are shown but locked. */
@@ -73,6 +76,15 @@ export class SearchFormComponent {
       // A new search starts with every portal the plan includes: track everything, narrow later.
       const sources = value.sources.length ? value.sources : this.config.sources.filter((source) => this.planAllows(source));
       this.selectedSources.set(new Set(sources));
+    });
+    // Rooms are only rented and plots only sold: picking one sets the deal, and the other deal sets a flat.
+    this.form.controls.property_type.valueChanges.pipe(takeUntilDestroyed()).subscribe((kind) => {
+      const deal = kind === 'room' ? 'rent' : kind === 'plot' ? 'sale' : null;
+      if (deal && this.form.controls.deal_type.value !== deal) this.form.controls.deal_type.setValue(deal);
+    });
+    this.form.controls.deal_type.valueChanges.pipe(takeUntilDestroyed()).subscribe((deal) => {
+      const kind = this.form.controls.property_type.value;
+      if ((deal === 'sale' && kind === 'room') || (deal === 'rent' && kind === 'plot')) this.form.controls.property_type.setValue('flat');
     });
     // A sale price makes no sense as a monthly rent and back: switching clears prices of the wrong size.
     this.form.controls.deal_type.valueChanges.pipe(takeUntilDestroyed()).subscribe((deal) => {

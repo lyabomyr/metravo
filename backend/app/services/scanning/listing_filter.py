@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from ..connectors.models import Listing
+from ..connectors.models import Listing, PropertyType
 from ..searches.models import Search
 
 #: Titles that offer something other than a home. A flat search on Otodom also
@@ -61,7 +61,8 @@ class ListingFilter:
             return f"floor {listing.floor} > {search.max_floor}"
         if search.private_only and listing.private is False:
             return "not from the owner"
-        if match := _NOT_A_HOME.match(listing.title or ""):
+        wants_a_home = search.property_type.is_home or search.property_type is PropertyType.ROOM
+        if wants_a_home and (match := _NOT_A_HOME.match(listing.title or "")):
             return f"not a home: {match.group(1).lower()}"
         text = " ".join(filter(None, (listing.title, listing.description, listing.location)))
         for word, pattern in self._reject:

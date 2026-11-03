@@ -56,6 +56,9 @@ input.input--suggested { color: var(--muted); }
 .segmented label:active { transform: scale(0.96); }
 .segmented input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
 @media (prefers-color-scheme: dark) { .segmented label:has(input:checked) { background: #636366; } }
+/* Five kinds of property: a 3 + 2 grid, so a phone shows every label in full. */
+.segmented--grid { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+.segmented--grid label { min-width: 0; padding: 6px 4px; }
 
 .icon-button {
   width: 30px; height: 30px; border-radius: 50%; border: 0; cursor: pointer; flex: none;

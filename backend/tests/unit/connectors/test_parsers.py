@@ -118,3 +118,33 @@ def test_otodom_and_morizon_read_the_floor():
     listing = next(iter(OtodomConnector(FixturePageFetcher(str(FIXTURES))).parse(html)))
     assert (listing.floor, listing.private) == (0, True)
     assert [MorizonConnector._floor(text) for text in ("piętro 3/10", "parter/4", "parter", None)] == [3, 0, 0, None]
+
+
+@pytest.mark.parametrize(
+    ("connector_class", "deal", "kind", "expected"),
+    [
+        (OtodomConnector, DealType.RENT, PropertyType.ROOM, "otodom.pl/pl/wyniki/wynajem/pokoj/malopolskie/"),
+        (OtodomConnector, DealType.SALE, PropertyType.PLOT, "otodom.pl/pl/wyniki/sprzedaz/dzialka/"),
+        (OtodomConnector, DealType.RENT, PropertyType.COMMERCIAL, "otodom.pl/pl/wyniki/wynajem/lokal/"),
+        (OlxConnector, DealType.RENT, PropertyType.ROOM, "olx.pl/nieruchomosci/stancje-pokoje/krakow/?search%5Bdist%5D=0&"),
+        (OlxConnector, DealType.SALE, PropertyType.PLOT, "olx.pl/nieruchomosci/dzialki/sprzedaz/krakow/"),
+        (OlxConnector, DealType.SALE, PropertyType.COMMERCIAL, "olx.pl/nieruchomosci/biura-lokale/sprzedaz/krakow/"),
+        (MorizonConnector, DealType.RENT, PropertyType.ROOM, "morizon.pl/do-wynajecia/pokoje/najnowsze/krakow/"),
+        (MorizonConnector, DealType.SALE, PropertyType.PLOT, "morizon.pl/dzialki/najnowsze/krakow/"),
+        (MorizonConnector, DealType.RENT, PropertyType.COMMERCIAL, "morizon.pl/do-wynajecia/komercyjne/najnowsze/krakow/"),
+        (KomornikConnector, DealType.SALE, PropertyType.PLOT, "subCategory=LAND&"),
+        (KomornikConnector, DealType.SALE, PropertyType.COMMERCIAL, "subCategory=COMMERCIAL_PREMISESISES&"),
+    ],
+)
+def test_rooms_plots_and_commercial_units(connector_class, deal, kind, expected):
+    """Addresses checked against each portal; rooms are only rented and plots only sold."""
+    query = SearchQuery(place=KRAKOW, deal_type=deal, property_type=kind)
+    assert expected in connector_class(FixturePageFetcher(str(FIXTURES))).build_url(query)
+
+
+def test_no_portal_sells_rooms_or_rents_out_plots():
+    fetcher = FixturePageFetcher(str(FIXTURES))
+    for connector_class in (OtodomConnector, OlxConnector, MorizonConnector, KomornikConnector):
+        connector = connector_class(fetcher)
+        assert not connector.supports(DealType.SALE, PropertyType.ROOM)
+        assert not connector.supports(DealType.RENT, PropertyType.PLOT)

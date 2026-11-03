@@ -17,6 +17,14 @@ class DealType(str, Enum):
 class PropertyType(str, Enum):
     FLAT = "flat"
     HOUSE = "house"
+    ROOM = "room"  # a room to rent in a shared flat
+    PLOT = "plot"
+    COMMERCIAL = "commercial"  # a shop, an office or another commercial unit
+
+    @property
+    def is_home(self) -> bool:
+        """A flat or a house: what rooms, floors, build year and the market are about."""
+        return self in (PropertyType.FLAT, PropertyType.HOUSE)
 
 
 class Market(str, Enum):

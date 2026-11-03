@@ -126,3 +126,12 @@ def test_a_column_from_a_newer_release_does_not_break_this_one(container, sign_i
     search = container.searches.create(user, make_search())
     container.control_db.execute("ALTER TABLE searches ADD COLUMN some_future_option TEXT")
     assert container.searches.get(user, search.id).name == search.name
+
+
+def test_a_plot_keeps_only_what_a_plot_has(container, sign_in):
+    user = sign_in()
+    plot = container.searches.create(user, make_search(
+        property_type=PropertyType.PLOT, min_rooms=2, min_build_year=2000, market=Market.PRIMARY, min_area=1000,
+        sources=["otodom", "olx", "morizon"],
+    ))
+    assert (plot.min_rooms, plot.min_build_year, plot.market, plot.min_area) == (None, None, None, 1000)

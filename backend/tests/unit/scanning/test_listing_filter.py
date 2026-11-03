@@ -40,6 +40,13 @@ def test_a_garage_or_a_shop_is_not_a_home_but_a_flat_with_a_garage_is():
         assert rules.accepts(listing(title=title)), title
 
 
+def test_a_commercial_search_wants_exactly_what_a_home_search_leaves_out():
+    from app.services.connectors.models import PropertyType
+
+    shop = listing(title="Lokal użytkowy na parterze")
+    assert ListingFilter(make_search(property_type=PropertyType.COMMERCIAL, reject_keywords=[])).accepts(shop)
+
+
 def test_a_rejected_word_also_catches_its_other_spelling():
     rules = ListingFilter(make_search(reject_keywords=["suterena"]))
     assert not rules.accepts(listing(title="2 pokoje | Wola Duchacka | Suteryna"))

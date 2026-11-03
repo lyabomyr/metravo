@@ -26,6 +26,10 @@ class MorizonConnector(BaseConnector):
         (DealType.RENT, PropertyType.FLAT): "https://www.morizon.pl/do-wynajecia/mieszkania/najnowsze/{city}/" + _QUERY,
         (DealType.SALE, PropertyType.HOUSE): "https://www.morizon.pl/domy/najnowsze/{city}/" + _QUERY,
         (DealType.RENT, PropertyType.HOUSE): "https://www.morizon.pl/do-wynajecia/domy/najnowsze/{city}/" + _QUERY,
+        (DealType.RENT, PropertyType.ROOM): "https://www.morizon.pl/do-wynajecia/pokoje/najnowsze/{city}/" + _QUERY,
+        (DealType.SALE, PropertyType.PLOT): "https://www.morizon.pl/dzialki/najnowsze/{city}/" + _QUERY,
+        (DealType.SALE, PropertyType.COMMERCIAL): "https://www.morizon.pl/komercyjne/najnowsze/{city}/" + _QUERY,
+        (DealType.RENT, PropertyType.COMMERCIAL): "https://www.morizon.pl/do-wynajecia/komercyjne/najnowsze/{city}/" + _QUERY,
     }
 
     def filter_params(self, query: SearchQuery) -> list[str]:

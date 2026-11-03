@@ -138,7 +138,8 @@ class SearchService(BaseService):
 
 def _tidy(search: Search) -> Search:
     """Drop options that do not apply (floors for a house, the market for a rental) and repeated places."""
-    flat, sale = search.property_type is PropertyType.FLAT, search.deal_type is DealType.SALE
+    flat, home = search.property_type is PropertyType.FLAT, search.property_type.is_home
+    sale = search.deal_type is DealType.SALE
     more, seen = [], {search.place.path}  # the same place twice would fetch the same pages twice
     for place in search.more_places:
         if place.path not in seen:
@@ -149,5 +150,9 @@ def _tidy(search: Search) -> Search:
         more_places=more,
         min_floor=search.min_floor if flat else None,
         max_floor=search.max_floor if flat else None,
-        market=search.market if sale else None,
+        market=search.market if sale and home else None,
+        # A room, a plot or a shop has no number of rooms to count; a plot was never built.
+        min_rooms=search.min_rooms if home else None,
+        max_rooms=search.max_rooms if home else None,
+        min_build_year=search.min_build_year if home or search.property_type is PropertyType.COMMERCIAL else None,
     )

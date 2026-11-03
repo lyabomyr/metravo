@@ -1,7 +1,13 @@
 import type { TranslationKey } from '../../core/i18n/locales/en';
 
 export type DealType = 'sale' | 'rent';
-export type PropertyType = 'flat' | 'house';
+export type PropertyType = 'flat' | 'house' | 'room' | 'plot' | 'commercial';
+export const PROPERTY_TYPES: PropertyType[] = ['flat', 'house', 'room', 'plot', 'commercial'];
+
+/** A flat or a house: what rooms, the build year and new build or second-hand are about. */
+export function isHome(type: PropertyType): boolean {
+  return type === 'flat' || type === 'house';
+}
 /** A new build from the developer, or second-hand. */
 export type Market = 'primary' | 'secondary';
 
@@ -117,4 +123,6 @@ export const FLOORS = Array.from({ length: 16 }, (_, floor) => floor);
 
 /** How each choice reads in the UI. */
 export const DEAL_LABEL: Record<DealType, TranslationKey> = { sale: 'deal.sale', rent: 'deal.rent' };
-export const PROPERTY_LABEL: Record<PropertyType, TranslationKey> = { flat: 'property.flat', house: 'property.house' };
+export const PROPERTY_LABEL: Record<PropertyType, TranslationKey> = {
+  flat: 'property.flat', house: 'property.house', room: 'property.room', plot: 'property.plot', commercial: 'property.commercial',
+};

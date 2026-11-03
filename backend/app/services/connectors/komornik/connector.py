@@ -29,6 +29,9 @@ class KomornikConnector(BaseConnector):
     URL_TEMPLATES = {
         (DealType.SALE, PropertyType.FLAT): _URL.format(category="APARTMENTS"),
         (DealType.SALE, PropertyType.HOUSE): _URL.format(category="HOUSES"),
+        (DealType.SALE, PropertyType.PLOT): _URL.format(category="LAND"),
+        # Spelled so on licytacje.komornik.pl ("lokale użytkowe"), typo included.
+        (DealType.SALE, PropertyType.COMMERCIAL): _URL.format(category="COMMERCIAL_PREMISESISES"),
     }
 
     def parse(self, html: str) -> Iterable[Listing]:
