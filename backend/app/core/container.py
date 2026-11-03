@@ -10,6 +10,7 @@ import logging
 import threading
 from collections.abc import Callable
 
+from ..services.admin.database_usage import DatabaseUsage
 from .clock import Clock
 from .config import Settings
 from .database import open_database
@@ -76,6 +77,7 @@ class Container:
 
         # One database for everything; rows of searches and listings carry their user_id.
         self.control_db = open_database(settings.control_db_url, settings.control_db_token)
+        self.database_usage = DatabaseUsage(self.control_db)
         user_repo = UserRepository(self.control_db)
         telegram_repo = TelegramRepository(self.control_db)
         subscription_repo = SubscriptionRepository(self.control_db)
@@ -154,7 +156,10 @@ class Container:
 
         s = self.settings
         keep_alive = KeepAlive(f"{s.public_api_url}/api/health", s.keep_alive_minutes * 60) if s.is_production else None
-        return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor)
+        from ..services.system.housekeeping import Housekeeping
+
+        housekeeping = Housekeeping(self.listings, self.telegram_links, self.clock)
+        return ScanScheduler(self.scanner, s.scheduler_tick_seconds, keep_alive, self.monitor, housekeeping)
 
     def _places(self):
         from ..services.places.directory import PlaceDirectory

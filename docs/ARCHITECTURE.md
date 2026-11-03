@@ -81,6 +81,12 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   downloads the picture while sending, so no image is stored or fetched by
   us. A photo Telegram cannot fetch, or a caption over 1024 characters,
   falls back to a text message; a 429 waits `retry_after` once.
+- **Keeping the database small.** Each offer is stored once; a user's
+  match is a row of ids. Once a day (`system/Housekeeping`, from the
+  scheduler) offers no scan has seen for 90 days are forgotten for everyone,
+  and Telegram link tokens a day past expiry are deleted. Admin → Database
+  lists every table with its rows and size; each deploy prints the size of
+  every database in the Turso organisation.
 - **Google sign-in.** The Firebase SDK is loaded when the sign-in card
   appears, so the Google window opens straight from the tap (phones block
   windows opened after a wait). A browser that still blocks it is sent to

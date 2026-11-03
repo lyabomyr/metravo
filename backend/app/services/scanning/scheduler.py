@@ -9,6 +9,7 @@ import time
 import requests
 
 from ..monitoring.monitor import HealthMonitor
+from ..system.housekeeping import Housekeeping
 from .service import ScanService
 
 log = logging.getLogger(__name__)
@@ -46,11 +47,13 @@ class ScanScheduler:
         tick_seconds: int,
         keep_alive: KeepAlive | None = None,
         monitor: HealthMonitor | None = None,
+        housekeeping: Housekeeping | None = None,
     ):
         self._scanner = scanner
         self._tick_seconds = tick_seconds
         self._keep_alive = keep_alive
         self._monitor = monitor
+        self._housekeeping = housekeeping
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -70,6 +73,14 @@ class ScanScheduler:
                 self._monitor.record_scan(report)
         if self._monitor:
             self._check_health()
+        if self._housekeeping:
+            self._tidy()
+
+    def _tidy(self) -> None:
+        try:
+            self._housekeeping.run_if_due()
+        except Exception:  # noqa: BLE001 — cleaning up must not stop scanning
+            log.exception("housekeeping failed")
 
     def _check_health(self) -> None:
         try:

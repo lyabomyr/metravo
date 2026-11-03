@@ -21,6 +21,12 @@ def system(_: User = Depends(admin_user), container: Container = Depends(get_con
     return SystemOut.of(container.monitor.status, container.recent_logs.entries())
 
 
+@router.get("/database")
+def database(_: User = Depends(admin_user), container: Container = Depends(get_container)) -> list[dict]:
+    """Every table with its rows and size, the biggest first."""
+    return [asdict(table) for table in container.database_usage.tables()]
+
+
 class PlanChange(BaseModel):
     plan: str
 

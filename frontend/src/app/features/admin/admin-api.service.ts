@@ -24,6 +24,13 @@ export interface SystemHealth {
   recent_logs: { at: string; level: string; logger: string; message: string }[];
 }
 
+/** One table of the database (backend services/admin/database_usage.py). */
+export interface TableUsage {
+  name: string;
+  rows: number;
+  bytes: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminApiService extends BaseApiService {
   protected readonly path = '/api/admin';
@@ -34,6 +41,10 @@ export class AdminApiService extends BaseApiService {
 
   system(): Observable<SystemHealth> {
     return this.get<SystemHealth>('/system');
+  }
+
+  database(): Observable<TableUsage[]> {
+    return this.get<TableUsage[]>('/database');
   }
 
   users(): Observable<User[]> {

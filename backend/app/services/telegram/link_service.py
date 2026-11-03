@@ -50,6 +50,10 @@ class TelegramLinkService(BaseService):
         self._repo.link_chat(chat_id, link.user_id, title, self._clock.iso())
         return self._users.get(link.user_id)
 
+    def drop_old_tokens(self) -> int:
+        """Links expire in half an hour; a day later nobody needs to hear "expired" instead of "invalid"."""
+        return self._repo.drop_tokens_expired_before((self._clock.now() - timedelta(days=1)).isoformat(timespec="seconds"))
+
     def owner_of(self, chat_id: str) -> User | None:
         chat = self._repo.chat(chat_id)
         return self._users.get(chat.user_id) if chat else None

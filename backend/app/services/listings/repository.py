@@ -67,6 +67,14 @@ class ListingCatalog(BaseRepository):
         self._exec("DELETE FROM listing_prices WHERE key NOT IN (SELECT key FROM search_matches)")
         return self._exec("DELETE FROM portal_listings WHERE key NOT IN (SELECT key FROM search_matches)")
 
+    def forget_gone(self, before: str) -> int:
+        """Offers no portal has shown since ``before`` are gone: drop them for everyone."""
+        self._exec(
+            "DELETE FROM search_matches WHERE key IN (SELECT key FROM portal_listings WHERE last_seen_at < ?)",
+            (before,),
+        )
+        return self.drop_unmatched()
+
     def add_price_change(self, key: str, old_price: int, new_price: int, now: str) -> None:
         self._exec(
             "INSERT INTO listing_prices (key, old_price, new_price, changed_at) VALUES (?, ?, ?, ?)",

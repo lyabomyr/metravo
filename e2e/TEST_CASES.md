@@ -155,6 +155,8 @@ which matches **101, 104, 302, mzn201**.
 | ADM-2 | Admin changes a user's plan | The table shows the new plan |
 | ADM-3 | Admin opens System | Memory, CPU, last scan, active alerts and recent warnings are shown |
 | ADM-4 | Refresh, then “Run scan for everyone” | Health reloads; a report of searches, page fetches and new listings appears |
+| ADM-5 | Admin opens the page | “Database” lists every table with its rows (and size where the engine reports it), the biggest first |
+| ADM-6 | Admin opens a new search | Every check frequency is open: admins have Pro without paying |
 
 ## Languages — `i18n.cy.ts`
 

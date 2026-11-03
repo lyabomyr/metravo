@@ -59,6 +59,9 @@ class TelegramRepository(BaseRepository):
             (token, user_id, expires_at),
         )
 
+    def drop_tokens_expired_before(self, before: str) -> int:
+        return self._exec("DELETE FROM telegram_link_tokens WHERE expires_at < ?", (before,))
+
     def token(self, token: str) -> LinkToken | None:
         row = self._one("SELECT * FROM telegram_link_tokens WHERE token = ?", (token,))
         return LinkToken(**row) if row else None

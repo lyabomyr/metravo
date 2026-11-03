@@ -11,12 +11,13 @@ import { PageHeaderComponent } from '../../core/ui/page-header.component';
 import { ScanReport } from '../listings/listing.model';
 import { ScanApiService } from '../listings/scan-api.service';
 import { AdminApiService, Overview } from './admin-api.service';
+import { DatabaseUsageComponent } from './database-usage.component';
 import { SystemHealthComponent } from './system-health.component';
 
 /** Service management: accounts and plans. Never shows anyone's searches or listings. */
 @Component({
   selector: 'app-admin-page',
-  imports: [KeyValuePipe, ErrorBannerComponent, PageHeaderComponent, SystemHealthComponent, TranslatePipe, WhenPipe],
+  imports: [KeyValuePipe, ErrorBannerComponent, PageHeaderComponent, SystemHealthComponent, DatabaseUsageComponent, TranslatePipe, WhenPipe],
   templateUrl: './admin.page.html',
 })
 export class AdminPage extends BasePage implements OnInit {

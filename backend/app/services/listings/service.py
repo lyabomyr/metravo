@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
 from ...core.clock import Clock
 from ...core.database import Database
 from ...core.service import BaseService
@@ -11,6 +13,8 @@ from .models import EventKind, ListingEvent, PriceChange, StoredListing
 from .repository import ListingCatalog, ListingRepository
 
 MAX_PAGE_SIZE = 200
+#: An offer no scan has seen for this long has left the portals; it is forgotten.
+KEEP_UNSEEN = timedelta(days=90)
 
 
 class ListingService(BaseService):
@@ -26,6 +30,10 @@ class ListingService(BaseService):
 
     def price_changes(self, user: User, limit: int = 50) -> list[PriceChange]:
         return self._repo(user.id).price_changes(min(limit, MAX_PAGE_SIZE))
+
+    def forget_gone(self) -> int:
+        before = (self._clock.now() - KEEP_UNSEEN).isoformat(timespec="seconds")
+        return self._catalog.forget_gone(before)
 
     def forget_search(self, user: User, search_id: str) -> None:
         """A deleted search takes its results with it; offers nobody else has go too."""

@@ -39,4 +39,18 @@ describe('Service management', () => {
     cy.get('[data-cy=scan-all]').click();
     cy.get('[data-cy=scan-all-report]').should('contain', 'searches').and('contain', 'page fetches');
   });
+
+  it('ADM-5 shows what fills the database, table by table', () => {
+    cy.signIn(Cypress.env('adminEmail'));
+    cy.visit('/admin');
+    cy.get('[data-cy=database-usage]').should('be.visible');
+    cy.contains('[data-cy=database-table]', 'users').should('contain', 'rows');
+    cy.contains('[data-cy=database-table]', 'portal_listings').should('exist');
+  });
+
+  it('ADM-6 an admin has Pro without paying', () => {
+    cy.signIn(Cypress.env('adminEmail'));
+    cy.visit('/searches/new');
+    cy.get('[data-cy=search-interval] option:disabled').should('have.length', 0); // every hour is allowed
+  });
 });

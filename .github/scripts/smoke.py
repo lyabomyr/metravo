@@ -20,6 +20,10 @@ import urllib.request
 API = os.environ["API_URL"].rstrip("/")
 SITE = os.environ["FRONTEND_URL"].rstrip("/")
 BOT = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TURSO_TOKEN = os.environ.get("TURSO_API_TOKEN", "")
+TURSO_ORG = os.environ.get("TURSO_ORG", "")
+#: Only the host: it says which Turso database is ours. The token next to it is never read.
+OUR_DB_HOST = os.environ.get("CONTROL_DB_URL", "").split("://")[-1].split("/")[0]
 #: Render starts the new version a few minutes after the deploy step; wait for it.
 WAIT_SECONDS = int(os.environ.get("SMOKE_WAIT_SECONDS", "600"))
 
@@ -85,6 +89,27 @@ def check_bot() -> str:
     return f"bot @{me['result']['username']} → our webhook, {hook.get('pending_update_count', 0)} pending, {len(commands)} commands"
 
 
+def megabytes(size: int) -> str:
+    return f"{size / 1_000_000:.1f} MB"
+
+
+def report_databases() -> None:
+    """Every database in the Turso organisation and what it holds. Informational: never fails the check."""
+    base, auth = f"https://api.turso.tech/v1/organizations/{TURSO_ORG}", {"Authorization": f"Bearer {TURSO_TOKEN}"}
+    try:
+        databases = json.loads(request(base + "/databases", headers=auth)[2])["databases"]
+        for database in databases:
+            name = database.get("Name") or database.get("name")
+            usage = json.loads(request(f"{base}/databases/{name}/usage", headers=auth)[2])["database"]["usage"]
+            ours = " ← Metravo" if OUR_DB_HOST and OUR_DB_HOST == database.get("Hostname") else ""
+            print(f"ℹ database {name}: {megabytes(usage.get('storage_bytes', 0))} stored, "
+                  f"{usage.get('rows_read', 0):,} rows read, {usage.get('rows_written', 0):,} written this month{ours}")
+        total = json.loads(request(base + "/usage", headers=auth)[2])["organization"]["usage"]
+        print(f"ℹ Turso organisation total: {megabytes(total.get('storage_bytes', 0))} stored")
+    except (KeyError, ValueError, OSError, TypeError) as error:
+        print(f"ℹ database sizes unavailable: {type(error).__name__}")
+
+
 def main() -> None:
     checks = [check_site, check_api, check_cors, check_private] + ([check_bot] if BOT else [])
     deadline = time.time() + WAIT_SECONDS
@@ -100,6 +125,8 @@ def main() -> None:
                 if time.time() > deadline:
                     break
                 time.sleep(20)  # the new version may still be starting
+    if TURSO_TOKEN and TURSO_ORG:
+        report_databases()
     for name, reason in failures.items():
         print(f"✗ {name}: {reason}")
     sys.exit(1 if failures else 0)
