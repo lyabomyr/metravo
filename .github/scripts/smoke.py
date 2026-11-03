@@ -93,21 +93,36 @@ def megabytes(size: int) -> str:
     return f"{size / 1_000_000:.1f} MB"
 
 
+def turso(path: str) -> dict:
+    """GET on Turso's platform API; on a bad answer the error names the status and fields, never a value."""
+    status, _, body = request(f"https://api.turso.tech/v1/organizations/{TURSO_ORG}{path}",
+                              headers={"Authorization": f"Bearer {TURSO_TOKEN}"})
+    data = json.loads(body) if body.strip().startswith("{") else {}
+    if status != 200:
+        raise LookupError(f"{path or '/'} answered HTTP {status} with fields {sorted(data)}")
+    return data
+
+
+def storage_of(usage: dict) -> int:
+    """The usage object's storage, wherever this API version puts it."""
+    for key in ("storage_bytes", "storageBytes"):
+        if key in usage:
+            return int(usage[key])
+    nested = usage.get("usage") or usage.get("total") or {}
+    return storage_of(nested) if isinstance(nested, dict) and nested else 0
+
+
 def report_databases() -> None:
     """Every database in the Turso organisation and what it holds. Informational: never fails the check."""
-    base, auth = f"https://api.turso.tech/v1/organizations/{TURSO_ORG}", {"Authorization": f"Bearer {TURSO_TOKEN}"}
     try:
-        databases = json.loads(request(base + "/databases", headers=auth)[2])["databases"]
-        for database in databases:
+        for database in turso("/databases")["databases"]:
             name = database.get("Name") or database.get("name")
-            usage = json.loads(request(f"{base}/databases/{name}/usage", headers=auth)[2])["database"]["usage"]
-            ours = " ← Metravo" if OUR_DB_HOST and OUR_DB_HOST == database.get("Hostname") else ""
-            print(f"ℹ database {name}: {megabytes(usage.get('storage_bytes', 0))} stored, "
-                  f"{usage.get('rows_read', 0):,} rows read, {usage.get('rows_written', 0):,} written this month{ours}")
-        total = json.loads(request(base + "/usage", headers=auth)[2])["organization"]["usage"]
-        print(f"ℹ Turso organisation total: {megabytes(total.get('storage_bytes', 0))} stored")
-    except (KeyError, ValueError, OSError, TypeError) as error:
-        print(f"ℹ database sizes unavailable: {type(error).__name__}")
+            usage = turso(f"/databases/{name}/usage").get("database", {})
+            ours = " ← Metravo" if OUR_DB_HOST and OUR_DB_HOST == (database.get("Hostname") or database.get("hostname")) else ""
+            print(f"ℹ database {name}: {megabytes(storage_of(usage))} stored{ours}")
+        print(f"ℹ Turso organisation total: {megabytes(storage_of(turso('/usage').get('organization', {})))} stored")
+    except (KeyError, ValueError, OSError, TypeError, LookupError) as error:
+        print(f"ℹ database sizes unavailable: {type(error).__name__} {error}")
 
 
 def main() -> None:
