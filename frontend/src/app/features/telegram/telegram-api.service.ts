@@ -8,8 +8,17 @@ import { TelegramChat, TelegramLink } from './telegram.model';
 export class TelegramApiService extends BaseApiService {
   protected readonly path = '/api/telegram';
 
-  createLink(): Observable<TelegramLink> {
-    return this.post<TelegramLink>('/link');
+  /** With a search, the chat it connects gets that search only. */
+  createLink(searchId?: string): Observable<TelegramLink> {
+    return this.post<TelegramLink>('/link', searchId ? { search_id: searchId } : {});
+  }
+
+  searchChats(searchId: string): Observable<TelegramChat[]> {
+    return this.get<TelegramChat[]>(`/searches/${searchId}/chats`);
+  }
+
+  route(chatId: string, searchId: string, receives: boolean): Observable<TelegramChat> {
+    return this.put<TelegramChat>(`/chats/${chatId}/searches/${searchId}`, { receives });
   }
 
   chats(): Observable<TelegramChat[]> {

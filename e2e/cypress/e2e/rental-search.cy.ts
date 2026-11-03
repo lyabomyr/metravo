@@ -13,6 +13,7 @@ describe('Renting, not buying', () => {
     cy.get('[data-cy=search-min-area]').clear().type('25');
     cy.get('[data-cy=search-required]').type('balkon');
     cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
 
     cy.get('[data-cy=search-card]').should('contain', 'Rent').and('contain', '/ month');
 

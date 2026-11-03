@@ -22,6 +22,7 @@ function searchFor(fields: Record<string, string>, options: { only?: string[]; e
   }
   options.extra?.forEach((source) => cy.get(`[data-cy=source-${source}]`).check());
   cy.get('[data-cy=search-save]').click();
+  cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
   cy.location('pathname').should('eq', '/searches');
   cy.visit('/listings');
   cy.get('[data-cy=scan-now]').click();

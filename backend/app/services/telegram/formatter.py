@@ -57,6 +57,8 @@ class ListingMessageFormatter:
         cards = [self._card(event, unit, locale) for event in shown]
         header = translator.t(locale, "tg.new", name=escape(search.name), n=len(events))
         cards[0] = replace(cards[0], text=f"{header}\n\n{cards[0].text}")
+        # A chat may hear several searches: every card says which one it belongs to.
+        cards[1:] = [replace(card, text=f"{card.text}\n🔎 <i>{escape(search.name)}</i>") for card in cards[1:]]
         if hidden > 0:
             cards.append(Card(translator.t(locale, "tg.more", n=hidden, url=f"{self._website}/listings")))
         return [card if len(card.text) <= MAX_CAPTION_LENGTH else Card(card.text) for card in cards]

@@ -36,7 +36,11 @@ export class SearchEditPage extends BasePage implements OnInit {
 
   protected save(draft: SearchDraft): void {
     const id = this.id();
-    const request = id ? this.api.update(id, draft) : this.api.create(draft);
-    this.run(request, () => this.router.navigateByUrl('/searches'));
+    if (id) {
+      this.run(this.api.update(id, draft), () => this.router.navigateByUrl('/searches'));
+      return;
+    }
+    // A new search goes straight on to where its listings should be sent.
+    this.run(this.api.create(draft), (search) => this.router.navigate(['/searches', search.id, 'alerts']));
   }
 }

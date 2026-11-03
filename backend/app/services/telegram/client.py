@@ -80,7 +80,7 @@ class HttpTelegramClient(TelegramClient):
     def set_webhook(self, url: str, secret: str) -> None:
         response = requests.post(
             f"{self._base}/setWebhook",
-            json={"url": url, "secret_token": secret, "allowed_updates": ["message", "my_chat_member"]},
+            json={"url": url, "secret_token": secret, "allowed_updates": ["message", "channel_post", "my_chat_member"]},
             timeout=self._timeout,
         )
         response.raise_for_status()

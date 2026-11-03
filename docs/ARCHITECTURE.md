@@ -81,6 +81,15 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   downloads the picture while sending, so no image is stored or fetched by
   us. A photo Telegram cannot fetch, or a caption over 1024 characters,
   falls back to a text message; a 429 waits `retry_after` once.
+- **Which chat hears which search.** A Telegram chat hears every search
+  (`telegram_chats.only_selected = 0`) or only the searches in
+  `telegram_routes`. A new search opens its alerts page
+  (`/searches/:id/alerts`): tick chats, or connect a chat, group or channel
+  for that search only (a link token carrying `search_id`). Channels have no
+  Start button: the bot is added as an admin and the owner posts
+  `/start <code>`, which arrives as a `channel_post`. Unticking a search on
+  an every-search chat turns the rest into explicit routes. Every listing
+  card names its search.
 - **Keeping the database small.** Each offer is stored once; a user's
   match is a row of ids. Once a day (`system/Housekeeping`, from the
   scheduler) offers no scan has seen for 90 days are forgotten for everyone,

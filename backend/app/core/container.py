@@ -105,7 +105,7 @@ class Container:
             delay_seconds=settings.scan_delay_seconds,
         )
         self.listings = ListingService(self.control_db, self.clock)
-        self.searches = SearchService(self.control_db, self.users, self.connectors, self.clock, self.listings.forget_search)
+        self.searches = SearchService(self.control_db, self.users, self.connectors, self.clock, self._forget_search)
         self.export = ExportService(self.control_db)
         self.billing = BillingService(self._payment_provider(), subscription_repo, self.users, self.plans, self.clock)
 
@@ -150,6 +150,11 @@ class Container:
         from ..services.billing.providers.fake_provider import FakePaymentProvider
 
         return FakePaymentProvider(s.frontend_url)
+
+    def _forget_search(self, user, search_id: str) -> None:
+        """A deleted search takes its results and its Telegram routes with it."""
+        self.listings.forget_search(user, search_id)
+        self.telegram_links.forget_search(user, search_id)
 
     def _scheduler(self):
         from ..services.scanning.scheduler import KeepAlive, ScanScheduler

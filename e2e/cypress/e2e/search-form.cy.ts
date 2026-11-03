@@ -46,6 +46,7 @@ describe('Search form', () => {
     pickPlace('Kraków');
     cy.get('[data-cy=search-interval]').select('Every hour');
     cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
     cy.get('[data-cy=search-card]').should('contain', 'Every hour');
   });
 
@@ -80,6 +81,7 @@ describe('Search form', () => {
     cy.get('[data-cy=search-name]').clear().type('Katowice tanio');
     pickPlace('Katowice');
     cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
     cy.get('[data-cy=search-card]').should('have.length', 1).and('contain', 'Katowice tanio').and('contain', 'Katowice');
 
     cy.get('[data-cy=search-edit]').click();
@@ -108,6 +110,7 @@ describe('Search form', () => {
     cy.get('[data-cy=property-house]').should('be.checked');
     cy.get('[data-cy=search-name]').clear().type('Dom pod Krakowem');
     cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
     cy.get('[data-cy=search-card]').should('contain', 'Dom pod Krakowem').and('contain', 'House');
     cy.api('GET', '/api/searches').its('body.0.property_type').should('eq', 'house');
   });
@@ -130,6 +133,7 @@ describe('Search form', () => {
     cy.get('[data-cy=search-radius]').select('15');
     cy.get('[data-cy=search-name]').clear().type('Pod Krakowem');
     cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
     cy.get('[data-cy=search-place]').should('contain', 'Zabierzów').and('contain', '+15 km');
     cy.api('GET', '/api/searches').its('body.0').should((search: { radius_km: number; place: { path: string } }) => {
       expect(search.radius_km).to.eq(15);
@@ -156,6 +160,7 @@ describe('Search form', () => {
     cy.get('[data-cy=search-name]').type('Blisko pracy').should('have.value', 'Blisko pracy'); // typing replaces nothing
     cy.get('[data-cy=search-name]').clear();
     cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
     cy.get('[data-cy=search-card]').should('contain', 'Kraków'); // left empty, named after the place
   });
 

@@ -22,7 +22,7 @@ class TelegramSender(ChannelSender):
 
     def deliver(self, user: User, address: str, search: Search, events: list[ListingEvent]) -> int:
         sent = 0
-        for chat in self._links.active_chats_of(user):
+        for chat in self._links.receivers(user, search.id):
             for card in self._formatter.cards(search, events, user.locale):
                 if card.photo:
                     sent += int(self._client.send_photo(chat.chat_id, card.photo, card.text))

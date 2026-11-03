@@ -1,10 +1,15 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, retry, throwError, timer } from 'rxjs';
 
 import { RuntimeConfig } from '../config/runtime-config';
 
 type QueryParams = Record<string, string | number | boolean | null | undefined>;
+
+/** No answer, or the host is swapping instances (a deploy, a free instance waking up): worth asking again. */
+const PASSING_FAILURES = [0, 502, 503, 504];
+export const READ_RETRIES = 2;
+export const RETRY_DELAY_MS = 1500;
 
 /**
  * Base for every feature's API service.
@@ -19,7 +24,14 @@ export abstract class BaseApiService {
   protected abstract readonly path: string;
 
   protected get<T>(suffix = '', params: QueryParams = {}): Observable<T> {
-    return this.http.get<T>(this.url(suffix), { params: this.toParams(params) });
+    // Only reads are repeated: asking twice changes nothing.
+    return this.http.get<T>(this.url(suffix), { params: this.toParams(params) }).pipe(
+      retry({
+        count: READ_RETRIES,
+        delay: (error: { status?: number }, attempt) =>
+          PASSING_FAILURES.includes(error.status ?? -1) ? timer(RETRY_DELAY_MS * attempt) : throwError(() => error),
+      }),
+    );
   }
 
   protected post<T>(suffix = '', body: unknown = {}): Observable<T> {

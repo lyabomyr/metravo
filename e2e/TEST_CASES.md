@@ -140,6 +140,9 @@ which matches **101, 104, 302, mzn201**.
 | ALR-6 | Signed in without Telegram | Every page shows “Alerts are not connected” with a button to setup; gone once a chat is connected |
 | ALR-7 | “Send a test message” for Telegram | “Sent” is shown; the bot posts a short message to the chat |
 | ALR-8 | Email on Pro: switch on, send a test, type a wrong address, switch off | Email is live (no “soon”); the test is sent; a wrong address is refused with a message; switched off, the test button goes, it stays off after a reload, and the server refuses a test |
+| SAL-1 | Save a new search; on its alerts page add the bot to a group | The page opens right after saving; the group appears ticked, as “selected searches”; Done returns to Searches |
+| SAL-2 | A chat that hears every search: untick it on one search's alerts page | It turns to “selected searches” and stays unticked after a reload; the other searches still reach it |
+| SAL-3 | “Add to a channel”, then post the code shown in the channel | The channel appears ticked for this search |
 
 ## Plan, data, admin — `billing.cy.ts`, `data-export.cy.ts`, `admin.cy.ts`
 
@@ -185,7 +188,8 @@ which matches **101, 104, 302, mzn201**.
 | Tour | Next, Back, Skip, Let’s go (`tour-*`) | TOUR-1 … TOUR-4 |
 | Welcome | Save and continue (`search-save`), Open Telegram (`telegram-open`), See your listings (`onboarding-listings`) | ONB-1, ONB-2 |
 | Listings | Check now (`scan-now`), open an ad | LST-2, LST-3 |
-| Searches | New search, Create your first search, Edit, Delete (`new-search`, `create-first-search`, `search-edit`, `search-delete`) | FORM-10, FORM-6 |
+| Searches | New search, Create your first search, Alerts, Edit, Delete (`new-search`, `create-first-search`, `search-alerts`, `search-edit`, `search-delete`) | FORM-10, SAL-2, FORM-6 |
+| Search alerts | chat toggles, Open Telegram, Add to a group, Add to a channel, Done | SAL-1 … SAL-3 |
 | Search form | Buy/Rent, Flat/House, place autocomplete, spinner, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-16, FLT-1 … FLT-13 |
 | Alerts | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
 | Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |

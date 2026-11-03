@@ -35,7 +35,8 @@ class CommandDispatcher:
         if member := update.get("my_chat_member"):
             self._membership(member)
             return None
-        message = update.get("message") or {}
+        # A channel has no Start button: its owner posts "/start <code>" there instead.
+        message = update.get("message") or update.get("channel_post") or {}
         if moved_to := message.get("migrate_to_chat_id"):
             self._links.move_chat(str(message["chat"]["id"]), str(moved_to))
             return None

@@ -10,6 +10,8 @@ class TelegramChat:
     title: str
     paused: bool
     linked_at: str
+    #: False: the chat hears every search. True: only the searches routed to it.
+    only_selected: bool = False
 
 
 @dataclass(frozen=True)
@@ -18,6 +20,8 @@ class LinkToken:
     user_id: str
     expires_at: str
     used_at: str | None
+    #: Made from a search's page: the chat it connects hears that search only.
+    search_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -28,3 +32,6 @@ class TelegramLink:
     private_url: str
     group_url: str
     expires_at: str
+    #: Adds the bot to a channel as an admin that may post; the owner then posts ``channel_code`` there.
+    channel_url: str = ""
+    channel_code: str = ""

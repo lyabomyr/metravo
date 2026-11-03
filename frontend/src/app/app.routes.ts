@@ -20,6 +20,7 @@ export const routes: Routes = [
       { path: 'listings', loadComponent: () => import('./features/listings/listings.page').then((m) => m.ListingsPage) },
       { path: 'searches', loadComponent: () => import('./features/searches/searches.page').then((m) => m.SearchesPage) },
       { path: 'searches/new', loadComponent: () => import('./features/searches/search-edit.page').then((m) => m.SearchEditPage) },
+      { path: 'searches/:id/alerts', loadComponent: () => import('./features/searches/search-alerts.page').then((m) => m.SearchAlertsPage) },
       { path: 'searches/:id', loadComponent: () => import('./features/searches/search-edit.page').then((m) => m.SearchEditPage) },
       { path: 'alerts', loadComponent: () => import('./features/alerts/alerts.page').then((m) => m.AlertsPage) },
       { path: 'telegram', redirectTo: 'alerts' },

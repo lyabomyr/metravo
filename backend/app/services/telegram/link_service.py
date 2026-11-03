@@ -29,15 +29,18 @@ class TelegramLinkService(BaseService):
         self._bot = bot_username
         self._clock = clock
 
-    def create_link(self, user: User) -> TelegramLink:
+    def create_link(self, user: User, search_id: str | None = None) -> TelegramLink:
+        """With ``search_id`` (the caller checked it is the user's), the chat it connects hears that search only."""
         # Telegram allows [A-Za-z0-9_-]{1,64} in a start parameter.
         token = secrets.token_urlsafe(24)
         expires_at = (self._clock.now() + LINK_TTL).isoformat(timespec="seconds")
-        self._repo.add_token(token, user.id, expires_at)
+        self._repo.add_token(token, user.id, expires_at, search_id)
         return TelegramLink(
             token=token,
             private_url=f"https://t.me/{self._bot}?start={token}",
             group_url=f"https://t.me/{self._bot}?startgroup={token}",
+            channel_url=f"https://t.me/{self._bot}?startchannel&admin=post_messages",
+            channel_code=f"/start {token}",
             expires_at=expires_at,
         )
 
@@ -47,7 +50,15 @@ class TelegramLinkService(BaseService):
             raise Invalid("telegram.link_expired")
         if not self._repo.use_token(token, self._clock.iso()):
             raise Invalid("telegram.link_used")
-        self._repo.link_chat(chat_id, link.user_id, title, self._clock.iso())
+        existing = self._repo.chat(chat_id)
+        if link.search_id is None:
+            self._repo.link_chat(chat_id, link.user_id, title, self._clock.iso())
+        elif existing and existing.user_id == link.user_id and not existing.only_selected:
+            pass  # the chat already hears every search, this one included
+        else:
+            if not (existing and existing.user_id == link.user_id):
+                self._repo.link_chat(chat_id, link.user_id, title, self._clock.iso(), only_selected=True)
+            self._repo.add_route(chat_id, link.search_id, link.user_id)
         return self._users.get(link.user_id)
 
     def drop_old_tokens(self) -> int:
@@ -66,6 +77,33 @@ class TelegramLinkService(BaseService):
 
     def active_chats_of(self, user: User) -> list[TelegramChat]:
         return [chat for chat in self.chats_of(user) if not chat.paused]
+
+    def receivers(self, user: User, search_id: str) -> list[TelegramChat]:
+        """The chats that get this search's listings now: not paused, and hearing every search or this one."""
+        return [chat for chat in self.active_chats_of(user) if self.hears(chat, search_id)]
+
+    def hears(self, chat: TelegramChat, search_id: str) -> bool:
+        return not chat.only_selected or search_id in self._repo.routed_searches(chat.chat_id)
+
+    def route(self, user: User, chat_id: str, search_id: str, on: bool, all_search_ids: list[str]) -> TelegramChat:
+        """Send this search to this chat, or stop; ``all_search_ids`` are the user's searches."""
+        chat = self._repo.chat(chat_id)
+        if chat is None or chat.user_id != user.id:
+            raise NotFound("telegram.chat_not_found")
+        if on and chat.only_selected:
+            self._repo.add_route(chat_id, search_id, user.id)
+        elif not on and not chat.only_selected:
+            # Hearing everything but this one: the rest become explicit choices.
+            self._repo.set_only_selected(chat_id, True)
+            for other in all_search_ids:
+                if other != search_id:
+                    self._repo.add_route(chat_id, other, user.id)
+        elif not on:
+            self._repo.drop_route(chat_id, search_id)
+        return self._repo.chat(chat_id)
+
+    def forget_search(self, user: User, search_id: str) -> None:
+        self._repo.forget_search_routes(user.id, search_id)
 
     def set_paused(self, chat_id: str, paused: bool) -> None:
         self._repo.set_paused(chat_id, paused)
