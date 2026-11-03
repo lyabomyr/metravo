@@ -55,7 +55,7 @@ def check_api() -> str:
     portals = {name: state["state"] + (f" ({state['http_status']})" if state.get("http_status") else "")
                for name, state in config.get("portal_status", {}).items()}
     return (f"API healthy; sign-in {config['auth_providers']}; portals as the server sees them: {portals or 'not checked yet'}; "
-            f"OLX/Otodom alert emails: {config.get('mail_alerts', 'unknown')}")
+            f"OLX/Otodom alert emails: {config.get('mail_alerts', 'unknown')}; email sending: {config.get('email_sending', 'unknown')}")
 
 
 def check_cors() -> str:

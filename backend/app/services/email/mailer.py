@@ -22,9 +22,16 @@ class Mail:
 
 
 class Mailer(ABC):
+    #: "unchecked", "ok" or "error (<reason>)" — the last sign-in, safe to publish.
+    state = "ok"
+
     @abstractmethod
     def send(self, mail: Mail) -> bool:
         """Send one message. Return False instead of raising: a lost email must not stop a scan."""
+
+    def check(self) -> str:
+        """Sign in without sending anything; the result is kept in ``state``."""
+        return self.state
 
 
 class SmtpMailer(Mailer):
@@ -32,6 +39,27 @@ class SmtpMailer(Mailer):
         self._host, self._port = host, port
         self._username, self._password = username, password
         self._sender = sender
+        self.state = "unchecked"
+
+    def check(self) -> str:
+        try:
+            with self._open():
+                pass
+            self.state = "ok"
+        except (OSError, smtplib.SMTPException) as error:
+            log.warning("SMTP sign-in failed: %s", error)
+            self.state = f"error ({_reason(error)})"
+        return self.state
+
+    def _open(self) -> smtplib.SMTP:
+        if self._port == IMPLICIT_TLS_PORT:
+            server = smtplib.SMTP_SSL(self._host, self._port, timeout=20)
+        else:
+            server = smtplib.SMTP(self._host, self._port, timeout=20)
+            server.starttls()
+        if self._username:
+            server.login(self._username, self._password)
+        return server
 
     def send(self, mail: Mail) -> bool:
         message = EmailMessage()
@@ -41,19 +69,26 @@ class SmtpMailer(Mailer):
         message.set_content("This message is in HTML; open it in a mail app that shows HTML.")
         message.add_alternative(mail.html, subtype="html")
         try:
-            if self._port == IMPLICIT_TLS_PORT:
-                server = smtplib.SMTP_SSL(self._host, self._port, timeout=20)
-            else:
-                server = smtplib.SMTP(self._host, self._port, timeout=20)
-                server.starttls()
-            with server:
-                if self._username:
-                    server.login(self._username, self._password)
+            with self._open() as server:
                 server.send_message(message)
+            self.state = "ok"
             return True
         except (OSError, smtplib.SMTPException) as error:
             log.warning("email to %s was not sent: %s", mail.to, error)
+            self.state = f"error ({_reason(error)})"
             return False
+
+
+def _reason(error: Exception) -> str:
+    """Why signing in failed, naming no account."""
+    if isinstance(error, smtplib.SMTPAuthenticationError):
+        text = str(error).lower()
+        if "application-specific password" in text:
+            return "Gmail wants an app password"
+        return "wrong username or password"
+    if isinstance(error, OSError) and not isinstance(error, smtplib.SMTPException):
+        return "mail host unreachable"
+    return type(error).__name__
 
 
 class RecordingMailer(Mailer):

@@ -201,7 +201,10 @@ class Container:
 
         s = self.settings
         if s.smtp_host:
-            return SmtpMailer(s.smtp_host, s.smtp_port, s.smtp_username, s.smtp_password, s.smtp_from or s.smtp_username)
+            username, password = s.smtp_username.strip(), s.smtp_password.strip()
+            if s.smtp_host.endswith("gmail.com"):
+                password = "".join(password.split())  # Google shows app passwords in groups; the spaces are not part of it
+            return SmtpMailer(s.smtp_host, s.smtp_port, username, password, s.smtp_from.strip() or username)
         # Without SMTP settings production has no email channel; elsewhere mail is recorded.
         return None if s.env == "prod" else RecordingMailer()
 

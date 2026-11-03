@@ -42,6 +42,8 @@ def create_app(settings: Settings | None = None, container: Container | None = N
             container.scheduler.start()
         if settings.scheduler_enabled:
             container.background(container.scanner.check_portals)  # the portals' state, right after a start
+            if container.mailer:
+                container.background(container.mailer.check)  # does the SMTP account still sign in?
         if settings.telegram_bot_token:
             container.background(container.bot_profile.publish)  # menu and descriptions, in every language
         yield

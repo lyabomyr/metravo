@@ -175,7 +175,7 @@ class Settings:
     @property
     def alert_mailbox(self) -> tuple[str, int, str, str] | None:
         """(host, port, username, password) of the alert mailbox, or None when there is none."""
-        username = self.mail_alerts_username or self.smtp_username
+        username = (self.mail_alerts_username or self.smtp_username).strip()  # a pasted secret may end in a newline
         password = self.mail_alerts_password or self.smtp_password
         host = self.mail_alerts_imap_host
         if not host and self.smtp_host.startswith("smtp."):

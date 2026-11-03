@@ -39,5 +39,7 @@ def public_config(container: Container = Depends(get_container)) -> dict:
         "first_batch": FIRST_DELIVERY,
         # "off", "waiting", "ok" or "error" — whether OLX and Otodom alert emails are being read.
         "mail_alerts": container.mail_alerts.public_state,
+        # Whether the SMTP account signs in ("off" without one); checked at start and on every send.
+        "email_sending": container.mailer.state if container.mailer else "off",
         "portal_status": container.portal_access.status(),
     }
