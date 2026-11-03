@@ -7,7 +7,7 @@ from ...core.clock import Clock, new_id, parse_iso
 from ...core.errors import Invalid, NotFound
 from ...core.i18n import translator
 from ...core.service import BaseService
-from ..billing.plans import FREE, Plan, PlanCatalog
+from ..billing.plans import FREE, PRO, Plan, PlanCatalog
 from .models import User
 from .repository import UserRepository
 
@@ -76,10 +76,14 @@ class UserService(BaseService):
         return self._repo.count_by_plan()
 
     def _decorate(self, user: User) -> User:
+        admin = user.email in self._admin_emails
+        if admin:
+            # Whoever runs the service gets everything Pro has (hourly checks, every portal), unpaid.
+            user = replace(user, plan=PRO)
         until = self.free_until(user)
         return replace(
             user,
-            is_admin=user.email in self._admin_emails,
+            is_admin=admin,
             free_until=until.isoformat(timespec="seconds") if until else None,
             active=self.is_active(user),
         )
