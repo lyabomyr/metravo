@@ -44,6 +44,21 @@ export interface Search extends SearchDraft {
   reject_keywords: string[];
   last_scanned_at: string | null;
   created_at: string;
+  /** The last scan: offers the portals showed, how many fit, and what turned most of the rest away. */
+  last_found?: number | null;
+  last_fit?: number | null;
+  /** "price", "area", "rooms", "per_m2", "year", "reject:<word>" or "missing:<word>". */
+  last_reason?: string | null;
+}
+
+/** Why a search's last scan kept nothing, as a translated sentence. */
+export function outcomeReason(reason: string): { key: TranslationKey; word: string } {
+  const [kind, word = ''] = reason.split(/:(.*)/s);
+  const keys: Record<string, TranslationKey> = {
+    price: 'searches.reason.price', area: 'searches.reason.area', rooms: 'searches.reason.rooms',
+    per_m2: 'searches.reason.perM2', year: 'searches.reason.year', reject: 'searches.reason.reject', missing: 'searches.reason.missing',
+  };
+  return { key: keys[kind] ?? 'searches.reason.other', word };
 }
 
 /** What the form edits: a new search has no place until the user picks one. */

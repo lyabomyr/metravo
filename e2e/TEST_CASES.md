@@ -111,10 +111,10 @@ which matches **101, 104, 302, mzn201**.
 | FLT-7 | Rooms up to 2 | 101, 302 |
 | FLT-8 | Max 11 000 zł/m² | mzn201 |
 | FLT-9 | Built after 2020 | 101, 302, mzn201 and **mzn200** — the Otodom copy (2015) is dropped, its Morizon twin (year unknown) takes its place |
-| FLT-10 | Must mention “Bronowice” | 302 |
+| FLT-10 | Must mention “Bronowice” | 101, 104, 302, mzn201 — results pages show titles only, and a word missing from a title proves nothing (a description that lacks it does reject; unit test) |
 | FLT-11 | Only olx | 302 |
 | FLT-12 | Pro with komornik | the 4 defaults + 9001 |
-| FLT-13 | Rent ≤ 4 000, must mention “winda” | 502 |
+| FLT-13 | Rent ≤ 4 000, ≥ 25 m², must mention “winda” | 501, 502, mzn900 (titles only: kept) — never 503 (over budget) |
 | FLT-14 | A new search, no limits | the 4 defaults + Penthouse (102) + Kawalerka (301); still no TBS, no duplicate |
 | FLT-15 | “Must not mention” emptied | the TBS listing (103) comes back |
 
@@ -143,6 +143,7 @@ which matches **101, 104, 302, mzn201**.
 | SAL-1 | Save a new search; on its alerts page add the bot to a group | The page opens right after saving; the group appears ticked, as “selected searches”; Done returns to Searches |
 | SAL-2 | A chat that hears every search: untick it on one search's alerts page | It turns to “selected searches” and stays unticked after a reload; the other searches still reach it |
 | SAL-3 | “Add to a channel”, then post the code shown in the channel | The channel appears ticked for this search |
+| SAL-4 | A search whose limits let nothing through, after a check | Its card says how many offers were found, that none fit, and the main reason (e.g. the price limits) |
 
 ## Plan, data, admin — `billing.cy.ts`, `data-export.cy.ts`, `admin.cy.ts`
 
@@ -189,7 +190,7 @@ which matches **101, 104, 302, mzn201**.
 | Welcome | Save and continue (`search-save`), Open Telegram (`telegram-open`), See your listings (`onboarding-listings`) | ONB-1, ONB-2 |
 | Listings | Check now (`scan-now`), open an ad | LST-2, LST-3 |
 | Searches | New search, Create your first search, Alerts, Edit, Delete (`new-search`, `create-first-search`, `search-alerts`, `search-edit`, `search-delete`) | FORM-10, SAL-2, FORM-6 |
-| Search alerts | chat toggles, Open Telegram, Add to a group, Add to a channel, Done | SAL-1 … SAL-3 |
+| Search alerts | chat toggles, Open Telegram, Add to a group, Add to a channel, Done | SAL-1 … SAL-4 |
 | Search form | Buy/Rent, Flat/House, place autocomplete, spinner, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-16, FLT-1 … FLT-13 |
 | Alerts | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
 | Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |

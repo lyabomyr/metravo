@@ -57,4 +57,11 @@ describe('Alerts belong to a search', () => {
       cy.contains('[data-cy=search-chat]', 'Mieszkania', { timeout: 10000 }).find('[data-cy=search-chat-toggle]').should('be.checked');
     });
   });
+
+  it('SAL-4 a search that finds nothing says why on its card', () => {
+    cy.api('POST', '/api/searches', { name: 'Za tanio', city: 'krakow', max_price: 1, sources: ['otodom'] });
+    cy.api('POST', '/api/scan/mine');
+    cy.visit('/searches');
+    cy.get('[data-cy=search-outcome]').should('contain', 'found').and('contain', '0 fit').and('contain', 'price limits');
+  });
 });

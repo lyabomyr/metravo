@@ -29,3 +29,5 @@
 
 .empty { text-align: center; padding: 48px 16px; display: grid; gap: 10px; justify-items: center; color: var(--muted); }
 .empty__icon { font-size: 44px; }
+/* A line that needs the reader's attention without being an error. */
+.warning-text { color: color-mix(in srgb, var(--warning) 85%, var(--text)); }

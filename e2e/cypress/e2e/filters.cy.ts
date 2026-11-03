@@ -95,9 +95,10 @@ describe('Every filter changes what arrives', () => {
     expectListings([DLUGA, BRONOWICE, NOWA_HUTA, WIELICKA_MORIZON]);
   });
 
-  it('FLT-10 must mention', () => {
+  it('FLT-10 must mention cannot drop an offer whose description we never saw', () => {
+    // Results pages show titles only; a missing word there proves nothing.
     searchFor({ 'search-required': 'Bronowice' });
-    expectListings([BRONOWICE]);
+    expectListings(DEFAULT_MATCHES);
   });
 
   it('FLT-11 one portal only', () => {
@@ -112,8 +113,8 @@ describe('Every filter changes what arrives', () => {
     expectListings([...DEFAULT_MATCHES, 'Mieszkanie 48,5 m2 w Krakowie']);
   });
 
-  it('FLT-13 rentals with a required word', () => {
+  it('FLT-13 rentals with a required word keep title-only offers', () => {
     searchFor({ 'search-min-area': '25', 'search-required': 'winda' }, { rent: true });
-    expectListings(['2 pokoje, balkon, winda']);
+    expectListings(['Kawalerka z balkonem', '2 pokoje, balkon, winda', '3 pokoje Ruczaj, balkon']);
   });
 });

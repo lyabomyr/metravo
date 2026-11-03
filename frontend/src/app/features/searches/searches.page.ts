@@ -8,7 +8,7 @@ import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PageHeaderComponent } from '../../core/ui/page-header.component';
 import { IntervalPipe } from './interval.pipe';
-import { DEAL_LABEL, PROPERTY_LABEL, Search } from './search.model';
+import { DEAL_LABEL, PROPERTY_LABEL, Search, outcomeReason } from './search.model';
 import { SearchesApiService } from './searches-api.service';
 
 @Component({
@@ -22,6 +22,7 @@ export class SearchesPage extends BasePage implements OnInit {
   private readonly i18n = inject(I18nService);
   private readonly api = inject(SearchesApiService);
   protected readonly searches = signal<Search[]>([]);
+  protected readonly outcomeReason = outcomeReason;
 
   ngOnInit(): void {
     this.load();

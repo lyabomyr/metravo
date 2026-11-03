@@ -82,8 +82,8 @@ class SearchService(BaseService):
     def owners(self) -> list[str]:
         return SearchRepository.owners(self._db)
 
-    def mark_scanned(self, user: User, search_id: str) -> None:
-        self._repo(user.id).mark_scanned(search_id, self._clock.iso())
+    def mark_scanned(self, user: User, search_id: str, found: int = 0, fit: int = 0, reason: str | None = None) -> None:
+        self._repo(user.id).mark_scanned(search_id, self._clock.iso(), found, fit, reason)
 
     def _validate(self, user: User, search: Search) -> None:
         if not search.place.is_valid():

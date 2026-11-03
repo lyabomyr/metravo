@@ -141,3 +141,11 @@ def test_without_a_budget_an_unpriced_offer_is_kept(container, sign_in):
     unpriced = Listing(source="otodom", external_id="9", url="https://x", title="Dom", price=None, area=120)
     assert ListingFilter(make_search(max_price=None, min_area=None)).accepts(unpriced)
     assert not ListingFilter(make_search()).accepts(unpriced)
+
+
+def test_a_search_remembers_what_its_last_scan_saw(container, sign_in):
+    user = sign_in()
+    search = container.searches.create(user, make_search(max_price=1))  # nothing is that cheap
+    container.scanner.run()
+    saved = container.searches.get(user, search.id)
+    assert saved.last_found > 0 and saved.last_fit == 0 and saved.last_reason == "price"

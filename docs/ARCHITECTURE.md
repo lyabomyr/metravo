@@ -90,6 +90,11 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   `/start <code>`, which arrives as a `channel_post`. Unticking a search on
   an every-search chat turns the rest into explicit routes. Every listing
   card names its search.
+- **Why a search found nothing.** Results pages mostly show a title, no
+  description, so “must mention” rejects only an offer whose description
+  we have. Each scan stores on the search how many offers the portals
+  showed, how many fit and the commonest reason for the rest
+  (`last_found`, `last_fit`, `last_reason`); the search card shows it.
 - **Keeping the database small.** Each offer is stored once; a user's
   match is a row of ids. Once a day (`system/Housekeeping`, from the
   scheduler) offers no scan has seen for 90 days are forgotten for everyone,

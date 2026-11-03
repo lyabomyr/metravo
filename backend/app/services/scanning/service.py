@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import threading
+from collections import Counter
 
 from ...core.errors import LimitReached
 from ...core.service import BaseService
@@ -14,7 +15,7 @@ from ..searches.service import SearchService
 from ..users.models import User
 from ..users.service import UserService
 from .fetch_cache import FetchCache
-from .listing_filter import ListingFilter
+from .listing_filter import ListingFilter, reason_code
 from .models import ScanReport
 from .notifier import ListingNotifier
 from .portal_access import PortalAccess
@@ -110,6 +111,7 @@ class ScanService(BaseService):
         plan = self._users.plan_of(user)
         listing_filter = ListingFilter(search)
         events: list[ListingEvent] = []
+        found, fit, reasons = 0, 0, Counter()
         for source in search.sources:
             connector = self._connectors.get(source)
             if connector is None or not plan.allows_source(source):
@@ -122,8 +124,11 @@ class ScanService(BaseService):
                 report.errors.append(f"{source}: {result.error}")
             for listing in result.listings:
                 report.listings_seen += 1
-                if not listing_filter.accepts(listing):
+                found += 1
+                if reason := listing_filter.reason_to_reject(listing):
+                    reasons[reason_code(reason)] += 1
                     continue
+                fit += 1
                 event = self._listings.record(user.id, search, listing)
                 if event is None:
                     continue
@@ -134,7 +139,8 @@ class ScanService(BaseService):
                     report.price_changes += 1
                     if plan.price_alerts:
                         events.append(event)
-        self._searches.mark_scanned(user, search.id)
+        top_reason = reasons.most_common(1)[0][0] if reasons else None
+        self._searches.mark_scanned(user, search.id, found, fit, top_reason)
         report.searches_scanned += 1
         if events:
             report.messages_sent += self._notifier.notify(user, search, events)

@@ -56,6 +56,10 @@ class Search:
     enabled: bool = True
     last_scanned_at: str | None = None
     created_at: str = ""
+    #: The last scan: offers the portals showed, how many fit, and what turned most of the rest away.
+    last_found: int | None = None
+    last_fit: int | None = None
+    last_reason: str | None = None
 
     @property
     def query(self) -> SearchQuery:

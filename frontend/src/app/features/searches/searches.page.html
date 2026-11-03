@@ -36,6 +36,14 @@
         <div class="muted small">
           {{ 'searches.lastChecked' | t: { when: search.last_scanned_at ? (search.last_scanned_at | when) : ('searches.notYet' | t) } }}
         </div>
+        @if (search.last_found != null) {
+          <div class="small" [class.muted]="search.last_fit" [class.warning-text]="!search.last_fit" data-cy="search-outcome">
+            {{ 'searches.lastResult' | t: { found: search.last_found, fit: search.last_fit ?? 0 } }}
+            @if (!search.last_fit && search.last_reason; as reason) {
+              — {{ outcomeReason(reason).key | t: { word: outcomeReason(reason).word } }}
+            }
+          </div>
+        }
       </div>
       <div class="row">
         <a class="button button--small" [routerLink]="['/searches', search.id, 'alerts']" data-cy="search-alerts">🔔 {{ 'searches.alerts' | t }}</a>

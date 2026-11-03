@@ -11,15 +11,16 @@ class ListingFilter:
 
     A value the portal did not publish never rejects on its own — bailiff
     auctions rarely state the area, and they are worth seeing. Two
-    exceptions: an unpriced listing cannot be checked against a price limit,
-    and a required keyword has to actually be there. A limit left empty
-    (None) does not filter at all.
+    exception: an unpriced listing cannot be checked against a price limit.
+    A required keyword rejects only a listing whose description we have —
+    most results pages show just a title, and "balkon" is rarely in it. A
+    limit left empty (None) does not filter at all.
     """
 
     def __init__(self, search: Search):
         self._search = search
-        self._reject = [_prefix_pattern(word) for word in search.reject_keywords]
-        self._required = [_prefix_pattern(word) for word in search.required_keywords]
+        self._reject = [(word, _prefix_pattern(word)) for word in search.reject_keywords]
+        self._required = [(word, _prefix_pattern(word)) for word in search.required_keywords]
 
     def reason_to_reject(self, listing: Listing) -> str | None:
         search = self._search
@@ -45,12 +46,13 @@ class ListingFilter:
         if search.min_build_year and listing.build_year and listing.build_year < search.min_build_year:
             return f"built {listing.build_year} < {search.min_build_year}"
         text = " ".join(filter(None, (listing.title, listing.description, listing.location)))
-        for pattern in self._reject:
+        for word, pattern in self._reject:
             if pattern.search(text):
-                return f"keyword {pattern.pattern}"
-        for pattern in self._required:
-            if not pattern.search(text):
-                return f"missing required keyword {pattern.pattern}"
+                return f"keyword {word}"
+        if listing.description:  # without one, a missing word proves nothing
+            for word, pattern in self._required:
+                if not pattern.search(text):
+                    return f"missing required keyword {word}"
         return None
 
     def accepts(self, listing: Listing) -> bool:
@@ -60,3 +62,15 @@ class ListingFilter:
 def _prefix_pattern(word: str) -> re.Pattern:
     """Match at a word start: Polish inflection appends endings ("udział" → "udziału")."""
     return re.compile(rf"(?<!\w){re.escape(word)}", re.IGNORECASE)
+
+
+def reason_code(reason: str) -> str:
+    """A rejection, as the search card names it: a limit, or the word that decided."""
+    if reason.startswith("keyword "):
+        return "reject:" + reason.removeprefix("keyword ")
+    if reason.startswith("missing required keyword "):
+        return "missing:" + reason.removeprefix("missing required keyword ")
+    if "zł/m²" in reason:
+        return "per_m2"
+    first = reason.split(" ", 1)[0]
+    return {"no": "price", "price": "price", "area": "area", "rooms": "rooms", "built": "year"}.get(first, "other")

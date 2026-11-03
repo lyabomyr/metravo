@@ -49,7 +49,23 @@ def test_minimum_price_filters_out_placeholders():
     assert not ListingFilter(make_search(min_price=1000)).accepts(listing(price=1))
 
 
-def test_required_keywords_must_be_present():
+def test_required_keywords_must_be_present_in_a_known_description():
     rules = ListingFilter(make_search(required_keywords=["balkon"]))
-    assert rules.accepts(listing(title="2 pokoje z balkonem"))
-    assert rules.reason_to_reject(listing(title="2 pokoje")).startswith("missing required keyword")
+    assert rules.accepts(listing(title="2 pokoje", description="Duży balkon od południa"))
+    assert rules.reason_to_reject(listing(title="2 pokoje", description="Bez windy")) == "missing required keyword balkon"
+
+
+def test_a_title_alone_cannot_prove_a_word_is_missing():
+    # Results pages (Morizon, OLX) show only a title: a house in Oświęcim was lost this way.
+    assert ListingFilter(make_search(required_keywords=["Balkon"])).accepts(listing(title="Dom wolnostojący"))
+
+
+def test_rejections_are_named_for_the_search_card():
+    from app.services.scanning.listing_filter import reason_code
+
+    assert reason_code("keyword TBS") == "reject:TBS"
+    assert reason_code("missing required keyword balkon") == "missing:balkon"
+    assert reason_code("price 500001 > 500000") == "price"
+    assert reason_code("no price published") == "price"
+    assert reason_code("11111 zł/m² > 10000") == "per_m2"
+    assert reason_code("area 30 < 40") == "area"

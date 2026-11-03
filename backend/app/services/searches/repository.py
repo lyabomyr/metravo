@@ -53,6 +53,10 @@ class SearchRepository(OwnedRepository):
         ("searches", "lat", "REAL"),
         ("searches", "lon", "REAL"),
         ("searches", "radius_km", "INTEGER NOT NULL DEFAULT 0"),
+        # What the last scan saw, so a search that finds nothing can say why.
+        ("searches", "last_found", "INTEGER"),
+        ("searches", "last_fit", "INTEGER"),
+        ("searches", "last_reason", "TEXT"),
     )
 
     _COLUMNS = (
@@ -88,8 +92,12 @@ class SearchRepository(OwnedRepository):
     def delete(self, search_id: str) -> int:
         return self._exec("DELETE FROM searches WHERE id = ? AND user_id = ?", (search_id, self.user_id))
 
-    def mark_scanned(self, search_id: str, at: str) -> None:
-        self._exec("UPDATE searches SET last_scanned_at = ? WHERE id = ? AND user_id = ?", (at, search_id, self.user_id))
+    def mark_scanned(self, search_id: str, at: str, found: int = 0, fit: int = 0, reason: str | None = None) -> None:
+        self._exec(
+            """UPDATE searches SET last_scanned_at = ?, last_found = ?, last_fit = ?, last_reason = ?
+               WHERE id = ? AND user_id = ?""",
+            (at, found, fit, reason, search_id, self.user_id),
+        )
 
     def set_enabled_all(self, enabled: bool) -> None:
         self._exec("UPDATE searches SET enabled = ? WHERE user_id = ?", (int(enabled), self.user_id))

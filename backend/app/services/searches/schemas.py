@@ -70,6 +70,10 @@ class SearchOut(SearchFields):
     place: PlaceIO
     last_scanned_at: str | None
     created_at: str
+    last_found: int | None = None
+    last_fit: int | None = None
+    #: "price", "area", "rooms", "per_m2", "year", "reject:<word>" or "missing:<word>".
+    last_reason: str | None = None
 
     @classmethod
     def of(cls, search: Search) -> SearchOut:
