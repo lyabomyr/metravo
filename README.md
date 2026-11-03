@@ -51,7 +51,7 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
    and must not appear, portals, and **how often to check**. A new search has
    no limits: it tracks everything in the place, once a day, on every portal
    of the plan, until narrowed. Deleting a search deletes what it found.
-3. They choose where alerts go: one list of channels, where Telegram is
+3. They choose where notifications go (`/notifications`): one list of channels, where Telegram is
    available to everyone today (**two clicks**: "Open Telegram", then "Start")
    and email comes with Pro. The moment a chat is linked, the bot sends the
    20 newest listings already found — the page warns about this batch — and
@@ -68,12 +68,12 @@ Contents: [How it works](#how-it-works) · [Who does what](#who-does-what) ·
 | | Free | Pro (on sale from `PRO_AVAILABLE_FROM`) |
 |---|---|---|
 | Price | $0 | $15 / month |
-| Lasts | 7 days from sign-up, then checks and alerts pause (admins have no limit) | while paid |
+| Lasts | 7 days from sign-up, then checks and notifications pause (admins have no limit) | while paid |
 | Saved searches | 1 | 5 |
-| Checked | once a day | up to every hour |
-| Portals | otodom, olx, morizon | + bailiff auctions (komornik) |
+| Checked | once a day | non-stop: every 5 minutes (the scheduler ticks every minute) |
+| Portals | Otodom, OLX, Morizon | + bailiff auctions (komornik) |
 | Delivered to | Telegram | Telegram + email, WhatsApp, Viber, Signal (tick to duplicate) |
-| Price-drop alerts | — | yes |
+| Price-drop notifications | — | yes |
 | Listings as CSV | download | download |
 
 Payments are off for now (`BILLING_PROVIDER=none`), so Pro is shown as

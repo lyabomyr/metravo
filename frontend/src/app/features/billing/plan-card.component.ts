@@ -1,5 +1,6 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 
+import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import type { TranslationKey } from '../../core/i18n/locales/en';
 import { Plan } from './billing-api.service';
@@ -36,14 +37,15 @@ interface Feature {
 })
 export class PlanCardComponent {
   readonly plan = input.required<Plan>();
+  private readonly i18n = inject(I18nService);
 
   protected readonly features = computed<Feature[]>(() => {
     const plan = this.plan();
     const features: Feature[] = [
       ...(plan.trial_days ? [{ key: 'plan.trialDays', params: { n: plan.trial_days }, included: true } as Feature] : []),
       { key: 'plan.searches', params: { n: plan.max_searches }, included: true },
-      { key: plan.min_interval_minutes < 1440 ? 'plan.hourly' : 'plan.daily', included: true },
-      { key: 'plan.portals', params: { sources: plan.sources.join(', ') }, included: true },
+      this.frequency(plan),
+      { key: 'plan.portals', params: { sources: this.i18n.sources(plan.sources) }, included: true },
       { key: 'plan.telegram', included: true },
       { key: 'plan.channels', included: plan.channels.length > 1 },
       { key: 'plan.priceAlerts', included: plan.price_alerts },
@@ -51,4 +53,10 @@ export class PlanCardComponent {
     ];
     return features;
   });
+
+  private frequency(plan: Plan): Feature {
+    const minutes = plan.min_interval_minutes;
+    if (minutes < 60) return { key: 'plan.nonstop', params: { n: minutes }, included: true };
+    return { key: minutes < 1440 ? 'plan.hourly' : 'plan.daily', included: true };
+  }
 }

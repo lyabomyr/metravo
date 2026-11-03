@@ -5,7 +5,7 @@ from dataclasses import replace
 
 from ...core.clock import Clock, new_id
 from ...core.database import Database
-from ...core.errors import Invalid, LimitReached, NotFound
+from ...core.errors import Invalid, LimitReached, NotFound, Term
 from ...core.service import BaseService
 from ..connectors.registry import ConnectorRegistry
 from ..places.models import RADIUS_CHOICES
@@ -108,7 +108,9 @@ class SearchService(BaseService):
         if unsupported:
             raise Invalid(
                 "search.portal_unsupported",
-                sources=", ".join(unsupported), property=search.property_type.value, deal=search.deal_type.value,
+                sources=", ".join(unsupported),
+                property=Term(f"property.{search.property_type.value}"),
+                deal=Term(f"deal.{search.deal_type.value}"),
             )
         if search.interval_minutes not in SCAN_INTERVALS:
             raise Invalid("search.interval_invalid", choices=", ".join(map(str, SCAN_INTERVALS)))

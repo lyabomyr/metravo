@@ -12,7 +12,7 @@ describe('Landing page', () => {
       cy.wrap(card).find('img').should(($img) => expect(($img[0] as HTMLImageElement).naturalWidth).to.be.greaterThan(0));
     });
     cy.contains('h2', 'Everything in one place').should('exist');
-    cy.get('#faq details').should('have.length', 5);
+    cy.get('#faq details').should('have.length', 6);
     cy.get('footer').should('contain', 'Wikimedia Commons');
   });
 
@@ -52,5 +52,19 @@ describe('Landing page', () => {
   it('LND-6 shows both plans', () => {
     cy.get('#pricing [data-cy=plan-free]').should('contain', '$0').and('contain', 'Start free');
     cy.get('#pricing [data-cy=plan-pro]').should('contain', '$15').and('contain', 'WhatsApp, Viber, Signal');
+    cy.get('#pricing [data-cy=plan-pro]').should('contain', 'Checked non-stop, every 5 minutes').and('contain', 'Otodom, OLX, Morizon, bailiff auctions');
+    cy.get('#pricing [data-cy=plan-free]').should('contain', 'Otodom, OLX, Morizon').and('contain', 'Notifications in Telegram');
+  });
+
+  it('LND-7 on a phone, each icon and step number sits on its title line', () => {
+    cy.viewport(375, 812);
+    cy.get('.tile__head').should('have.length.at.least', 12).each((head) => {
+      const title = head[0].getBoundingClientRect();
+      const marker = head.find('.tile__icon, .step__number')[0].getBoundingClientRect();
+      expect(marker.top, 'marker inside the title line').to.be.at.least(title.top - 1);
+      expect(marker.bottom, 'marker inside the title line').to.be.at.most(title.bottom + 1);
+      expect(marker.right, 'marker left of the title').to.be.lessThan(title.left + 48);
+    });
+    cy.get('[data-cy=how-step]').first().find('.tile__head').should('contain', '1').and('contain', 'Describe what you want');
   });
 });

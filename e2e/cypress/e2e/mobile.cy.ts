@@ -1,6 +1,6 @@
 import { DEFAULT_SEARCH, uniqueEmail } from '../support/commands';
 
-const PAGES = ['/listings', '/searches', '/searches/new', '/alerts', '/database', '/billing'];
+const PAGES = ['/listings', '/searches', '/searches/new', '/notifications', '/database', '/billing'];
 
 function noSidewaysScroll() {
   cy.window().should((win) => expect(win.document.documentElement.scrollWidth).to.be.at.most(win.innerWidth));
@@ -16,7 +16,7 @@ describe('On a phone', () => {
     cy.get('[data-cy=nav-searches]').click();
     cy.location('pathname').should('eq', '/searches');
     cy.get('[data-cy=nav-alerts]').click();
-    cy.location('pathname').should('eq', '/alerts');
+    cy.location('pathname').should('eq', '/notifications');
   });
 
   it('MOB-2 no page scrolls sideways', () => {

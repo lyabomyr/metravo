@@ -31,7 +31,7 @@ class EmailSender(ChannelSender):
         return self._mailer.send(Mail(address, translator.t(user.locale, "email.test_subject"), self._page(body, user.locale)))
 
     def _page(self, body: str, locale: str) -> str:
-        footer = translator.t(locale, "email.footer", url=f"{self._website}/alerts")
+        footer = translator.t(locale, "email.footer", url=f"{self._website}/notifications")
         return (
             '<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.5">'
             f'{body}<hr style="border:none;border-top:1px solid #ddd;margin:24px 0 12px">'

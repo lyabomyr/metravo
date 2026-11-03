@@ -20,10 +20,13 @@ export const routes: Routes = [
       { path: 'listings', loadComponent: () => import('./features/listings/listings.page').then((m) => m.ListingsPage) },
       { path: 'searches', loadComponent: () => import('./features/searches/searches.page').then((m) => m.SearchesPage) },
       { path: 'searches/new', loadComponent: () => import('./features/searches/search-edit.page').then((m) => m.SearchEditPage) },
-      { path: 'searches/:id/alerts', loadComponent: () => import('./features/searches/search-alerts.page').then((m) => m.SearchAlertsPage) },
+      { path: 'searches/:id/notifications', loadComponent: () => import('./features/searches/search-alerts.page').then((m) => m.SearchAlertsPage) },
+      { path: 'searches/:id/alerts', redirectTo: 'searches/:id/notifications' },
       { path: 'searches/:id', loadComponent: () => import('./features/searches/search-edit.page').then((m) => m.SearchEditPage) },
-      { path: 'alerts', loadComponent: () => import('./features/alerts/alerts.page').then((m) => m.AlertsPage) },
-      { path: 'telegram', redirectTo: 'alerts' },
+      { path: 'notifications', loadComponent: () => import('./features/alerts/alerts.page').then((m) => m.AlertsPage) },
+      // Old addresses, still in bookmarks and sent emails.
+      { path: 'alerts', redirectTo: 'notifications' },
+      { path: 'telegram', redirectTo: 'notifications' },
       { path: 'database', loadComponent: () => import('./features/database/database.page').then((m) => m.DatabasePage) },
       { path: 'billing', loadComponent: () => import('./features/billing/billing.page').then((m) => m.BillingPage) },
       {

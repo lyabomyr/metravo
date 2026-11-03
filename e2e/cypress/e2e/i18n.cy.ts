@@ -23,7 +23,7 @@ describe('Languages inside the app', () => {
     cy.get('[data-cy=language]').select('pl');
     pickPlace('Kraków');
     cy.get('[data-cy=search-save]').click();
-    cy.get('[data-cy=error]').should('contain', 'Plan Free pozwala');
+    cy.get('[data-cy=error]').should('contain', 'Limit wyszukiwań w planie Free: 1');
     cy.get('[data-cy=upgrade-link]').should('contain', 'Przejdź na Pro');
   });
 });

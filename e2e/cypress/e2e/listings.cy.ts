@@ -16,7 +16,7 @@ describe('Listings', () => {
 
     cy.contains('[data-cy=listing]', '3 pokoje Wielicka').within(() => {
       cy.root().should('have.attr', 'target', '_blank').and('have.attr', 'href').and('contain', 'otodom');
-      cy.root().should('contain', '555').and('contain', '50 m²').and('contain', '3 rooms').and('contain', '/m²').and('contain', 'otodom');
+      cy.root().should('contain', '555').and('contain', '50 m²').and('contain', '3 rooms').and('contain', '/m²').and('contain', 'Otodom');
     });
 
     cy.get('[data-cy=scan-now]').click();

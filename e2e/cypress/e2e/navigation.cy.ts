@@ -2,7 +2,7 @@ import { uniqueEmail } from '../support/commands';
 
 const TABS = [
   ['nav-searches', '/searches'],
-  ['nav-alerts', '/alerts'],
+  ['nav-alerts', '/notifications'],
   ['nav-database', '/database'],
   ['nav-billing', '/billing'],
   ['nav-listings', '/listings'],

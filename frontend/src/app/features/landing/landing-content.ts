@@ -20,10 +20,11 @@ export const PROBLEMS: Point[] = [
   { icon: '📉', title: 'landing.problem.p3.title', text: 'landing.problem.p3.text' },
 ];
 
-export const STEPS: Point[] = [
-  { icon: '📝', title: 'landing.how.s1.title', text: 'landing.how.s1.text' },
-  { icon: '✈️', title: 'landing.how.s2.title', text: 'landing.how.s2.text' },
-  { icon: '🔔', title: 'landing.how.s3.title', text: 'landing.how.s3.text' },
+/** Numbered, so no icon: the number is the marker. */
+export const STEPS: Omit<Point, 'icon'>[] = [
+  { title: 'landing.how.s1.title', text: 'landing.how.s1.text' },
+  { title: 'landing.how.s2.title', text: 'landing.how.s2.text' },
+  { title: 'landing.how.s3.title', text: 'landing.how.s3.text' },
 ];
 
 export const USE_CASES: UseCase[] = [
@@ -48,6 +49,7 @@ export const FAQ: { question: TranslationKey; answer: TranslationKey }[] = [
   { question: 'landing.faq.q3', answer: 'landing.faq.a3' },
   { question: 'landing.faq.q4', answer: 'landing.faq.a4' },
   { question: 'landing.faq.q5', answer: 'landing.faq.a5' },
+  { question: 'landing.faq.q6', answer: 'landing.faq.a6' },
 ];
 
 /** The photos are freely licensed from Wikimedia Commons; licences require the credit. */

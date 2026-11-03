@@ -41,6 +41,17 @@ export class I18nService {
     return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in params ? String(params[name]) : match));
   }
 
+  /** Portal codes as people know them: "komornik" → "Bailiff auctions", ["otodom", "komornik"] → "Otodom, bailiff auctions". */
+  sources(codes: string | readonly string[]): string {
+    const names = (typeof codes === 'string' ? [codes] : codes)
+      .map((code) => {
+        const key = `source.${code}`;
+        return key in EN ? this.t(key as TranslationKey) : code;
+      })
+      .join(', ');
+    return names.charAt(0).toUpperCase() + names.slice(1);
+  }
+
   private saved(): Locale | null {
     try {
       const value = localStorage.getItem(STORAGE_KEY);

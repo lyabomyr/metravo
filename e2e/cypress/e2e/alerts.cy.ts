@@ -1,6 +1,6 @@
 import { uniqueEmail } from '../support/commands';
 
-describe('Alerts', () => {
+describe('Notifications', () => {
   let email: string;
   beforeEach(() => {
     email = uniqueEmail('alerts');
@@ -8,7 +8,7 @@ describe('Alerts', () => {
   });
 
   it('ALR-1 connects and disconnects a Telegram chat', () => {
-    cy.visit('/alerts');
+    cy.visit('/notifications');
     cy.get('[data-cy=no-chats]').should('be.visible');
     cy.get('[data-cy=telegram-open]')
       .should('have.attr', 'href')
@@ -24,14 +24,14 @@ describe('Alerts', () => {
 
   it('ALR-7 a test message proves Telegram works', () => {
     cy.finishSetup();
-    cy.visit('/alerts');
+    cy.visit('/notifications');
     cy.get('[data-cy=test-telegram]').click();
     cy.get('[data-cy=test-sent-telegram]').should('be.visible');
   });
 
   it('ALR-8 email on Pro: on, test message, wrong address refused, off', () => {
     cy.upgradeToPro();
-    cy.visit('/alerts');
+    cy.visit('/notifications');
     cy.get('[data-cy=channel-email]').should('not.contain', 'soon'); // email is live
     cy.get('[data-cy=channel-toggle-email]').check();
     cy.get('[data-cy=channel-saved]').should('be.visible');
@@ -61,7 +61,7 @@ describe('Alerts', () => {
   });
 
   it('ALR-2 extra channels are Pro on the Free plan', () => {
-    cy.visit('/alerts');
+    cy.visit('/notifications');
     ['email', 'whatsapp', 'viber', 'signal'].forEach((code) => {
       cy.get(`[data-cy=channel-${code}]`).should('contain', 'Pro');
       cy.get(`[data-cy=channel-toggle-${code}]`).should('be.disabled');
@@ -70,7 +70,7 @@ describe('Alerts', () => {
 
   it('ALR-3 Pro switches WhatsApp on with a phone number', () => {
     cy.upgradeToPro();
-    cy.visit('/alerts');
+    cy.visit('/notifications');
     cy.get('[data-cy=channel-whatsapp]').should('contain', 'soon');
     cy.get('[data-cy=channel-toggle-whatsapp]').check();
     cy.get('[data-cy=channel-address-whatsapp]').type('+48 600 100 200').blur();
@@ -82,7 +82,7 @@ describe('Alerts', () => {
 
   it('ALR-4 email defaults to the account address', () => {
     cy.upgradeToPro();
-    cy.visit('/alerts');
+    cy.visit('/notifications');
     cy.get('[data-cy=channel-toggle-email]').check();
     cy.get('[data-cy=channel-address-email]').should('have.value', email);
     cy.get('[data-cy=channel-saved]').should('be.visible');
@@ -91,8 +91,11 @@ describe('Alerts', () => {
     });
   });
 
-  it('ALR-5 the old Telegram address still works', () => {
+  it('ALR-5 the old addresses still work', () => {
     cy.visit('/telegram');
-    cy.location('pathname').should('eq', '/alerts');
+    cy.location('pathname').should('eq', '/notifications');
+    cy.visit('/alerts');
+    cy.location('pathname').should('eq', '/notifications');
+    cy.contains('h1', 'Notifications').should('be.visible');
   });
 });

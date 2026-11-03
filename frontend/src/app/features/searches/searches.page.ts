@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { I18nService } from '../../core/i18n/i18n.service';
-import { MoneyPipe, WhenPipe } from '../../core/i18n/format.pipes';
+import { MoneyPipe, SourcesPipe, WhenPipe } from '../../core/i18n/format.pipes';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
@@ -13,7 +13,7 @@ import { SearchesApiService } from './searches-api.service';
 
 @Component({
   selector: 'app-searches-page',
-  imports: [RouterLink, ErrorBannerComponent, PageHeaderComponent, IntervalPipe, MoneyPipe, TranslatePipe, WhenPipe],
+  imports: [RouterLink, ErrorBannerComponent, PageHeaderComponent, IntervalPipe, MoneyPipe, SourcesPipe, TranslatePipe, WhenPipe],
   templateUrl: './searches.page.html',
 })
 export class SearchesPage extends BasePage implements OnInit {

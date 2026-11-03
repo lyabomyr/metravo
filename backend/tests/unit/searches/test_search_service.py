@@ -53,8 +53,10 @@ def test_portal_that_cannot_search_this_deal_is_refused(container, sign_in):
 
     user = sign_in()
     container.users.set_plan(user.id, PRO)
-    with pytest.raises(Invalid, match="komornik has no flat listings to rent"):
+    with pytest.raises(Invalid, match="komornik has no flat listings to rent") as refused:
         container.searches.create(container.users.get(user.id), make_search(deal_type=DealType.RENT, sources=["komornik"]))
+    # The words inside the message are translated too, not left as English codes.
+    assert "квартира" in refused.value.text("uk") and "оренда" in refused.value.text("uk")
 
 
 def test_new_fields_round_trip(container, sign_in):
@@ -76,6 +78,8 @@ def test_scan_interval_must_be_offered_and_allowed_by_the_plan(container, sign_i
         container.searches.create(user, make_search(interval_minutes=7))
     with pytest.raises(LimitReached, match="every 1440 minutes"):
         container.searches.create(user, make_search(interval_minutes=60))
+    with pytest.raises(LimitReached):
+        container.searches.create(user, make_search(interval_minutes=5))
     assert container.searches.create(user, make_search(interval_minutes=1440)).interval_minutes == 1440
 
 

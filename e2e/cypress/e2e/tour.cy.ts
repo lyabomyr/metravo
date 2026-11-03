@@ -3,7 +3,7 @@ import { uniqueEmail } from '../support/commands';
 const TITLES = [
   'Welcome to Metravo',
   'Searches — what to look for',
-  'Alerts — where to send it',
+  'Notifications — where to send them',
   'Listings — everything we found',
   'Your data stays yours',
 ];

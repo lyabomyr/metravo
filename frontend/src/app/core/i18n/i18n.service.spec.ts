@@ -26,6 +26,14 @@ describe('I18nService', () => {
     expect(document.documentElement.lang).toBe('uk');
   });
 
+  it('names portals the way people know them', async () => {
+    expect(i18n.sources(['otodom', 'olx', 'komornik'])).toBe('Otodom, OLX, bailiff auctions');
+    expect(i18n.sources('komornik')).toBe('Bailiff auctions');
+    expect(i18n.sources('somewhere-new')).toBe('Somewhere-new');
+    await i18n.use('pl');
+    expect(i18n.sources('olx')).toBe('OLX');
+  });
+
   it('keeps the same placeholders in every language', () => {
     const names = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort().join();
     for (const dictionary of [PL, UK, RU]) {

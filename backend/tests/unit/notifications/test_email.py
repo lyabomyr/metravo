@@ -33,7 +33,7 @@ def test_new_listings_arrive_by_email(container, sign_in):
     assert mail.to == "flats@anna.pl"
     assert "Kraków 2 rooms" in mail.subject and "4" in mail.subject
     assert 'href="https://www.otodom.pl/' in mail.html
-    assert "/alerts" in mail.html  # how to switch it off
+    assert "/notifications" in mail.html  # how to switch it off
 
 
 def test_email_comes_in_the_users_language(container, sign_in):

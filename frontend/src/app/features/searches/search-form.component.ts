@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { SessionStore } from '../../core/auth/session.store';
 import { PublicConfigService } from '../../core/config/public-config.service';
+import { SourcesPipe } from '../../core/i18n/format.pipes';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IntervalPipe } from './interval.pipe';
 import { PlacePickerComponent } from './place-picker.component';
@@ -12,7 +13,7 @@ import { DEFAULT_SEARCH, DealType, Place, PropertyType, SearchDraft, SearchFormV
 /** The one search form, used by the editor and the onboarding wizard alike. */
 @Component({
   selector: 'app-search-form',
-  imports: [ReactiveFormsModule, IntervalPipe, PlacePickerComponent, TranslatePipe],
+  imports: [ReactiveFormsModule, IntervalPipe, PlacePickerComponent, SourcesPipe, TranslatePipe],
   templateUrl: './search-form.component.html',
 })
 export class SearchFormComponent {

@@ -115,7 +115,7 @@
       @for (source of config.sources; track source) {
         <label class="list__row" [class.list__row--disabled]="!supports(source)">
           <span>
-            {{ source }}
+            {{ source | sources }}
             @if (!supports(source)) {
               <span class="list__hint"> · {{ 'form.notAvailable' | t }}</span>
             } @else if (!planAllows(source)) {

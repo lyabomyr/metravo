@@ -28,7 +28,7 @@
           @if (!search.max_price && !search.min_area) {
             {{ 'searches.noLimits' | t }} ·
           }
-          {{ search.sources.join(', ') }}
+          {{ search.sources | sources }}
           @if (search.deal_type === 'rent') {
             {{ 'common.perMonth' | t }}
           }
@@ -46,7 +46,7 @@
         }
       </div>
       <div class="row">
-        <a class="button button--small" [routerLink]="['/searches', search.id, 'alerts']" data-cy="search-alerts">🔔 {{ 'searches.alerts' | t }}</a>
+        <a class="button button--small" [routerLink]="['/searches', search.id, 'notifications']" data-cy="search-alerts">🔔 {{ 'searches.alerts' | t }}</a>
         <a class="button button--small" [routerLink]="['/searches', search.id]" data-cy="search-edit">{{ 'common.edit' | t }}</a>
         <button class="button button--small button--danger" type="button" (click)="remove(search)" data-cy="search-delete">{{ 'common.delete' | t }}</button>
       </div>

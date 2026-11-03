@@ -32,8 +32,7 @@
   <div class="tiles">
     @for (item of problems; track item.title) {
       <article class="tile">
-        <span class="tile__icon">{{ item.icon }}</span>
-        <h3>{{ item.title | t }}</h3>
+        <h3 class="tile__head"><span class="tile__icon" aria-hidden="true">{{ item.icon }}</span>{{ item.title | t }}</h3>
         <p class="muted">{{ item.text | t }}</p>
       </article>
     }
@@ -44,9 +43,8 @@
   <h2 class="lsection__title">{{ 'landing.how.title' | t }}</h2>
   <ol class="steps-row">
     @for (step of steps; track step.title; let n = $index) {
-      <li class="tile">
-        <span class="step__number">{{ n + 1 }}</span>
-        <h3>{{ step.icon }} {{ step.title | t }}</h3>
+      <li class="tile" data-cy="how-step">
+        <h3 class="tile__head"><span class="step__number" aria-hidden="true">{{ n + 1 }}</span>{{ step.title | t }}</h3>
         <p class="muted">{{ step.text | t }}</p>
       </li>
     }
@@ -73,8 +71,7 @@
   <div class="tiles tiles--three">
     @for (item of features; track item.title) {
       <article class="tile">
-        <span class="tile__icon">{{ item.icon }}</span>
-        <h3>{{ item.title | t }}</h3>
+        <h3 class="tile__head"><span class="tile__icon" aria-hidden="true">{{ item.icon }}</span>{{ item.title | t }}</h3>
         <p class="muted">{{ item.text | t }}</p>
       </article>
     }

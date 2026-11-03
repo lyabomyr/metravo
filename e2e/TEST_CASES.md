@@ -12,7 +12,7 @@ Run them: `make api` and `make web` in two terminals, then `make e2e`.
 Contents: [Landing](#landing-page--landingcyts) · [Sign-in](#sign-in-and-session--authcyts) ·
 [First run](#first-run--onboardingcyts-tourcyts) · [Navigation](#navigation--navigationcyts) ·
 [Searches](#searches--search-formcyts) · [Filters](#filters--filterscyts-each-through-the-form-then-check-now) ·
-[Listings](#listings--listingscyts-rental-searchcyts) · [Alerts](#alerts--alertscyts) ·
+[Listings](#listings--listingscyts-rental-searchcyts) · [Notifications](#notifications--alertscyts) ·
 [Plan, data, admin](#plan-data-admin--billingcyts-data-exportcyts-admincyts) ·
 [Languages](#languages--i18ncyts) · [Phones](#phones--mobilecyts-375--812) ·
 [Every button](#every-button-and-the-case-that-presses-it) · [Below the UI](#below-the-ui--backend-unit-tests)
@@ -46,7 +46,8 @@ which matches **101, 104, 302, mzn201**.
 | LND-3 | Click “Sign in” in the bar, or the final call to action | The page scrolls to the sign-in form and focuses the email field |
 | LND-4 | Pick Polski, Українська, Русский in the language picker | The headline changes language; the choice survives a reload |
 | LND-5 | Open `/` while signed in | Redirected to `/listings` |
-| LND-6 | Pricing on the landing page | Free is $0 with “Start free”; Pro is $15 and lists the extra channels |
+| LND-6 | Pricing on the landing page | Free is $0 with “Start free” and portal names (Otodom, OLX, Morizon); Pro is $15, checked non-stop every 5 minutes, and lists the extra channels |
+| LND-7 | Landing page on a phone (375 px) | Every tile's icon and every step number sit on the same line as its title |
 
 ## Sign-in and session — `auth.cy.ts`
 
@@ -74,7 +75,7 @@ which matches **101, 104, 302, mzn201**.
 
 | Id | Case | Expected |
 |---|---|---|
-| NAV-1 | Click every tab: Searches, Alerts, My data, Plan, Listings | Each opens its page, is marked active and shows the page title |
+| NAV-1 | Click every tab: Searches, Notifications, My data, Plan, Listings | Each opens its page, is marked active and shows the page title |
 | NAV-2 | Sign out, then open `/searches` | Back on the landing page; the app is closed until signing in again |
 
 ## Searches — `search-form.cy.ts`
@@ -84,7 +85,7 @@ which matches **101, 104, 302, mzn201**.
 | FORM-1 | New search defaults | Buy, Flat, no place yet (map of Poland, Save disabled with “Choose a place”), only the place itself, once a day, no price or area limits, “must mention” empty, “must not mention” prefilled (TBS, …) and editable, every portal of the plan on |
 | FORM-2 | Switch to Rent and back | A price of the wrong size is cleared; komornik is disabled for rent |
 | FORM-3 | Check rate on Free | Only “Once a day” can be picked; faster ones say Pro and are disabled |
-| FORM-4 | Check rate on Pro | “Every hour” can be saved and shows on the card |
+| FORM-4 | Check rate on Pro | “Every 5 min” (non-stop) can be saved and shows on the card |
 | FORM-5 | Invalid combinations: max area < min area, price from > price up to, rooms to < rooms from, no portal | A translated error banner each time, nothing saved |
 | FORM-6 | Edit a search, then delete it | The card shows the change; after confirming, it is gone |
 | FORM-7 | Second search on Free | “allows 1 search” with an upgrade link |
@@ -128,20 +129,20 @@ which matches **101, 104, 302, mzn201**.
 | LST-4 | Rental search with “balkon” | 3 rentals, prices per month |
 | LST-5 | Delete a search after a scan | Its listings are gone from the page and the API |
 
-## Alerts — `alerts.cy.ts`
+## Notifications — `alerts.cy.ts`
 
 | Id | Case | Expected |
 |---|---|---|
-| ALR-1 | Connect Telegram from the Alerts page, then Disconnect | The chat appears by itself; Disconnect removes it on the server too, the test button goes, and the “not connected” reminder is back |
+| ALR-1 | Connect Telegram from the Notifications page, then Disconnect | The chat appears by itself; Disconnect removes it on the server too, the test button goes, and the “not connected” reminder is back |
 | ALR-2 | Extra channels on Free | Email, WhatsApp, Viber, Signal are shown, locked, with a Pro badge |
 | ALR-3 | WhatsApp on Pro | Switch on, enter a phone, saved; reload keeps it |
 | ALR-4 | Email on Pro | Address defaults to the account email |
-| ALR-5 | Old `/telegram` link | Redirects to `/alerts` |
-| ALR-6 | Signed in without Telegram | Every page shows “Alerts are not connected” with a button to setup; gone once a chat is connected |
+| ALR-5 | Old `/telegram` and `/alerts` links | Redirect to `/notifications` |
+| ALR-6 | Signed in without Telegram | Every page shows “Notifications are not connected” with a button to setup; gone once a chat is connected |
 | ALR-7 | “Send a test message” for Telegram | “Sent” is shown; the bot posts a short message to the chat |
 | ALR-8 | Email on Pro: switch on, send a test, type a wrong address, switch off | Email is live (no “soon”); the test is sent; a wrong address is refused with a message; switched off, the test button goes, it stays off after a reload, and the server refuses a test |
-| SAL-1 | Save a new search; on its alerts page add the bot to a group | The page opens right after saving; the group appears ticked, as “selected searches”; Done returns to Searches |
-| SAL-2 | A chat that hears every search: untick it on one search's alerts page | It turns to “selected searches” and stays unticked after a reload; the other searches still reach it |
+| SAL-1 | Save a new search; on its notifications page add the bot to a group | The page opens right after saving; the group appears ticked, as “selected searches”; Done returns to Searches |
+| SAL-2 | A chat that hears every search: untick it on one search's notifications page | It turns to “selected searches” and stays unticked after a reload; the other searches still reach it |
 | SAL-3 | “Add to a channel”, then post the code shown in the channel | The channel appears ticked for this search |
 | SAL-4 | A search whose limits let nothing through, after a check | Its card says how many offers were found, that none fit, and the main reason (e.g. the price limits) |
 
@@ -152,7 +153,7 @@ which matches **101, 104, 302, mzn201**.
 | PLAN-1 | Free → test checkout ($15) → Pro → cancel → Free | Badge follows the plan |
 | PLAN-2 | Cancel on the checkout page | Back on Plan with “Payment cancelled”; still Free |
 | PLAN-3 | Manage subscription → Back | Back on Plan; still Pro |
-| PLAN-4 | A new Free account | “Free week: 7 day(s) left” on every page, “Free for 7 days” on the plan; gone on Pro. The end of the week (checks, alerts and new searches pause) is proven in `billing/test_free_week.py` with a fixed clock |
+| PLAN-4 | A new Free account | “Free week: 7 day(s) left” on every page, “Free for 7 days” on the plan; gone on Pro. The end of the week (checks, notifications and new searches pause) is proven in `billing/test_free_week.py` with a fixed clock |
 | DATA-1 | “My data” → CSV | A CSV with a header and one row per match, named after the search |
 | DATA-2 | Another user's export, searches and listings | Empty: everyone shares one database, nobody sees anyone else's rows |
 | ADM-1 | Regular user opens `/admin` | Redirected; no Admin tab |
@@ -161,7 +162,7 @@ which matches **101, 104, 302, mzn201**.
 | ADM-4 | Refresh, then “Run scan for everyone” | Health reloads; a report of searches, page fetches and new listings appears |
 | ADM-5 | Admin opens the page | “Database” lists every table with its rows (and size where the engine reports it), the biggest first |
 | ADM-6 | Admin opens a new search | Every check frequency is open: admins have Pro without paying |
-| ADM-7 | Admin with a Kraków search for OLX + Otodom presses “Check mail now” | The saved alert emails (backend/tests/fixtures/mail) give 2 emails · 4 offers; the offers appear in Listings with their portal |
+| ADM-7 | Admin with a Kraków search for OLX + Otodom presses “Check mail now” | The saved notification emails (backend/tests/fixtures/mail) give 2 emails · 4 offers; the offers appear in Listings with their portal |
 
 ## Languages — `i18n.cy.ts`
 
@@ -190,11 +191,11 @@ which matches **101, 104, 302, mzn201**.
 | Tour | Next, Back, Skip, Let’s go (`tour-*`) | TOUR-1 … TOUR-4 |
 | Welcome | Save and continue (`search-save`), Open Telegram (`telegram-open`), See your listings (`onboarding-listings`) | ONB-1, ONB-2 |
 | Listings | Check now (`scan-now`), open an ad | LST-2, LST-3 |
-| Searches | New search, Create your first search, Alerts, Edit, Delete (`new-search`, `create-first-search`, `search-alerts`, `search-edit`, `search-delete`) | FORM-10, SAL-2, FORM-6 |
-| Search alerts | chat toggles, Open Telegram, Add to a group, Add to a channel, Done | SAL-1 … SAL-4 |
+| Searches | New search, Create your first search, Notifications, Edit, Delete (`new-search`, `create-first-search`, `search-alerts`, `search-edit`, `search-delete`) | FORM-10, SAL-2, FORM-6 |
+| Search notifications | chat toggles, Open Telegram, Add to a group, Add to a channel, Done | SAL-1 … SAL-4 |
 | Search form | Buy/Rent, Flat/House, place autocomplete, spinner, results, map, radius, every field and portal switch, Save | FORM-1 … FORM-16, FLT-1 … FLT-13 |
-| Alerts | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
-| Alerts | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |
+| Notifications | Open Telegram, Add to a group (link checked), Disconnect, Send a test (`test-telegram`) | ALR-1, ALR-7 |
+| Notifications | Channel switches, addresses, Send a test (`channel-toggle-*`, `channel-address-*`, `test-email`) | ALR-2, ALR-3, ALR-4, ALR-8 |
 | My data | Download listings (.csv) (`download-csv`) | DATA-1 |
 | Plan | Upgrade, Manage subscription; test checkout Pay / Cancel; test portal Cancel subscription / Back | PLAN-1 … PLAN-3 |
 | Admin | Make pro / Make free, Refresh, Run scan for everyone, Check mail now | ADM-2, ADM-4, ADM-7 |

@@ -41,6 +41,6 @@ export class SearchEditPage extends BasePage implements OnInit {
       return;
     }
     // A new search goes straight on to where its listings should be sent.
-    this.run(this.api.create(draft), (search) => this.router.navigate(['/searches', search.id, 'alerts']));
+    this.run(this.api.create(draft), (search) => this.router.navigate(['/searches', search.id, 'notifications']));
   }
 }

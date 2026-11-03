@@ -8,17 +8,22 @@ English text, for logs and tests.
 from .i18n import translator
 
 
+class Term(str):
+    """A parameter that is itself a message key ("deal.rent"), so it is translated along with the message."""
+
+
 class AppError(Exception):
     status_code = 400
 
     def __init__(self, key: str, /, **params):  # positional-only: a param may be called "key"
         self.key = key
         self.params = params
-        self.message = translator.t("en", key, **params)
+        self.message = self.text("en")
         super().__init__(self.message)
 
     def text(self, locale: str) -> str:
-        return translator.t(locale, self.key, **self.params)
+        params = {name: translator.t(locale, value) if isinstance(value, Term) else value for name, value in self.params.items()}
+        return translator.t(locale, self.key, **params)
 
 
 class Invalid(AppError):

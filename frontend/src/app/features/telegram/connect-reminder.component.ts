@@ -6,10 +6,10 @@ import { filter, map } from 'rxjs';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TelegramStatusService } from './telegram-status.service';
 
-/** Pages where connecting is already the thing on screen. */
-const CONNECT_PAGES = ['/welcome', '/alerts'];
+/** Pages where connecting is already the thing on screen (a search's own notifications page too). */
+const CONNECT_PAGES = ['/welcome', '/notifications'];
 
-/** Shown on every page until a messenger is connected: without one, no alert reaches the user. */
+/** Shown on every page until a messenger is connected: without one, no notification reaches the user. */
 @Component({
   selector: 'app-connect-reminder',
   imports: [RouterLink, TranslatePipe],
@@ -34,7 +34,7 @@ export class ConnectReminderComponent implements OnInit {
   );
 
   protected readonly visible = computed(
-    () => this.status.connected() === false && !CONNECT_PAGES.some((page) => this.url().startsWith(page)),
+    () => this.status.connected() === false && !CONNECT_PAGES.some((page) => this.url().startsWith(page) || this.url().endsWith(page)),
   );
 
   ngOnInit(): void {

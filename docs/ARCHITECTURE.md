@@ -4,11 +4,11 @@
 
 A person signs in with their email, saves one or more searches — buy or rent, flat or house, any city, town or village with a radius around it, price from–to, area, rooms, price
 per m², words that must appear, portals, how often to check (daily by
-default) — and picks where alerts go: Telegram (two clicks) for everyone, email on Pro. A scanner reads Otodom, OLX,
+default) — and picks where notifications go: Telegram (two clicks) for everyone, email on Pro. A scanner reads Otodom, OLX,
 Morizon and bailiff auctions, keeps what matches each search, and sends new
-flats and price drops to Telegram. Free is a one-week trial — one search checked once a day — after which checks, alerts and new searches pause (`Plan.trial_days`, `UserService.is_active`);
+flats and price drops to Telegram. Free is a one-week trial — one search checked once a day — after which checks, notifications and new searches pause (`Plan.trial_days`, `UserService.is_active`);
 Pro ($15/month, on sale from the day in `PRO_AVAILABLE_FROM`; admins in `ADMIN_EMAILS` have it free) gets five
-searches checked up to every hour, bailiff auctions, price-drop alerts, and
+searches checked non-stop (every 5 minutes), bailiff auctions, price-drop notifications, and
 the same listings duplicated to email, WhatsApp, Viber and Signal. Everyone
 can download their listings as CSV for their own analysis. The
 website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
@@ -83,8 +83,8 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   falls back to a text message; a 429 waits `retry_after` once.
 - **Which chat hears which search.** A Telegram chat hears every search
   (`telegram_chats.only_selected = 0`) or only the searches in
-  `telegram_routes`. A new search opens its alerts page
-  (`/searches/:id/alerts`): tick chats, or connect a chat, group or channel
+  `telegram_routes`. A new search opens its notifications page
+  (`/searches/:id/notifications`; old `/alerts` links redirect): tick chats, or connect a chat, group or channel
   for that search only (a link token carrying `search_id`). Channels have no
   Start button: the bot is added as an admin and the owner posts
   `/start <code>`, which arrives as a `channel_post`. Unticking a search on

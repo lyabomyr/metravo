@@ -12,7 +12,7 @@ import { Search } from './search.model';
 import { SearchesApiService } from './searches-api.service';
 
 /**
- * Where one search's listings go, at `/searches/:id/alerts` — also the step right after
+ * Where one search's listings go, at `/searches/:id/notifications` — also the step right after
  * creating a search. Tick existing chats, or connect a chat, group or channel just for it.
  */
 @Component({

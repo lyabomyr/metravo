@@ -35,19 +35,19 @@ describe('Search form', () => {
 
   it('FORM-3 Free checks once a day; faster rates are Pro', () => {
     cy.visit('/searches/new');
-    cy.get('[data-cy=search-interval] option').should('have.length', 5);
+    cy.get('[data-cy=search-interval] option').should('have.length', 8);
     cy.get('[data-cy=search-interval] option:enabled').should('have.length', 1).and('contain', 'Once a day');
-    cy.get('[data-cy=search-interval] option:disabled').first().should('contain', 'Every hour').and('contain', 'Pro');
+    cy.get('[data-cy=search-interval] option:disabled').first().should('contain', 'Every 5 min').and('contain', 'Pro');
   });
 
-  it('FORM-4 Pro can check every hour', () => {
+  it('FORM-4 Pro checks non-stop, every 5 minutes', () => {
     cy.upgradeToPro();
     cy.visit('/searches/new');
     pickPlace('Kraków');
-    cy.get('[data-cy=search-interval]').select('Every hour');
+    cy.get('[data-cy=search-interval]').select('Every 5 min');
     cy.get('[data-cy=search-save]').click();
-    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
-    cy.get('[data-cy=search-card]').should('contain', 'Every hour');
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
+    cy.get('[data-cy=search-card]').should('contain', 'Every 5 min');
   });
 
   it('FORM-5 refuses impossible searches with a clear message', () => {
@@ -81,7 +81,7 @@ describe('Search form', () => {
     cy.get('[data-cy=search-name]').clear().type('Katowice tanio');
     pickPlace('Katowice');
     cy.get('[data-cy=search-save]').click();
-    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
     cy.get('[data-cy=search-card]').should('have.length', 1).and('contain', 'Katowice tanio').and('contain', 'Katowice');
 
     cy.get('[data-cy=search-edit]').click();
@@ -110,7 +110,7 @@ describe('Search form', () => {
     cy.get('[data-cy=property-house]').should('be.checked');
     cy.get('[data-cy=search-name]').clear().type('Dom pod Krakowem');
     cy.get('[data-cy=search-save]').click();
-    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
     cy.get('[data-cy=search-card]').should('contain', 'Dom pod Krakowem').and('contain', 'House');
     cy.api('GET', '/api/searches').its('body.0.property_type').should('eq', 'house');
   });
@@ -133,7 +133,7 @@ describe('Search form', () => {
     cy.get('[data-cy=search-radius]').select('15');
     cy.get('[data-cy=search-name]').clear().type('Pod Krakowem');
     cy.get('[data-cy=search-save]').click();
-    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
     cy.get('[data-cy=search-place]').should('contain', 'Zabierzów').and('contain', '+15 km');
     cy.api('GET', '/api/searches').its('body.0').should((search: { radius_km: number; place: { path: string } }) => {
       expect(search.radius_km).to.eq(15);
@@ -160,7 +160,7 @@ describe('Search form', () => {
     cy.get('[data-cy=search-name]').type('Blisko pracy').should('have.value', 'Blisko pracy'); // typing replaces nothing
     cy.get('[data-cy=search-name]').clear();
     cy.get('[data-cy=search-save]').click();
-    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its alerts first
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
     cy.get('[data-cy=search-card]').should('contain', 'Kraków'); // left empty, named after the place
   });
 

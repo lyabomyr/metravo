@@ -13,6 +13,16 @@ export class MoneyPipe implements PipeTransform {
   }
 }
 
+/** `{{ 'olx' | sources }}` → "OLX"; `{{ search.sources | sources }}` → "Otodom, OLX, Morizon". */
+@Pipe({ name: 'sources', pure: false })
+export class SourcesPipe implements PipeTransform {
+  private readonly i18n = inject(I18nService);
+
+  transform(codes: string | readonly string[]): string {
+    return this.i18n.sources(codes);
+  }
+}
+
 /** `{{ iso | when }}` → a short date and time; `{{ iso | when: 'date' }}` → the date only. */
 @Pipe({ name: 'when', pure: false })
 export class WhenPipe implements PipeTransform {

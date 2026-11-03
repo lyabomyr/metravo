@@ -9,15 +9,15 @@ const post = (update: object) =>
     body: { update_id: Date.now() % 1e9, ...update },
   });
 
-describe('Alerts belong to a search', () => {
+describe('Notifications belong to a search', () => {
   beforeEach(() => cy.signIn(uniqueEmail('routes')));
 
-  it('SAL-1 a new search goes straight to its alerts; a group connected there gets that search only', () => {
+  it('SAL-1 a new search goes straight to its notifications; a group connected there gets that search only', () => {
     cy.visit('/searches/new');
     pickPlace('Kraków');
     cy.get('[data-cy=search-name]').type('Dla rodziny');
     cy.get('[data-cy=search-save]').click();
-    cy.location('pathname').should('match', /^\/searches\/[^/]+\/alerts$/);
+    cy.location('pathname').should('match', /^\/searches\/[^/]+\/notifications$/);
     cy.contains('h1', 'Dla rodziny');
     cy.get('[data-cy=search-chats-none]').should('be.visible');
     cy.get('[data-cy=telegram-group]')
@@ -37,7 +37,7 @@ describe('Alerts belong to a search', () => {
       cy.api('POST', '/api/telegram/link').then(({ body }) => cy.telegramStart(body.private_url, Date.now() % 1e9));
       cy.visit('/searches');
       cy.get('[data-cy=search-alerts]').click();
-      cy.location('pathname').should('eq', `/searches/${search.id}/alerts`);
+      cy.location('pathname').should('eq', `/searches/${search.id}/notifications`);
       cy.get('[data-cy=search-chat]').should('have.length', 1).and('contain', 'every search');
       cy.get('[data-cy=search-chat-toggle]').should('be.checked').uncheck();
       cy.get('[data-cy=search-chat]').should('contain', 'selected searches');
@@ -48,7 +48,7 @@ describe('Alerts belong to a search', () => {
 
   it('SAL-3 a channel is connected by posting the code shown', () => {
     cy.api('POST', '/api/searches', { name: 'Kanał', city: 'krakow', sources: ['otodom'] }).then(({ body: search }) => {
-      cy.visit(`/searches/${search.id}/alerts`);
+      cy.visit(`/searches/${search.id}/notifications`);
       cy.get('[data-cy=telegram-channel]').click();
       cy.get('[data-cy=telegram-channel-steps] a').should('have.attr', 'href').and('contain', 'startchannel');
       cy.get('[data-cy=telegram-channel-code]')
