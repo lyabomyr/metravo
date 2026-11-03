@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import imaplib
+import socket
 from dataclasses import dataclass, field
 from datetime import timedelta
 
@@ -30,6 +32,8 @@ class MailAlertStatus:
     sent: int = 0
     totals: dict[str, int] = field(default_factory=lambda: {"mails": 0, "offers": 0, "new": 0, "sent": 0})
     error: str | None = None
+    #: The error in a few words that name no mailbox or person — safe to publish.
+    reason: str | None = None
 
 
 class MailAlertService(BaseService):
@@ -63,6 +67,7 @@ class MailAlertService(BaseService):
         owner = self._users.by_email(status.owner) if status.owner else None
         if owner is None:
             status.state, status.error = "error", f"no Metravo account for the owner {status.owner or '(not set)'}"
+            status.reason = "the owner has no account"
             return status  # emails stay unread until the owner signs up
         try:
             mails = self._inbox.unread_from(SENDER_DOMAINS)
@@ -70,9 +75,9 @@ class MailAlertService(BaseService):
             self._inbox.mark_read([mail.uid for mail in mails])
         except Exception as error:  # noqa: BLE001 — a mailbox outage must not stop scanning
             self.log.warning("alert mailbox check failed: %s", error)
-            status.state, status.error = "error", f"{type(error).__name__}: {error}"[:300]
+            status.state, status.error, status.reason = "error", f"{type(error).__name__}: {error}"[:300], _reason(error)
             return status
-        status.state, status.error = "ok", None
+        status.state, status.error, status.reason = "ok", None, None
         status.mails = len(mails)
         status.offers, status.new, status.sent = (sum(column) for column in zip(*counts, strict=False)) if counts else (0, 0, 0)
         for key in ("mails", "offers", "new", "sent"):
@@ -89,6 +94,10 @@ class MailAlertService(BaseService):
             new, sent = new + report.new_listings, sent + report.messages_sent
         return len(listings), new, sent
 
+    @property
+    def public_state(self) -> str:
+        return f"{self.status.state} ({self.status.reason})" if self.status.reason else self.status.state
+
     def _targets(self, owner: User, mail: AlertMail, listings: list[Listing]) -> list[Search]:
         """The owner's searches for these portals; those whose place the email names, when any does."""
         sources = {listing.source for listing in listings}
@@ -96,3 +105,18 @@ class MailAlertService(BaseService):
         words = f"-{slugify(f'{mail.subject} {mail.text} {mail.html}')}-"
         named = [search for search in searches if f"-{slugify(search.place.name)}-" in words]
         return named or searches
+
+
+def _reason(error: Exception) -> str:
+    text = str(error).lower()
+    if isinstance(error, socket.gaierror):
+        return "mail host not found"
+    if isinstance(error, TimeoutError | socket.timeout):
+        return "mail host did not answer"
+    if isinstance(error, ConnectionError):
+        return "mail host refused the connection"
+    if isinstance(error, imaplib.IMAP4.error) and ("auth" in text or "login" in text or "credentials" in text):
+        return "login refused"
+    if isinstance(error, imaplib.IMAP4.error):
+        return "mail server refused a command"
+    return type(error).__name__

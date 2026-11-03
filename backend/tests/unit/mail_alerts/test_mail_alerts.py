@@ -99,6 +99,7 @@ def test_a_search_without_the_portal_gets_nothing(mail_container):
 def test_without_the_owners_account_emails_wait_unread(mail_container):
     status = mail_container.mail_alerts.check()
     assert status.state == "error" and ADMIN_EMAIL in status.error
+    assert mail_container.mail_alerts.public_state == "error (the owner has no account)"  # no address published
     owner_with_chat(mail_container)
     assert mail_container.mail_alerts.check().mails == 2  # still there once the owner signs up
 
@@ -115,6 +116,7 @@ def test_a_mailbox_failure_is_reported_and_scanning_goes_on(mail_container):
     mail_container.mail_alerts._inbox = Broken()
     status = mail_container.mail_alerts.check()
     assert status.state == "error" and "connection refused" in status.error
+    assert mail_container.mail_alerts.public_state == "error (OSError)"
     assert mail_container.scanner.run().searches_scanned >= 0
 
 
@@ -153,3 +155,14 @@ def test_the_mailbox_defaults_to_the_smtp_login(settings):
     assert replace(smtp, mail_alerts_imap_host="imap.other.pl").alert_mailbox[0] == "imap.other.pl"
     assert replace(settings, smtp_host="mail.example.com", smtp_username="a", smtp_password="b").alert_mailbox is None
     assert settings.alert_owner == ADMIN_EMAIL
+
+
+def test_the_published_reason_names_the_failure_not_the_mailbox():
+    import imaplib
+    import socket
+
+    from app.services.mail_alerts.service import _reason
+
+    assert _reason(imaplib.IMAP4.error("b'[AUTHENTICATIONFAILED] Invalid credentials (Failure)'")) == "login refused"
+    assert _reason(socket.gaierror(8, "nodename nor servname provided")) == "mail host not found"
+    assert _reason(TimeoutError()) == "mail host did not answer"
