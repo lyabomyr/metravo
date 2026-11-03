@@ -206,3 +206,14 @@ def test_a_search_on_otodom_alone_is_the_jobs_entirely(settings, clock, telegram
     job.scanner.run_remote()
     saved = api.searches.get(user, search.id)
     assert saved.last_scanned_at and saved.last_found > 0 and saved.last_fit > 0
+
+
+def test_one_search_covers_several_places(container, sign_in):
+    from app.services.places.known import known_place
+
+    user = sign_in()
+    container.searches.create(user, make_search(more_places=[known_place("zabierzow")]))
+    report = container.scanner.run()
+    assert report.fetches == 6  # otodom, olx, morizon × Kraków, Zabierzów
+    # The saved pages are the same for both places: each offer is announced once.
+    assert report.new_listings == 4 and report.searches_scanned == 1

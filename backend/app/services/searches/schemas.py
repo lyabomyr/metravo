@@ -8,7 +8,7 @@ from ...core.errors import Invalid
 from ..connectors.models import DealType, Market, PropertyType
 from ..places.known import known_place
 from ..places.models import Place
-from .models import DEFAULT_REJECT_KEYWORDS, DEFAULT_SCAN_INTERVAL, Search
+from .models import DEFAULT_REJECT_KEYWORDS, DEFAULT_SCAN_INTERVAL, MAX_PLACES, Search
 
 
 class PlaceIO(BaseModel):
@@ -49,6 +49,8 @@ class SearchFields(BaseModel):
     private_only: bool = False
     min_floor: int | None = Field(default=None, ge=0, le=50)
     max_floor: int | None = Field(default=None, ge=0, le=50)
+    #: Other places searched the same way (up to four).
+    more_places: list[PlaceIO] = Field(default_factory=list, max_length=MAX_PLACES - 1)
 
 
 class SearchIn(SearchFields):
@@ -66,7 +68,8 @@ class SearchIn(SearchFields):
         place = self.place.to_place() if self.place else known_place(self.city or "")
         if place is None:
             raise Invalid("search.place_invalid")
-        return Search(id="", place=place, **self.model_dump(exclude={"place", "city"}))
+        more = [extra.to_place() for extra in self.more_places]
+        return Search(id="", place=place, more_places=more, **self.model_dump(exclude={"place", "city", "more_places"}))
 
 
 class SearchOut(SearchFields):
@@ -83,4 +86,5 @@ class SearchOut(SearchFields):
     def of(cls, search: Search) -> SearchOut:
         values = asdict(search)
         values["place"] = PlaceIO.of(search.place)
+        values["more_places"] = [PlaceIO.of(place) for place in search.more_places]
         return cls(**values)

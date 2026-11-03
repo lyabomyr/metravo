@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import asdict, fields
 
 from ...core.database import Database, Row
 from ...core.repository import OwnedRepository
@@ -63,6 +64,7 @@ class SearchRepository(OwnedRepository):
         ("searches", "private_only", "INTEGER NOT NULL DEFAULT 0"),
         ("searches", "min_floor", "INTEGER"),
         ("searches", "max_floor", "INTEGER"),
+        ("searches", "more_places", "TEXT NOT NULL DEFAULT '[]'"),  # JSON array of places
     )
 
     _COLUMNS = (
@@ -70,8 +72,10 @@ class SearchRepository(OwnedRepository):
         "deal_type", "property_type", "min_price", "max_price", "min_area", "max_area",
         "min_rooms", "max_rooms", "max_price_per_m2", "min_build_year", "sources", "required_keywords",
         "reject_keywords", "interval_minutes", "enabled", "last_scanned_at", "created_at",
-        "market", "private_only", "min_floor", "max_floor",
+        "market", "private_only", "min_floor", "max_floor", "more_places",
     )
+    #: Columns a newer release added are skipped, so a deploy never breaks the release still running.
+    _FIELDS = frozenset(field.name for field in fields(Search))
 
     @staticmethod
     def owners(db: Database) -> list[str]:
@@ -122,6 +126,7 @@ class SearchRepository(OwnedRepository):
             json.dumps(search.required_keywords, ensure_ascii=False), json.dumps(search.reject_keywords, ensure_ascii=False),
             search.interval_minutes, int(search.enabled), search.last_scanned_at, search.created_at,
             search.market.value if search.market else None, int(search.private_only), search.min_floor, search.max_floor,
+            json.dumps([_place_row(place) for place in search.more_places], ensure_ascii=False),
         )
 
     @staticmethod
@@ -134,10 +139,12 @@ class SearchRepository(OwnedRepository):
         # max_price and min_area are NOT NULL columns in existing databases: 0 is stored for "no limit".
         row["max_price"] = row["max_price"] or None
         row["min_area"] = row["min_area"] or None
+        row = {key: value for key, value in row.items() if key in SearchRepository._FIELDS}
         return Search(
             place=place,
             **{
                 **row,
+                "more_places": [Place(**place) for place in json.loads(row.get("more_places") or "[]")],
                 "deal_type": DealType(row["deal_type"]),
                 "property_type": PropertyType(row["property_type"]),
                 "sources": json.loads(row["sources"]),
@@ -148,3 +155,10 @@ class SearchRepository(OwnedRepository):
                 "private_only": bool(row.get("private_only")),
             }
         )
+
+
+def _place_row(place: Place) -> dict:
+    """A place as stored: ``detail`` is for telling villages apart in the picker, not kept."""
+    row = asdict(place)
+    row.pop("detail")
+    return row

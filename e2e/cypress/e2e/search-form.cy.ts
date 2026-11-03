@@ -239,4 +239,23 @@ describe('Search form', () => {
     cy.get('[data-cy=search-market]').should('not.exist');
     cy.get('[data-cy=search-private]').should('be.visible'); // a landlord can be private too
   });
+
+  it('FORM-19 one search covers several places; ✕ takes one away', () => {
+    cy.visit('/searches/new');
+    pickPlace('Kraków');
+    cy.get('[data-cy=place-query]').should('have.attr', 'placeholder', 'Add another place').type('zab');
+    cy.contains('[data-cy=place-result]', 'Zabierzów').click();
+    cy.get('[data-cy=place-name]').should('have.text', 'Kraków'); // the first place stays first
+    cy.get('[data-cy=place-extra]').should('have.length', 1).and('contain', 'Zabierzów');
+    pickPlace('Katowice', { added: true });
+    cy.get('[data-cy=place-extra]').should('have.length', 2);
+    cy.get('[data-cy=place-remove]').click(); // without Kraków, Zabierzów leads
+    cy.get('[data-cy=place-name]').should('have.text', 'Zabierzów');
+    cy.get('[data-cy=place-extra]').should('have.length', 1).and('contain', 'Katowice');
+    cy.get('[data-cy=search-radius]').select('15');
+    cy.get('[data-cy=search-save]').click();
+    cy.get('[data-cy=search-alerts-done]').click(); // a new search opens its notifications first
+    cy.get('[data-cy=search-place]').should('contain', 'Zabierzów, Katowice +15 km');
+    cy.api('GET', '/api/searches').its('body.0.more_places.0.name').should('eq', 'Katowice');
+  });
 });

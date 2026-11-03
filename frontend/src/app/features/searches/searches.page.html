@@ -15,7 +15,7 @@
         <div class="listing__meta">
           <span class="chip">{{ dealLabel[search.deal_type] | t }}</span>
           <span class="chip">{{ propertyLabel[search.property_type] | t }}</span>
-          <span class="chip" data-cy="search-place">📍 {{ search.place.name }}@if (search.radius_km) { +{{ search.radius_km }} km}</span>
+          <span class="chip" data-cy="search-place">📍 {{ placesLabel(search) }}</span>
           <span class="chip">⏱ {{ search.interval_minutes | interval }}</span>
         </div>
         <div class="muted small">

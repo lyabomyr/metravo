@@ -28,6 +28,7 @@ export class SearchFormComponent {
     name: [''],
     place: [null as Place | null, Validators.required],
     radius_km: [0],
+    more_places: [[] as Place[]],
     deal_type: ['sale' as DealType],
     property_type: ['flat' as PropertyType],
     min_price: [null as number | null],

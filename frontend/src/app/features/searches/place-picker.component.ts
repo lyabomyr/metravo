@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, finalize, map, of, switchMap } from 'rxjs';
@@ -9,14 +9,15 @@ import { BasePage } from '../../core/ui/base-page';
 import { ErrorBannerComponent } from '../../core/ui/error-banner.component';
 import { PlaceMapComponent } from './place-map.component';
 import { PlacesApiService } from './places-api.service';
-import { Place } from './search.model';
+import { MAX_PLACES, Place } from './search.model';
 
 /** Pause after the last key before asking: each lookup reaches OpenStreetMap through the API. */
 export const TYPING_PAUSE_MS = 300;
 
 /**
  * Where to look: any city, town or village, suggested while the user types or picked on
- * the map, plus how far around it. A new search starts with no place at all.
+ * the map, plus how far around it. A new search starts with no place at all; once it has
+ * one, the next place picked is added (up to MAX_PLACES), and ✕ takes one away.
  */
 @Component({
   selector: 'app-place-picker',
@@ -26,12 +27,24 @@ export const TYPING_PAUSE_MS = 300;
       <div class="list__row">
         <span>{{ 'form.place' | t }}</span>
         @if (place(); as chosen) {
-          <span class="place-chosen"><b data-cy="place-name">{{ chosen.name }}</b> <span class="muted small">{{ chosen.detail }}</span></span>
+          <span class="place-chosen">
+            <b data-cy="place-name">{{ chosen.name }}</b> <span class="muted small">{{ chosen.detail }}</span>
+            <button class="place-remove" type="button" (click)="removeMain()" [attr.aria-label]="'form.placeRemove' | t" data-cy="place-remove">✕</button>
+          </span>
         } @else {
           <span class="muted" data-cy="place-name">{{ 'form.placeNone' | t }}</span>
         }
       </div>
-      <div class="list__row list__row--stacked">
+      @for (extra of morePlaces(); track extra.path; let i = $index) {
+        <div class="list__row" data-cy="place-extra">
+          <span>{{ 'form.placeAlso' | t }}</span>
+          <span class="place-chosen">
+            <b>{{ extra.name }}</b> <span class="muted small">{{ extra.detail }}</span>
+            <button class="place-remove" type="button" (click)="removeExtra(i)" [attr.aria-label]="'form.placeRemove' | t" data-cy="place-extra-remove">✕</button>
+          </span>
+        </div>
+      }
+      <div class="list__row list__row--stacked" [hidden]="full()">
         <div class="place-input">
           <input
             [ngModel]="query()"
@@ -41,7 +54,7 @@ export const TYPING_PAUSE_MS = 300;
             (keydown.arrowup)="$event.preventDefault(); move(-1)"
             (keydown.enter)="$event.preventDefault(); chooseActive()"
             (keydown.escape)="close()"
-            [placeholder]="'form.placeSearch' | t"
+            [placeholder]="(place() ? 'form.placeAdd' : 'form.placeSearch') | t"
             role="combobox"
             aria-autocomplete="list"
             [attr.aria-expanded]="results().length > 0"
@@ -81,7 +94,7 @@ export const TYPING_PAUSE_MS = 300;
       </label>
     </div>
     <app-error-banner [error]="error()" />
-    <app-place-map [place]="place()" [radiusKm]="radiusKm()" (picked)="pickOnMap($event)" />
+    <app-place-map [places]="places()" [radiusKm]="radiusKm()" (picked)="pickOnMap($event)" />
     <p class="section-note">{{ 'form.placeHint' | t }}</p>
   `,
   styles: `
@@ -89,14 +102,19 @@ export const TYPING_PAUSE_MS = 300;
     .place-input input { flex: 1; padding-right: 32px; }
     .place-input__spinner { position: absolute; right: 10px; color: var(--muted); }
     .place-chosen { text-align: right; }
+    .place-remove { margin-left: 6px; padding: 2px 6px; border: 0; background: none; color: var(--muted); font-size: 15px; cursor: pointer; }
     .place-option--active { background: var(--fill); }
   `,
 })
 export class PlacePickerComponent extends BasePage {
   readonly place = input<Place | null>(null);
+  readonly morePlaces = input<Place[]>([]);
   readonly radiusKm = input(0);
   readonly radiusChoices = input<number[]>([0]);
-  readonly placeChange = output<Place>();
+  readonly placeChange = output<Place | null>();
+  readonly morePlacesChange = output<Place[]>();
+  protected readonly places = computed(() => [this.place(), ...this.morePlaces()].filter((place): place is Place => !!place));
+  protected readonly full = computed(() => this.places().length >= MAX_PLACES);
   readonly radiusChange = output<number>();
 
   private readonly api = inject(PlacesApiService);
@@ -148,10 +166,24 @@ export class PlacePickerComponent extends BasePage {
   }
 
   protected choose(place: Place): void {
-    this.placeChange.emit(place);
+    if (!this.place()) this.placeChange.emit(place);
+    else if (!this.full() && !this.places().some((chosen) => chosen.path === place.path)) {
+      this.morePlacesChange.emit([...this.morePlaces(), place]);
+    }
     this.close();
     this.query.set('');
     this.typed.next('');
+  }
+
+  /** The first extra place takes the main one's role: its name, its first row. */
+  protected removeMain(): void {
+    const [next = null, ...rest] = this.morePlaces();
+    this.placeChange.emit(next);
+    this.morePlacesChange.emit(rest);
+  }
+
+  protected removeExtra(index: number): void {
+    this.morePlacesChange.emit(this.morePlaces().filter((_, i) => i !== index));
   }
 
   protected pickOnMap(point: { lat: number; lon: number }): void {

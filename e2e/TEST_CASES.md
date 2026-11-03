@@ -100,6 +100,7 @@ which matches **101, 104, 302, mzn201**.
 | FORM-16 | The prefilled “must not mention” words | Grey with a note that they stay; typing in the field makes them normal text and hides the note |
 | FORM-17 | Second-hand only, from the owner only, floors 1–4 | Morizon is switched off (it cannot show private sellers alone); saved with market, private_only, floors and Otodom + OLX |
 | FORM-18 | Switch to a house, then to renting | Floors disappear for a house; the market disappears for a rental; “from the owner” stays |
+| FORM-19 | Kraków, then Zabierzów and Katowice; ✕ on Kraków; +15 km | Extra places are listed under the first; without Kraków, Zabierzów leads; the card shows “Zabierzów, Katowice +15 km”; saved with more_places |
 
 ## Filters — `filters.cy.ts` (each through the form, then “Check now”)
 

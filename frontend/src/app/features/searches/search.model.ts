@@ -22,6 +22,8 @@ export interface SearchDraft {
   place: Place;
   /** Kilometres around the place; 0 = the place itself. */
   radius_km: number;
+  /** Other places searched the same way, with the same radius (MAX_PLACES in all). */
+  more_places: Place[];
   deal_type: DealType;
   property_type: PropertyType;
   min_price: number | null;
@@ -79,6 +81,7 @@ export const DEFAULT_SEARCH: SearchFormValue = {
   name: '',
   place: null,
   radius_km: 0,
+  more_places: [],
   deal_type: 'sale',
   property_type: 'flat',
   min_price: null,
@@ -99,6 +102,15 @@ export const DEFAULT_SEARCH: SearchFormValue = {
   min_floor: null,
   max_floor: null,
 };
+
+/** Places one search may cover: its own and up to four more. */
+export const MAX_PLACES = 5;
+
+/** "Kraków, Wieliczka +5 km" — every place a search covers. */
+export function placesLabel(search: Pick<SearchDraft, 'place' | 'more_places' | 'radius_km'>): string {
+  const names = [search.place, ...(search.more_places ?? [])].map((place) => place.name).join(', ');
+  return search.radius_km ? `${names} +${search.radius_km} km` : names;
+}
 
 /** Floors a search can start or end at; 0 is the ground floor. */
 export const FLOORS = Array.from({ length: 16 }, (_, floor) => floor);

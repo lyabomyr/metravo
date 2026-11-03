@@ -73,7 +73,9 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   client (identifying User-Agent, throttled, cached); the big cities are
   built in, and if every service is down the site says so instead of
   "nothing found". A search
-  stores that place and a radius. Otodom searches the path with
+  stores that place and a radius, and up to four more places searched the
+  same way (`more_places`; one results page per place and portal, an offer
+  near two places counts once). Otodom searches the path with
   `distanceRadius`, OLX the locality with `search[dist]` rounded up to its
   steps, Morizon and the bailiff auctions the locality itself. Local runs and
   tests use the built-in `places/known.py`, no network.

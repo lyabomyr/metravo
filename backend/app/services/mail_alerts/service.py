@@ -103,7 +103,7 @@ class MailAlertService(BaseService):
         sources = {listing.source for listing in listings}
         searches = [search for search in self._searches.list(owner) if search.enabled and sources & set(search.sources)]
         words = f"-{slugify(f'{mail.subject} {mail.text} {mail.html}')}-"
-        named = [search for search in searches if f"-{slugify(search.place.name)}-" in words]
+        named = [search for search in searches if any(f"-{slugify(place.name)}-" in words for place in search.places)]
         return named or searches
 
 

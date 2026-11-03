@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 
 from ...core.clock import parse_iso
@@ -26,6 +26,9 @@ def describe_interval(minutes: int, locale: str = "en") -> str:
 
 # Listings that are not a whole, normal flat. Prefix-matched, so "udział"
 # also catches "udziału".
+#: Places one search may cover: its own and up to four more.
+MAX_PLACES = 5
+
 DEFAULT_REJECT_KEYWORDS: tuple[str, ...] = (
     "TBS", "T.B.S", "suterena", "półpiwnica", "polpiwnica", "poziom -1",
     "piwnica mieszkalna", "udział", "udzial", "współwłasnoś", "wspolwlasnos",
@@ -56,6 +59,8 @@ class Search:
     interval_minutes: int = DEFAULT_SCAN_INTERVAL
     #: Kilometres around ``place`` (see ``places.models.RADIUS_CHOICES``).
     radius_km: int = 0
+    #: Other places searched the same way, with the same radius (``MAX_PLACES`` in all).
+    more_places: list[Place] = field(default_factory=list)
     enabled: bool = True
     last_scanned_at: str | None = None
     created_at: str = ""
@@ -72,6 +77,15 @@ class Search:
     max_floor: int | None = None
     #: When the GitHub job last fetched this search's remote portals (``REMOTE_PORTALS``).
     remote_scanned_at: str | None = None
+
+    @property
+    def places(self) -> list[Place]:
+        return [self.place, *self.more_places]
+
+    @property
+    def queries(self) -> list[SearchQuery]:
+        """One per place: the portals search a single place (and its radius) at a time."""
+        return [replace(self.query, place=place) for place in self.places]
 
     @property
     def query(self) -> SearchQuery:

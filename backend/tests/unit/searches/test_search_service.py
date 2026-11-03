@@ -109,3 +109,20 @@ def test_a_portal_that_cannot_filter_by_seller_is_left_out(container, sign_in):
         container.searches.create(user, make_search(private_only=True))  # make_search includes Morizon
     with pytest.raises(Invalid):
         container.searches.create(user, make_search(min_floor=4, max_floor=2))
+
+
+def test_more_places_are_saved_once_each(container, sign_in):
+    from app.services.places.known import known_place
+
+    user = sign_in()
+    krakow, zabierzow = known_place("krakow"), known_place("zabierzow")
+    search = container.searches.create(user, make_search(more_places=[zabierzow, krakow, zabierzow]))
+    assert [place.name for place in container.searches.get(user, search.id).places] == ["Kraków", "Zabierzów"]
+
+
+def test_a_column_from_a_newer_release_does_not_break_this_one(container, sign_in):
+    # The GitHub job may migrate the database before Render runs the same release.
+    user = sign_in()
+    search = container.searches.create(user, make_search())
+    container.control_db.execute("ALTER TABLE searches ADD COLUMN some_future_option TEXT")
+    assert container.searches.get(user, search.id).name == search.name

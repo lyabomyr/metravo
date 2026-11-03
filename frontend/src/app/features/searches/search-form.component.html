@@ -35,9 +35,11 @@
     <h3 class="section-title">{{ 'form.where' | t }}</h3>
     <app-place-picker
       [place]="form.controls.place.value"
+      [morePlaces]="form.controls.more_places.value"
       [radiusKm]="form.controls.radius_km.value"
       [radiusChoices]="config.radius_choices"
       (placeChange)="form.controls.place.setValue($event)"
+      (morePlacesChange)="form.controls.more_places.setValue($event)"
       (radiusChange)="form.controls.radius_km.setValue($event)"
     />
   </section>

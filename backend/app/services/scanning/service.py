@@ -149,13 +149,18 @@ class ScanService(BaseService):
         seen_before, kept_before = report.listings_seen, report.new_listings + report.price_changes + report.kept
         for source in mine:
             connector = self._connectors.get(source)
-            url = connector.build_url(search.query)
-            if url is None:
-                continue  # this portal does not offer e.g. rentals
-            result = cache.get(connector, url)
-            if result.error:
-                report.errors.append(f"{source}: {result.error}")
-            events += self._take(user, search, result.listings, report, reasons)
+            # One results page per place; an offer near two of them counts once.
+            found_here: dict[str, Listing] = {}
+            for query in search.queries:
+                url = connector.build_url(query)
+                if url is None:
+                    break  # this portal does not offer e.g. rentals
+                result = cache.get(connector, url)
+                if result.error:
+                    report.errors.append(f"{source}: {result.error}")
+                for listing in result.listings:
+                    found_here.setdefault(listing.key, listing)
+            events += self._take(user, search, list(found_here.values()), report, reasons)
         found = report.listings_seen - seen_before
         fit = report.new_listings + report.price_changes + report.kept - kept_before
         top_reason = reasons.most_common(1)[0][0] if reasons else None

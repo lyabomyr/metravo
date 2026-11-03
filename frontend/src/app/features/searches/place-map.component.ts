@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnDestroy, effect, input, output, viewChild } from '@angular/core';
-import type { Circle, CircleMarker, Map as LeafletMap } from 'leaflet';
+import type { FeatureGroup, Map as LeafletMap } from 'leaflet';
 
 import { Place } from './search.model';
 
@@ -7,7 +7,7 @@ import { Place } from './search.model';
 const POLAND: [number, number] = [52.07, 19.48];
 
 /**
- * The chosen place and the circle the search covers, on an OpenStreetMap map.
+ * The chosen places and the circles the search covers, on an OpenStreetMap map.
  * Clicking the map asks for the place at that point. Leaflet loads only here.
  */
 @Component({
@@ -18,24 +18,23 @@ const POLAND: [number, number] = [52.07, 19.48];
   `,
 })
 export class PlaceMapComponent implements OnDestroy {
-  readonly place = input<Place | null>(null);
+  readonly places = input<Place[]>([]);
   readonly radiusKm = input(0);
   readonly picked = output<{ lat: number; lon: number }>();
 
   private readonly element = viewChild.required<ElementRef<HTMLElement>>('map');
   private map?: LeafletMap;
-  private marker?: CircleMarker;
-  private circle?: Circle;
+  private layers?: FeatureGroup;
 
   constructor() {
-    effect(() => void this.draw(this.place(), this.radiusKm()));
+    effect(() => void this.draw(this.places(), this.radiusKm()));
   }
 
   ngOnDestroy(): void {
     this.map?.remove();
   }
 
-  private async draw(place: Place | null, radiusKm: number): Promise<void> {
+  private async draw(places: Place[], radiusKm: number): Promise<void> {
     // Leaflet is CommonJS: depending on the bundler it arrives as the module or as its `default`.
     const module = await import('leaflet');
     const L = ((module as unknown as { default?: typeof module }).default ?? module) as typeof module;
@@ -46,20 +45,19 @@ export class PlaceMapComponent implements OnDestroy {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(this.map);
       this.map.on('click', (event) => this.picked.emit({ lat: event.latlng.lat, lon: event.latlng.lng }));
-      this.marker = L.circleMarker(POLAND, { radius: 7, color: '#007aff', fillOpacity: 1 });
-      this.circle = L.circle(POLAND, { radius: 0, color: '#007aff', fillOpacity: 0.12, weight: 1 });
+      this.layers = L.featureGroup().addTo(this.map);
     }
-    if (!place) {
-      this.marker!.remove();
-      this.circle!.remove();
+    this.layers!.clearLayers();
+    if (!places.length) {
       this.map.setView(POLAND, 6);
       return;
     }
-    const centre: [number, number] = [place.lat, place.lon];
-    this.marker!.setLatLng(centre).addTo(this.map);
-    this.circle!.addTo(this.map);
-    this.circle!.setLatLng(centre).setRadius(radiusKm * 1000);
-    if (radiusKm) this.map.fitBounds(this.circle!.getBounds(), { padding: [12, 12] });
-    else this.map.setView(centre, 12);
+    for (const place of places) {
+      const centre: [number, number] = [place.lat, place.lon];
+      L.circleMarker(centre, { radius: 7, color: '#007aff', fillOpacity: 1 }).addTo(this.layers!);
+      if (radiusKm) L.circle(centre, { radius: radiusKm * 1000, color: '#007aff', fillOpacity: 0.12, weight: 1 }).addTo(this.layers!);
+    }
+    if (places.length === 1 && !radiusKm) this.map.setView([places[0].lat, places[0].lon], 12);
+    else this.map.fitBounds(this.layers!.getBounds(), { padding: [12, 12], maxZoom: 12 });
   }
 }

@@ -95,8 +95,10 @@ export const visitAsReturning = (path: string) =>
 export {};
 
 /** Type a place's name and pick it from the suggestions, as a user would; a new search has no place. */
-export const pickPlace = (name: string) => {
+/** Pick a place by name; ``added`` when the search already has one, so this one joins it. */
+export const pickPlace = (name: string, { added = false } = {}) => {
   cy.get('[data-cy=place-query]').clear().type(name);
   cy.contains('[data-cy=place-result]', name).click();
-  cy.get('[data-cy=place-name]').should('have.text', name);
+  if (added) cy.contains('[data-cy=place-extra]', name).should('exist');
+  else cy.get('[data-cy=place-name]').should('have.text', name);
 };

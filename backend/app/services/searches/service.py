@@ -91,7 +91,7 @@ class SearchService(BaseService):
         self._repo(user.id).mark_remote_scanned(search_id, self._clock.iso())
 
     def _validate(self, user: User, search: Search) -> None:
-        if not search.place.is_valid():
+        if not all(place.is_valid() for place in search.places):
             raise Invalid("search.place_invalid")
         if search.radius_km not in RADIUS_CHOICES:
             raise Invalid("search.radius_invalid", choices=", ".join(map(str, RADIUS_CHOICES)))
@@ -137,10 +137,16 @@ class SearchService(BaseService):
 
 
 def _tidy(search: Search) -> Search:
-    """Drop options that do not apply: floors for a house, new build or second-hand for a rental."""
+    """Drop options that do not apply (floors for a house, the market for a rental) and repeated places."""
     flat, sale = search.property_type is PropertyType.FLAT, search.deal_type is DealType.SALE
+    more, seen = [], {search.place.path}  # the same place twice would fetch the same pages twice
+    for place in search.more_places:
+        if place.path not in seen:
+            seen.add(place.path)
+            more.append(place)
     return replace(
         search,
+        more_places=more,
         min_floor=search.min_floor if flat else None,
         max_floor=search.max_floor if flat else None,
         market=search.market if sale else None,
