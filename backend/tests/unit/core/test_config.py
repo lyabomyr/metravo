@@ -16,6 +16,10 @@ def test_production_refuses_development_shortcuts():
     assert "BILLING_PROVIDER=fake" in message
 
 
+def test_a_job_without_a_web_server_needs_no_web_secrets():
+    Settings(env="prod").validate(serving=False)  # python -m app.cli on GitHub has no JWT secret
+
+
 def test_reads_environment():
     settings = Settings.from_env({"APP_ENV": "e2e", "ADMIN_EMAILS": "A@x.pl, b@y.pl", "AUTH_PROVIDERS": "dev,firebase"})
     assert settings.env == "e2e"

@@ -100,6 +100,9 @@ class Settings:
     scan_pages: int = 1
     scan_delay_seconds: float = 2.0
     cron_secret: str = ""
+    # Portals a GitHub Actions job fetches instead of this process (.github/workflows/portal-scan.yml):
+    # Otodom answers GitHub's runners and refuses Render. The API skips them; the job fetches only them.
+    remote_portals: tuple[str, ...] = ()
     # The API scans by itself: every tick it runs the searches that are due.
     scheduler_enabled: bool = False
     scheduler_tick_seconds: int = 60
@@ -161,6 +164,7 @@ class Settings:
             scan_pages=int(get("SCAN_PAGES", str(defaults.scan_pages))),
             scan_delay_seconds=float(get("SCAN_DELAY_SECONDS", str(defaults.scan_delay_seconds))),
             cron_secret=get("CRON_SECRET", ""),
+            remote_portals=_csv(get("REMOTE_PORTALS", "")),
             scheduler_enabled=get("SCHEDULER_ENABLED", "false").lower() in ("1", "true", "yes", "on"),
             scheduler_tick_seconds=int(get("SCHEDULER_TICK_SECONDS", str(defaults.scheduler_tick_seconds))),
             keep_alive_minutes=int(get("KEEP_ALIVE_MINUTES", str(defaults.keep_alive_minutes))),
@@ -189,10 +193,14 @@ class Settings:
     def alert_owner(self) -> str:
         return self.mail_alerts_owner or (sorted(self.admin_emails)[0] if self.admin_emails else "")
 
-    def validate(self) -> None:
-        """Crash early on settings that would only fail later, at the worst time."""
+    def validate(self, serving: bool = True) -> None:
+        """Crash early on settings that would only fail later, at the worst time.
+
+        ``serving=False`` is a job without a web server (``python -m app.cli``):
+        it signs nobody in and sells nothing, so it needs no JWT secret or billing.
+        """
         problems: list[str] = []
-        if self.is_production:
+        if self.is_production and serving:
             if self.jwt_secret == DEV_JWT_SECRET:
                 problems.append("JWT_SECRET must be set in production")
             if "dev" in self.auth_providers:

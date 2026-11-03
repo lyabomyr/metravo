@@ -32,6 +32,7 @@ RENDER_SETTINGS = (
     # OLX/Otodom alert emails; empty = the SMTP mailbox over IMAP, owned by the admin
     "MAIL_ALERTS_IMAP_HOST", "MAIL_ALERTS_USERNAME", "MAIL_ALERTS_PASSWORD", "MAIL_ALERTS_OWNER",
     "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO",  # once BILLING_PROVIDER=stripe
+    "REMOTE_PORTALS",  # left to .github/workflows/portal-scan.yml
 )
 
 

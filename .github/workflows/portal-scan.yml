@@ -1,0 +1,67 @@
+name: portal-scan
+
+# Fetches the portals the API on Render cannot reach (REMOTE_PORTALS, today
+# Otodom): Otodom's CloudFront refuses Render's addresses and answers GitHub's
+# runners. Same code, same database, same Telegram bot as the API — only these
+# portals, each search on its own clock (Settings.remote_portals). The API skips
+# them, so nothing is fetched or announced twice.
+#
+# HOW OFTEN THIS ACTUALLY RUNS — not what the cron says. GitHub throttles
+# scheduled workflows on free runners and drops most of them; expect a run
+# every one to two hours, not every ten minutes. Nothing is lost when a run is
+# skipped: the next one picks up every search that is due. The minutes are off
+# :00 on purpose, the busiest moment on GitHub. "Run workflow" is not throttled.
+#
+# Settings come from the same GitHub Secrets the deploy hands to Render.
+# The repository is public, so the log is too: it prints counts, never secrets.
+on:
+  schedule:
+    - cron: "3,13,23,33,43,53 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: portal-scan
+  cancel-in-progress: false   # never cut a run off between "recorded" and "announced"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      REMOTE_PORTALS: ${{ vars.REMOTE_PORTALS || 'otodom' }}
+      CONTROL_DB_URL: ${{ secrets.CONTROL_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        if: env.CONTROL_DB_URL != ''
+
+      - uses: actions/setup-python@v5
+        if: env.CONTROL_DB_URL != ''
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        if: env.CONTROL_DB_URL != ''
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Scan the remote portals
+        if: env.CONTROL_DB_URL != ''
+        working-directory: backend
+        env:
+          APP_ENV: prod
+          CONTROL_DB_TOKEN: ${{ secrets.CONTROL_DB_TOKEN }}
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS || vars.ADMIN_EMAILS }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL || 'https://metravo.pages.dev' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME || vars.TELEGRAM_BOT_USERNAME }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        run: python -m app.cli scan-remote

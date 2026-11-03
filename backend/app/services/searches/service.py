@@ -66,17 +66,18 @@ class SearchService(BaseService):
     def set_enabled_all(self, user: User, enabled: bool) -> None:
         self._repo(user.id).set_enabled_all(enabled)
 
-    def due(self, user: User) -> list[Search]:
+    def due(self, user: User, remote: bool = False) -> list[Search]:
         """Searches whose own interval has elapsed since their last scan.
 
         The plan's floor still applies, so a search saved on Pro every 15 minutes
-        drops back to the Free pace if the subscription ends.
+        drops back to the Free pace if the subscription ends. ``remote`` asks on
+        behalf of the GitHub job, which keeps its own clock per search.
         """
         floor = self._users.plan_of(user).min_interval_minutes
         now = self._clock.now()
         return [
             search for search in self._repo(user.id).all()
-            if search.is_due(now, max(search.interval_minutes, floor))
+            if search.is_due(now, max(search.interval_minutes, floor), remote)
         ]
 
     def owners(self) -> list[str]:
@@ -84,6 +85,9 @@ class SearchService(BaseService):
 
     def mark_scanned(self, user: User, search_id: str, found: int = 0, fit: int = 0, reason: str | None = None) -> None:
         self._repo(user.id).mark_scanned(search_id, self._clock.iso(), found, fit, reason)
+
+    def mark_remote_scanned(self, user: User, search_id: str) -> None:
+        self._repo(user.id).mark_remote_scanned(search_id, self._clock.iso())
 
     def _validate(self, user: User, search: Search) -> None:
         if not search.place.is_valid():

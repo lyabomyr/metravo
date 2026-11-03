@@ -35,8 +35,16 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
 
 - The **API also scans.** `ScanScheduler` runs in a background thread started
   with the app (`SCHEDULER_ENABLED=true`). Each minute it scans the searches
-  whose own interval has elapsed; runs never overlap. GitHub minutes are spent
-  only on CI and deploys.
+  whose own interval has elapsed; runs never overlap.
+- **Otodom is fetched from GitHub.** Otodom's CloudFront refuses Render's
+  addresses and answers GitHub's runners, so `REMOTE_PORTALS=otodom` makes the
+  API skip it and `.github/workflows/portal-scan.yml` run
+  `python -m app.cli scan-remote`: the same `ScanService` against the same
+  database and bot, fetching only those portals. Each search keeps a second
+  clock for it (`remote_scanned_at`), so neither side delays the other; the
+  search card's "last checked" stays the API's unless Otodom is its only
+  portal. GitHub runs the schedule roughly every one to two hours, so Otodom
+  offers arrive at that pace, not every 5 minutes.
 - **Staying awake.** Render's free service sleeps after 15 idle minutes, and a
   sleeping scheduler never fires, so in production the scheduler also requests
   its own `/api/health` every 10 minutes.
@@ -95,7 +103,7 @@ website, Telegram and API errors speak English, Polish, Ukrainian and Russian.
   we have. Each scan stores on the search how many offers the portals
   showed, how many fit and the commonest reason for the rest
   (`last_found`, `last_fit`, `last_reason`); the search card shows it.
-- **OLX and Otodom through their alert emails.** Both block our server
+- **OLX and Otodom through their alert emails.** Both block the API's server
   (CloudFront WAF, 403) and their terms forbid aggregating their listings for
   third parties without written consent, so they are not scraped. Their own
   saved-search emails reach one mailbox (`services/mail_alerts`): every 5

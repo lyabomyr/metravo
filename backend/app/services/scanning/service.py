@@ -26,7 +26,12 @@ FIRST_DELIVERY = 20
 
 
 class ScanService(BaseService):
-    """One scan run across every user whose searches are due."""
+    """One scan run across every user whose searches are due.
+
+    ``remote_portals`` are fetched by a GitHub Actions job instead of the API
+    (Otodom answers GitHub's runners and refuses Render). ``run`` skips them,
+    ``run_remote`` — the job — fetches only them, each on its own clock.
+    """
 
     def __init__(
         self,
@@ -36,6 +41,7 @@ class ScanService(BaseService):
         connectors: ConnectorRegistry,
         notifier: ListingNotifier,
         access: PortalAccess | None = None,
+        remote_portals: frozenset[str] = frozenset(),
     ):
         super().__init__()
         self._users = users
@@ -44,6 +50,7 @@ class ScanService(BaseService):
         self._connectors = connectors
         self._notifier = notifier
         self._access = access
+        self._remote = remote_portals
         # The scheduler and "Scan now" may fire together; one run at a time
         # keeps a listing from being recorded — and announced — twice.
         self._lock = threading.Lock()
@@ -52,11 +59,18 @@ class ScanService(BaseService):
         with self._lock:
             return self._run(only_user_id)
 
+    def run_remote(self) -> ScanReport:
+        """The GitHub job's run: only the remote portals, for searches due on the job's clock."""
+        with self._lock:
+            return self._run(None, remote=True)
+
     def check_portals(self) -> None:
         """One request per portal (flats for sale in Kraków), so the portals' state is known right after a start."""
         query = SearchQuery(place=known_place("krakow"))
         cache = FetchCache(self._access)
         for name in self._connectors.names:
+            if name in self._remote:
+                continue  # the GitHub job's business
             connector = self._connectors.get(name)
             if url := connector.build_url(query):
                 cache.get(connector, url)
@@ -91,7 +105,7 @@ class ScanService(BaseService):
                     sent += self._notifier.notify(user, search, events)
             return sent + report.messages_sent
 
-    def _run(self, only_user_id: str | None) -> ScanReport:
+    def _run(self, only_user_id: str | None, remote: bool = False) -> ScanReport:
         report = ScanReport()
         cache = FetchCache(self._access)
         for user_id in self._searches.owners():
@@ -100,8 +114,8 @@ class ScanService(BaseService):
             user = self._users.get(user_id)
             if not user.active:
                 continue  # the free week is over: nothing is checked or sent
-            for search in self._searches.due(user):
-                self._scan_search(user, search, cache, report)
+            for search in self._searches.due(user, remote):
+                self._scan_search(user, search, cache, report, remote)
         report.fetches = cache.fetches
         if report.searches_scanned:
             self.log.info("scan finished: %s", report)
@@ -120,15 +134,21 @@ class ScanService(BaseService):
                 report.messages_sent += self._notifier.notify(user, search, events)
             return report
 
-    def _scan_search(self, user: User, search: Search, cache: FetchCache, report: ScanReport) -> None:
+    def _sources(self, user: User, search: Search) -> list[str]:
+        """The search's portals that exist and that the user's plan allows."""
         plan = self._users.plan_of(user)
+        return [source for source in search.sources if self._connectors.get(source) is not None and plan.allows_source(source)]
+
+    def _scan_search(self, user: User, search: Search, cache: FetchCache, report: ScanReport, remote: bool = False) -> None:
+        sources = self._sources(user, search)
+        mine = [source for source in sources if (source in self._remote) == remote]
+        if not mine and (remote or sources):
+            return  # every portal of this search is fetched by the other side
         events: list[ListingEvent] = []
         reasons: Counter = Counter()
         seen_before, kept_before = report.listings_seen, report.new_listings + report.price_changes + report.kept
-        for source in search.sources:
+        for source in mine:
             connector = self._connectors.get(source)
-            if connector is None or not plan.allows_source(source):
-                continue
             url = connector.build_url(search.query)
             if url is None:
                 continue  # this portal does not offer e.g. rentals
@@ -139,7 +159,11 @@ class ScanService(BaseService):
         found = report.listings_seen - seen_before
         fit = report.new_listings + report.price_changes + report.kept - kept_before
         top_reason = reasons.most_common(1)[0][0] if reasons else None
-        self._searches.mark_scanned(user, search.id, found, fit, top_reason)
+        if remote:
+            self._searches.mark_remote_scanned(user, search.id)
+        # "Last checked … found N, M fit" belongs to the API's run, unless the job is all there is.
+        if not remote or len(mine) == len(sources):
+            self._searches.mark_scanned(user, search.id, found, fit, top_reason)
         report.searches_scanned += 1
         if events:
             report.messages_sent += self._notifier.notify(user, search, events)

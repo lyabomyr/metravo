@@ -62,6 +62,8 @@ class Search:
     last_found: int | None = None
     last_fit: int | None = None
     last_reason: str | None = None
+    #: When the GitHub job last fetched this search's remote portals (``REMOTE_PORTALS``).
+    remote_scanned_at: str | None = None
 
     @property
     def query(self) -> SearchQuery:
@@ -74,8 +76,9 @@ class Search:
             min_area=self.min_area,
         )
 
-    def is_due(self, now: datetime, interval_minutes: int) -> bool:
+    def is_due(self, now: datetime, interval_minutes: int, remote: bool = False) -> bool:
+        """``remote``: due for the GitHub job's portals, which keep their own clock."""
         if not self.enabled:
             return False
-        last = parse_iso(self.last_scanned_at)
+        last = parse_iso(self.remote_scanned_at if remote else self.last_scanned_at)
         return last is None or now - last >= timedelta(minutes=interval_minutes)

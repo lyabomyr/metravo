@@ -1,5 +1,7 @@
+from dataclasses import replace
 from pathlib import Path
 
+from app.core.container import Container
 from app.services.billing.plans import PRO
 from app.services.connectors.fetchers import PageFetcher
 from app.services.listings.models import EventKind
@@ -149,3 +151,58 @@ def test_a_search_remembers_what_its_last_scan_saw(container, sign_in):
     container.scanner.run()
     saved = container.searches.get(user, search.id)
     assert saved.last_found > 0 and saved.last_fit == 0 and saved.last_reason == "price"
+
+
+def remote_otodom(settings, clock, telegram) -> tuple[Container, Container]:
+    """The API on Render and the GitHub job: two processes, one database, Otodom left to the job."""
+    settings = replace(settings, remote_portals=("otodom",))
+
+    def process() -> Container:
+        return Container(settings, clock=clock, telegram_client=telegram, background=lambda task, *args: task(*args))
+
+    return process(), process()
+
+
+def test_otodom_is_fetched_by_the_github_job_only(settings, clock, telegram):
+    api, job = remote_otodom(settings, clock, telegram)
+    user = api.auth.sign_in("dev", "anna@example.com").user
+    api.searches.create(user, make_search())
+
+    report = api.scanner.run()
+    assert report.fetches == 2  # olx, morizon
+    assert not any(item.key.startswith("otodom:") for item in api.listings.latest(user))
+
+    report = job.scanner.run_remote()
+    assert report.fetches == 1 and report.searches_scanned == 1
+    assert "otodom:101" in {item.key for item in job.listings.latest(user)}
+
+
+def test_the_api_and_the_job_keep_separate_clocks(settings, clock, telegram):
+    api, job = remote_otodom(settings, clock, telegram)
+    user = api.auth.sign_in("dev", "anna@example.com").user
+    search = api.searches.create(user, make_search())
+    api.scanner.run()
+    after_api = api.searches.get(user, search.id)
+
+    # The API's run does not make the job wait a day, and the job's does not delay the API.
+    assert job.scanner.run_remote().searches_scanned == 1
+    assert api.scanner.run().searches_scanned == 0 and job.scanner.run_remote().searches_scanned == 0
+    # "Last checked" and its numbers stay the API's: the search has portals there too.
+    after_job = api.searches.get(user, search.id)
+    assert (after_job.last_scanned_at, after_job.last_found) == (after_api.last_scanned_at, after_api.last_found)
+
+    clock.advance(hours=24)
+    assert api.scanner.run().searches_scanned == 1 and job.scanner.run_remote().searches_scanned == 1
+
+
+def test_a_search_on_otodom_alone_is_the_jobs_entirely(settings, clock, telegram):
+    api, job = remote_otodom(settings, clock, telegram)
+    user = api.auth.sign_in("dev", "anna@example.com").user
+    search = api.searches.create(user, make_search(sources=["otodom"]))
+
+    assert api.scanner.run().searches_scanned == 0  # nothing to fetch, and no "found 0" either
+    assert api.searches.get(user, search.id).last_scanned_at is None
+
+    job.scanner.run_remote()
+    saved = api.searches.get(user, search.id)
+    assert saved.last_scanned_at and saved.last_found > 0 and saved.last_fit > 0

@@ -226,7 +226,7 @@ frontend/                Angular — app/core (base classes, i18n, UI) + app/fea
 e2e/                     Cypress specs + TEST_CASES.md
 infra/terraform/         OpenTofu: Pages project, uptime Worker
 infra/worker/            the uptime Worker's code and tests
-.github/workflows/       ci · deploy
+.github/workflows/       ci · deploy · portal-scan (Otodom, which refuses Render)
 .github/scripts/         deploy.py (secrets → Render) · tfstate.sh (encrypted state)
 render.yaml              the API service on Render
 docs/                    SETUP (step by step) · ARCHITECTURE · CODING_STANDARD
@@ -248,6 +248,7 @@ AGENTS.md                rules for AI agents working here
 | A deploy is red at "Check production end to end" | The line with ✗ says what does not work; the app is deployed, so fix that and run deploy again |
 | "Infrastructure (OpenTofu)" was skipped | `TF_STATE_PASSPHRASE` or `CLOUDFLARE_API_TOKEN` is missing |
 | No admin alerts | Your email must be in `ADMIN_EMAILS` **and** your account must have Telegram connected |
+| Otodom offers are late | Otodom refuses Render, so `.github/workflows/portal-scan.yml` fetches it (`REMOTE_PORTALS`). GitHub runs that schedule about every one to two hours; Actions → portal-scan → Run workflow fetches now |
 | OLX finds nothing | OLX's edge (CloudFront) refuses data-centre addresses with 403, before any page. The scanner pauses a refusing portal (30 min, doubling up to 6 h), probes it once, and resumes by itself when let in; `/api/config` → `portal_status` and the deploy's last step show each portal's state. Retries with backoff are for temporary errors (429, 5xx) only; we do not use proxies or IP rotation |
 | `email_sending: error (mail host unreachable)` | Render's free instances block outgoing SMTP (ports 25, 465, 587), so email cannot be sent from there; Telegram is unaffected. Reading mail over IMAP (993) works |
 | `mail_alerts: error (wrong username or password)` | Gmail refused `SMTP_USERNAME` / `SMTP_PASSWORD`: the address must be the full Gmail address and the password a Google **app password** (myaccount.google.com/apppasswords), not the account password. Update `SMTP_PASSWORD` and run deploy |

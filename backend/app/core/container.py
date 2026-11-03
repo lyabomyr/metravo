@@ -127,7 +127,10 @@ class Container:
         self.notifications = NotificationService(notification_repo, self.users, self.clock, live)
         self.notifier = FanOutNotifier(self.notifications, senders)
         self.portal_access = PortalAccess(self.clock)
-        self.scanner = ScanService(self.users, self.searches, self.listings, self.connectors, self.notifier, self.portal_access)
+        self.scanner = ScanService(
+            self.users, self.searches, self.listings, self.connectors, self.notifier, self.portal_access,
+            remote_portals=frozenset(settings.remote_portals),
+        )
         self.mail_alerts = self._mail_alerts()
         self.admin = AdminService(self.users, self.telegram_links)
         self.recent_logs = RecentLogs()

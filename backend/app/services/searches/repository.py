@@ -57,6 +57,8 @@ class SearchRepository(OwnedRepository):
         ("searches", "last_found", "INTEGER"),
         ("searches", "last_fit", "INTEGER"),
         ("searches", "last_reason", "TEXT"),
+        # The GitHub job fetches some portals on its own clock (see Settings.remote_portals).
+        ("searches", "remote_scanned_at", "TEXT"),
     )
 
     _COLUMNS = (
@@ -98,6 +100,9 @@ class SearchRepository(OwnedRepository):
                WHERE id = ? AND user_id = ?""",
             (at, found, fit, reason, search_id, self.user_id),
         )
+
+    def mark_remote_scanned(self, search_id: str, at: str) -> None:
+        self._exec("UPDATE searches SET remote_scanned_at = ? WHERE id = ? AND user_id = ?", (at, search_id, self.user_id))
 
     def set_enabled_all(self, enabled: bool) -> None:
         self._exec("UPDATE searches SET enabled = ? WHERE user_id = ?", (int(enabled), self.user_id))
